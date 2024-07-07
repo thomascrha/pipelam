@@ -3,17 +3,20 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 int main(int argc, char *argv[]) {
 
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <pipe_path>\n", argv[0]);
+        fprintf(stderr, "ERROR: Usage: %s <pipe_path>\n", argv[0]);
         return EXIT_FAILURE;
     };
 
     char *pipe_path = argv[1];
 
-    if (access(pipe_path, F_OK) == 1) {
+    fprintf(stdout, "INFO: pipe_path: %s\n", access(pipe_path, F_OK) ? "does not exist" : "exists");
+
+    if (access(pipe_path, F_OK) == false) {
         // create a named pipe if it does not exist
         mkfifo(pipe_path, 0666);
     }
@@ -30,16 +33,8 @@ int main(int argc, char *argv[]) {
         fscanf(pipe_fd, "%d", &integer);
         fclose(pipe_fd);
 
-        if (integer == 0) {
-            break;
-        }
-
         printf("Received integer: %d\n", integer);
     }
 
-    // print the integer to the console
-
-
-    printf("Hello, World!\n");
     return EXIT_SUCCESS;
 }
