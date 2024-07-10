@@ -16,9 +16,11 @@
 
 #define BUFFER_SIZE 2048
 #define WINDOW_TIMEOUT 800
+#define LOG_LEVEL LOG_INFO
 
-extern int buffer_size;
-extern int log_level;
-extern int window_timeout;
+extern int bow_config_buffer_size;
+extern int bow_config_log_level;
+extern int bow_config_window_timeout;
 
+void bow_setup_config(void);
 #endif // CONFIG_H

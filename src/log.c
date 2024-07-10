@@ -22,8 +22,8 @@ static const char *verbosity_names[] = {
 	"PANIC",
 };
 
-static char* get_level_colour(int importance) {
-	switch (importance) {
+static char* get_level_colour(int log_level) {
+	switch (log_level) {
 		case LOG_DEBUG:
 			return BLUE;
 		case LOG_INFO:
@@ -39,8 +39,8 @@ static char* get_level_colour(int importance) {
 	}
 }
 
-void bow_log_message(int importance, const char *file, int line, ...) {
-	if (importance < log_level) {
+void bow_log_message(int log_level, const char *file, int line, ...) {
+	if (bow_config_log_level < log_level) {
 		return;
 	}
 
@@ -59,7 +59,7 @@ void bow_log_message(int importance, const char *file, int line, ...) {
 
 	// colour the importance level
 	char importance_coloured[20];
-	sprintf(importance_coloured, "%s%s%s", get_level_colour(importance), verbosity_names[importance], RESET);
+	sprintf(importance_coloured, "%s%s%s", get_level_colour(log_level), verbosity_names[log_level], RESET);
 
 	// print the message minus the actual message
     fprintf(stderr, "%s %s %s:%d: ", datetime, importance_coloured, file, line);
@@ -72,18 +72,3 @@ void bow_log_message(int importance, const char *file, int line, ...) {
 	fprintf(stderr, "\n");
 }
 
-void bow_log_level_set_from_string(const char *log_level) {
-	if (strcmp(log_level, "DEBUG") == 0) {
-		bow_log_level_set(LOG_DEBUG);
-	} else if (strcmp(log_level, "INFO") == 0) {
-		bow_log_level_set(LOG_INFO);
-	} else if (strcmp(log_level, "WARNING") == 0) {
-		bow_log_level_set(LOG_WARNING);
-	} else if (strcmp(log_level, "ERROR") == 0) {
-		bow_log_level_set(LOG_ERROR);
-	} else if (strcmp(log_level, "PANIC") == 0) {
-		bow_log_level_set(LOG_PANIC);
-	} else {
-		bow_log_error("Unknown log level: %s", log_level);
-	}
-}

@@ -11,19 +11,12 @@
 
 
 int main(int argc, char *argv[]) {
-	const char *log_level = getenv("BOW_LOG_LEVEL");
-	if (log_level == NULL) {
-		log_level = "INFO";
-	}
+	bow_setup_config();
 
-	const char *buffer_size_env = getenv("BOW_BUFFER_SIZE");
-	if (buffer_size_env != NULL) {
-		printf("buffer_size_env: %s\n", buffer_size_env);
-		buffer_size = atoi(buffer_size_env);
-	}
-
-	bow_log_level_set_from_string(log_level);
-	bow_log_info("Starting bow with log level %s buffer size %d", log_level, buffer_size);
+	// bow_log_level_set_from_string(log_level);
+	bow_log_info("Starting bow with log level %s buffer size %d", bow_config_log_level, bow_config_buffer_size);
+	bow_log_info("Starting bow with log level %s buffer size %d", bow_config_log_level, bow_config_buffer_size);
+	bow_log_info("Starting bow with log level %s buffer size %d", bow_config_log_level, bow_config_buffer_size);
 
 	if (argc != 2) {
 		bow_log_panic("Usage: %s <pipe_path>", argv[0]);
@@ -42,8 +35,8 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		char volume_expression[buffer_size];
-		if (fgets(volume_expression, buffer_size, pipe_fd) == NULL) {
+		char volume_expression[bow_config_buffer_size];
+		if (fgets(volume_expression, bow_config_buffer_size, pipe_fd) == NULL) {
 			bow_log_error("Input is larger than buffer size");
 			continue;
 		}
