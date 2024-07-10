@@ -11,8 +11,8 @@
 #include <unistd.h>
 
 #include "log.h"
+#include "config.h"
 
-static int current_log_level = LOG_INFO;
 
 static const char *verbosity_names[] = {
 	"DEBUG",
@@ -40,7 +40,7 @@ static char* get_level_colour(int importance) {
 }
 
 void bow_log_message(int importance, const char *file, int line, ...) {
-	if (importance < current_log_level) {
+	if (importance < log_level) {
 		return;
 	}
 
@@ -72,7 +72,18 @@ void bow_log_message(int importance, const char *file, int line, ...) {
 	fprintf(stderr, "\n");
 }
 
-void bow_log_set_level(int importance) {
-	current_log_level = importance;
+void bow_log_level_set_from_string(const char *log_level) {
+	if (strcmp(log_level, "DEBUG") == 0) {
+		bow_log_level_set(LOG_DEBUG);
+	} else if (strcmp(log_level, "INFO") == 0) {
+		bow_log_level_set(LOG_INFO);
+	} else if (strcmp(log_level, "WARNING") == 0) {
+		bow_log_level_set(LOG_WARNING);
+	} else if (strcmp(log_level, "ERROR") == 0) {
+		bow_log_level_set(LOG_ERROR);
+	} else if (strcmp(log_level, "PANIC") == 0) {
+		bow_log_level_set(LOG_PANIC);
+	} else {
+		bow_log_error("Unknown log level: %s", log_level);
+	}
 }
-
