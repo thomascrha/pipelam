@@ -3,6 +3,7 @@
 
 #include "config.h"
 
+void bow_log_level_set(int log_level);
 void bow_log_message(int log_level, const char *file, int line, ...);
 
 #define bow_log_debug(...) bow_log_message(LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)

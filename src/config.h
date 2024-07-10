@@ -14,13 +14,13 @@
 #define BLUE "\033[0;34m"
 #define RESET "\033[0m"
 
-#define BUFFER_SIZE 2048
-#define WINDOW_TIMEOUT 800
-#define LOG_LEVEL LOG_INFO
+struct bow_config {
+	int buffer_size;
+	int log_level;
+	int window_timeout;
+};
 
-extern int bow_config_buffer_size;
-extern int bow_config_log_level;
-extern int bow_config_window_timeout;
+struct bow_config* bow_setup_config(void);
+void bow_destroy_config(struct bow_config *config);
 
-void bow_setup_config(void);
 #endif // CONFIG_H
