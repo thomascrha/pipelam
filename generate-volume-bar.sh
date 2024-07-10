@@ -6,7 +6,7 @@ n=$1
 output="|"
 # Generate the string
 for (( i=1; i<=100; i++ )); do
-    if [ $i -eq $n ]; then
+    if [[ $i -eq $n ]]; then
         output+="▉"
     else
         output+=" "
@@ -16,4 +16,5 @@ done
 output+="|"
 
 # Now you can use the variable $output
-echo "<span foreground='black' size='x-large'>$output $1%</span>"
+# echo $output
+echo "<span foreground='black' size='x-large'>$output</span>"

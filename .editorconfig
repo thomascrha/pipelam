@@ -6,7 +6,7 @@ insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
 
-[*.{c,h,txt}]
+[*.{c,h,txt,sh}]
 indent_style = tab
 indent_size = 4
 

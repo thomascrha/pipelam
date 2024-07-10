@@ -6,14 +6,15 @@
 #include <stdbool.h>
 
 #include "window.h"
+#include "log.h"
 
 #define BUFFER_SIZE 2048
 
 int main(int argc, char *argv[]) {
+	bow_log_info("Starting bow");
 
 	if (argc != 2) {
-		fprintf(stderr, "ERROR: Usage: %s <pipe_path>\n", argv[0]);
-		return EXIT_FAILURE;
+		bow_log_panic("Usage: %s <pipe_path>", argv[0]);
 	};
 
 	char *pipe_path = argv[1];
@@ -29,20 +30,20 @@ int main(int argc, char *argv[]) {
 			return EXIT_FAILURE;
 		}
 
-		char str[BUFFER_SIZE];
-		if (fgets(str, BUFFER_SIZE, pipe_fd) == NULL) {
-			fprintf(stderr, "ERROR: Input is larger than buffer size\n");
+		char volume_expression[BUFFER_SIZE];
+		if (fgets(volume_expression, BUFFER_SIZE, pipe_fd) == NULL) {
+			bow_log_error("Input is larger than buffer size");
 			continue;
 		}
 		fclose(pipe_fd);
 
-		fprintf(stdout, "INFO: Received string: %s\n", str);
+		bow_log_info("Received string: %s", volume_expression);
 
-		// int code = bow_create_run_window();
-		// if (code != 0) {
-		// 	fprintf(stderr, "ERROR: bow_create_run_window() returned %d\n", code);
-		// 	return EXIT_FAILURE;
-		// }
+		int code = bow_create_run_window(volume_expression);
+		if (code != 0) {
+			bow_log_panic("bow_create_run_window() returned %d", code);
+			return EXIT_FAILURE;
+		}
 
 	}
 

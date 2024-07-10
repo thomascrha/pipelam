@@ -26,5 +26,5 @@ set -xe
 CFLAGS="-Wall -Wextra -Werror -pedantic -std=c11"
 CC=clang
 
-$CC $CFLAGS $(pkg-config --cflags gtk4-layer-shell-0) $(pkg-config --cflags gtk4) -o bow src/main.c src/window.c $(pkg-config --libs gtk4-layer-shell-0) $(pkg-config --libs gtk4)
+$CC $CFLAGS $(pkg-config --cflags gtk4-layer-shell-0) $(pkg-config --cflags gtk4) -o bow src/main.c src/window.c src/log.c $(pkg-config --libs gtk4-layer-shell-0) $(pkg-config --libs gtk4)
 

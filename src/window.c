@@ -2,10 +2,21 @@
 #include "gtk4-layer-shell.h"
 #include <gtk/gtk.h>
 
+struct data {
+	GtkApplication *app;
+	char *volume_expression;
+};
 
-static void bow_render_window(GtkApplication* app, char *volume_expression) {
+// static void bow_render_window(GtkApplication* app, char *volume_expression) {
+static void bow_render_window(struct data *data) {
 	// Create a normal GTK window however you like
-	GtkWindow *gtk_window = GTK_WINDOW(gtk_application_window_new (app));
+	fprintf(stdout, "DEBUG: Creating window\n");
+	fprintf(stdout, "DEBUG: data->volume_expression: %s\n", data->volume_expression);
+	GtkWindow *gtk_window = GTK_WINDOW(gtk_application_window_new (data->app));
+	if (gtk_window == NULL) {
+		fprintf(stderr, "ERROR: gtk_application_window_new() returned NULL\n");
+		return;
+	}
 
 	// Before the window is first realized, set it up to be a layer surface
 	gtk_layer_init_for_window(gtk_window);
@@ -18,13 +29,16 @@ static void bow_render_window(GtkApplication* app, char *volume_expression) {
 
 	// Set up a widget
 	GtkWidget *label = gtk_label_new(NULL);
+	if (label == NULL) {
+		fprintf(stderr, "ERROR: gtk_label_new() returned NULL\n");
+		return;
+	}
 
 	// print len of volume_expression
-	printf("len of volume_expression: %lu\n", strlen(volume_expression));
 
-
+	printf("len of volume_expression: %lu\n", strlen(data->volume_expression));
 	// combine markup and border
-	gtk_label_set_markup(GTK_LABEL(label), volume_expression);
+	gtk_label_set_markup(GTK_LABEL(label), data->volume_expression);
 	gtk_window_set_child(gtk_window, label);
 
 	gtk_window_present(gtk_window);
@@ -35,10 +49,12 @@ static void bow_render_window(GtkApplication* app, char *volume_expression) {
 }
 
 int bow_create_run_window(char *volume_expression) {
-	GtkApplication *app = gtk_application_new("com.github.wmww.gtk4-layer-shell.example", G_APPLICATION_FLAGS_NONE);
-	g_signal_connect(app, "activate", G_CALLBACK(bow_render_window), NULL);
-	int status = g_application_run(G_APPLICATION(app), *volume_expression, NULL);
-	printf("Exiting with status %d\n", status);
-	g_object_unref(app);
-	return status;
+	fprintf(stdout, "INFO: Received string: %s\n", volume_expression);
+    GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_FLAGS_NONE);
+    struct data *data = g_new(struct data, 1);
+    data->app = app;
+    data->volume_expression = volume_expression;
+    g_signal_connect_data(app, "activate", G_CALLBACK(bow_render_window), data, (GClosureNotify)free, 0);
+    return g_application_run(G_APPLICATION(app), 0, NULL);
 }
+
