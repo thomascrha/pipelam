@@ -17,8 +17,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    bow_log_info("Starting bow with log level %d buffer size %d",
-                 bow_config->log_level, bow_config->buffer_size);
+    bow_log_info("Starting bow with log level %d buffer size %d", bow_config->log_level, bow_config->buffer_size);
 
     if (argc != 2) {
         bow_log_panic("Usage: %s <pipe_path>", argv[0]);
@@ -39,8 +38,7 @@ int main(int argc, char *argv[]) {
         }
 
         char volume_expression[bow_config->buffer_size];
-        if (fgets(volume_expression, bow_config->buffer_size, pipe_fd) ==
-            NULL) {
+        if (fgets(volume_expression, bow_config->buffer_size, pipe_fd) == NULL) {
             bow_log_error("Input is larger than buffer size");
             continue;
         }
@@ -51,10 +49,10 @@ int main(int argc, char *argv[]) {
             volume_expression[strlen(volume_expression) - 1] = '\0';
         }
 
-        bow_log_info("Received string: %s", volume_expression);
+        bow_log_info("Received string");
+        bow_log_debug("%s", volume_expression);
 
-        int code = bow_create_run_window(volume_expression,
-                                         bow_config->window_timeout);
+        int code = bow_create_run_window(volume_expression, bow_config->window_timeout);
         if (code != 0) {
             bow_log_error("bow_create_run_window() returned %d", code);
             bow_destroy_config(bow_config);

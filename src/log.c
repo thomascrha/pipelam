@@ -35,7 +35,7 @@ static char *get_level_colour(int log_level) {
 void bow_log_level_set(int log_level) { current_log_level = log_level; }
 
 void bow_log_message(int log_level, const char *file, int line, ...) {
-    if (current_log_level < log_level) {
+    if (current_log_level > log_level) {
         return;
     }
 
@@ -54,8 +54,7 @@ void bow_log_message(int log_level, const char *file, int line, ...) {
 
     // colour the importance level
     char importance_coloured[20];
-    sprintf(importance_coloured, "%s%s%s", get_level_colour(log_level),
-            verbosity_names[log_level], RESET);
+    sprintf(importance_coloured, "%s%s%s", get_level_colour(log_level), verbosity_names[log_level], RESET);
 
     // print the message minus the actual message
     fprintf(stderr, "%s %s %s:%d: ", datetime, importance_coloured, file, line);

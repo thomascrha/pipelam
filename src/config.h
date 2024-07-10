@@ -22,5 +22,6 @@ struct bow_config {
 
 struct bow_config* bow_setup_config(void);
 void bow_destroy_config(struct bow_config *config);
+int bow_log_level_set_from_string(const char *log_level);
 
 #endif // CONFIG_H
