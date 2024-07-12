@@ -59,7 +59,7 @@ void bow_log_message(int log_level, const char *file, int line, ...) {
     // print the message minus the actual message
     fprintf(stderr, "%s %s %s:%d: ", datetime, importance_coloured, file, line);
 
-    // unpack the variadic arguments and print the message
+    // unpack the variadic arguments and print the message generally supplied
     va_list args;
     va_start(args, line);
     vfprintf(stderr, va_arg(args, const char *), args);

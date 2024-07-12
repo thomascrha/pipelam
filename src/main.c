@@ -44,15 +44,11 @@ int main(int argc, char *argv[]) {
         }
         fclose(pipe_fd);
 
-        // Remove trailing newline if it exists
-        if (volume_expression[strlen(volume_expression) - 1] == '\n') {
-            volume_expression[strlen(volume_expression) - 1] = '\0';
-        }
-
         bow_log_info("Received string");
         bow_log_debug("%s", volume_expression);
 
         int code = bow_create_run_window(volume_expression, bow_config->window_timeout);
+
         if (code != 0) {
             bow_log_error("bow_create_run_window() returned %d", code);
             bow_destroy_config(bow_config);

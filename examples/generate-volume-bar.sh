@@ -17,4 +17,5 @@ output+="|"
 
 # Now you can use the variable $output
 # echo $output
-echo "<span foreground='black' size='x-large'>$output</span>"
+echo "<span font_desc='Sans 24' foreground='black'>Hello, world!</span>\n<span font_desc='Sans 24' foreground='black'>Hello, world!</span>"
+# echo "<span foreground='white' background='black' size='500%'></span>\n<span foreground='white' background='black' size='200%'>$output</span>"

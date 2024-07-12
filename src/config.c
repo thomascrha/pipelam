@@ -8,6 +8,7 @@
 #include "log.h"
 
 int bow_log_level_set_from_string(const char *log_level) {
+    bow_log_debug("bow_log_level_set_from_string() called");
     if (strcmp(log_level, "DEBUG") == 0) {
         bow_log_level_set(LOG_DEBUG);
         return LOG_DEBUG;
@@ -29,18 +30,22 @@ int bow_log_level_set_from_string(const char *log_level) {
     return LOG_INFO;
 }
 
-void bow_destroy_config(struct bow_config *config) { free(config); }
+void bow_destroy_config(struct bow_config *config) {
+    bow_log_debug("bow_destroy_config() called");
+    free(config);
+}
 
 struct bow_config *bow_setup_config(void) {
+    bow_log_debug("bow_setup_config() called");
     struct bow_config *config = malloc(sizeof(struct bow_config));
     if (config == NULL) {
         bow_log_error("Failed to allocate memory for bow_config");
         return NULL;
     }
 
-    config->buffer_size = 2048;
-    config->log_level = 1;
-    config->window_timeout = 600;
+    config->buffer_size = BOW_BUFFER_SIZE;
+    config->log_level = BOW_LOG_LEVEL;
+    config->window_timeout = BOW_WINDOW_TIMEOUT;
 
     const char *log_level_env = getenv("BOW_LOG_LEVEL");
     if (log_level_env == NULL) {
