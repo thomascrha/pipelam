@@ -8,7 +8,7 @@
 #include "log.h"
 
 int bow_log_level_set_from_string(const char *log_level) {
-    bow_log_debug("bow_log_level_set_from_string() called");
+    bow_log_info("bow_log_level_set_from_string() called with log_level: %s", log_level);
     if (strcmp(log_level, "DEBUG") == 0) {
         bow_log_level_set(LOG_DEBUG);
         return LOG_DEBUG;

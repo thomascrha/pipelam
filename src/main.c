@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
         }
 
         char volume_expression[bow_config->buffer_size];
+        bow_log_info("Waiting for string");
         if (fgets(volume_expression, bow_config->buffer_size, pipe_fd) == NULL) {
             bow_log_error("Input is larger than buffer size");
             continue;

@@ -14,7 +14,7 @@
 #define BLUE "\033[0;34m"
 #define RESET "\033[0m"
 
-#define BOW_BUFFER_SIZE 2048
+#define BOW_BUFFER_SIZE 4096
 #define BOW_LOG_LEVEL LOG_INFO
 #define BOW_WINDOW_TIMEOUT 600
 

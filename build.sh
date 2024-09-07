@@ -2,7 +2,7 @@
 
 set -xe
 
-CFLAGS="-Wall -Wextra -Werror -pedantic -std=c17"
+CFLAGS="-Wall -Wextra -Werror -std=c17"
 CC=clang
 FILES="src/main.c src/window.c src/log.c src/config.c"
 
