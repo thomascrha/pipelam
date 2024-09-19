@@ -5,7 +5,7 @@
 #include "json.h"
 
 int main(void) {
-    const char json[] = "{\"type\" : \"text\", \"expresion\" : \"/some/path/to/a/file\", \"cofig\" : \"config_value\", \"description\" : \"description_value\"}";
+    const char json[] = "{\"type\" : \"text\", \"expresion\" : \"/some/path/to/a/file\", \"config\" : \"config_value\", \"description\" : \"description_value\"}";
     struct json_value_s* root = json_parse(json, strlen(json));
 
     struct json_object_s* object = json_value_as_object(root);
