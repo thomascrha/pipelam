@@ -14,10 +14,6 @@
 #define BLUE "\033[0;34m"
 #define RESET "\033[0m"
 
-#define BOW_BUFFER_SIZE 4096
-#define BOW_LOG_LEVEL LOG_INFO
-#define BOW_WINDOW_TIMEOUT 600
-
 struct bow_config {
 	int buffer_size;
 	int log_level;
@@ -26,6 +22,5 @@ struct bow_config {
 
 struct bow_config* bow_setup_config(void);
 void bow_destroy_config(struct bow_config *config);
-int bow_log_level_set_from_string(const char *log_level);
 
 #endif // CONFIG_H

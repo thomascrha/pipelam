@@ -35,7 +35,7 @@ static char *get_level_colour(int log_level) {
 void bow_log_level_set(int log_level) { current_log_level = log_level; }
 
 void bow_log_message(int log_level, const char *file, int line, ...) {
-    if (current_log_level > log_level) {
+    if (current_log_level < log_level) {
         return;
     }
 
@@ -59,7 +59,7 @@ void bow_log_message(int log_level, const char *file, int line, ...) {
     // print the message minus the actual message
     fprintf(stderr, "%s %s %s:%d: ", datetime, importance_coloured, file, line);
 
-    // unpack the variadic arguments and print the message generally supplied
+    // unpack the variadic arguments and print the message
     va_list args;
     va_start(args, line);
     vfprintf(stderr, va_arg(args, const char *), args);
