@@ -59,7 +59,7 @@ static void bow_render_window(GtkApplication *app, gpointer data) {
 int bow_create_run_window(char *volume_expression, int window_timeout) {
     bow_log_info("Received string: %s", volume_expression);
     GtkApplication *app =
-        gtk_application_new("com.github.wmww.bow", G_APPLICATION_FLAGS_NONE);
+        gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
     gpointer data = g_new(struct data, 1);
     ((struct data *)data)->volume_expression = volume_expression;
     ((struct data *)data)->window_timeout = window_timeout;

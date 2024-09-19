@@ -23,7 +23,7 @@ static void bow_log_level_set_from_string(const char *log_level) {
     }
 }
 
-void destroy_bow_config(struct bow_config *config) { free(config); }
+void bow_destroy_config(struct bow_config *config) { free(config); }
 
 struct bow_config *bow_setup_config(void) {
     struct bow_config *config = malloc(sizeof(struct bow_config));
