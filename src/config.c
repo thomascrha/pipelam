@@ -32,9 +32,20 @@ struct bow_config *bow_setup_config(void) {
         return NULL;
     }
 
+    // Only set at startup
     config->buffer_size = 2048;
     config->log_level = 1;
+
+    // Only set at startup or at runtime
     config->window_timeout = 600;
+
+    // can be set at runtime
+    config->volume_expression = NULL;
+    config->anchor = CENTER;
+    config->margin_left = 0;
+    config->margin_right = 0;
+    config->margin_top = 0;
+    config->margin_bottom = 0;
 
     const char *log_level_env = getenv("BOW_LOG_LEVEL");
     if (log_level_env == NULL) {
