@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 
 #include "config.h"
+#include "glib.h"
 #include "gtk4-layer-shell.h"
 #include "log.h"
 
@@ -15,6 +16,8 @@ static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
     anchors[1] = FALSE;
     anchors[2] = FALSE;
     anchors[3] = FALSE; // Initialize with default values
+
+    bow_log_debug("current anchor: %d", anchor);
 
     if (anchor == BOTTOM_LEFT) {
         anchors[0] = TRUE;
@@ -38,11 +41,11 @@ static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
     return anchors;
 }
 
-static void bow_render_window(GtkApplication *app, gpointer data) {
+static void bow_render_window(GtkApplication *app, gpointer bow_config) {
     bow_log_info("Creating window");
-    bow_log_info("Received string: %s", ((struct bow_config *)data)->volume_expression);
+    bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->volume_expression);
 
-    if (((struct bow_config *)data)->volume_expression == NULL) {
+    if (((struct bow_config *)bow_config)->volume_expression == NULL) {
         bow_log_error("data is NULL");
         return;
     }
@@ -63,18 +66,20 @@ static void bow_render_window(GtkApplication *app, gpointer data) {
     gtk_layer_auto_exclusive_zone_enable(gtk_window);
 
     // Set margins
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, ((struct bow_config *)data)->margin_left);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, ((struct bow_config *)data)->margin_right);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, ((struct bow_config *)data)->margin_top);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, ((struct bow_config *)data)->margin_bottom);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, ((struct bow_config *)bow_config)->margin_left);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, ((struct bow_config *)bow_config)->margin_right);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, ((struct bow_config *)bow_config)->margin_top);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, ((struct bow_config *)bow_config)->margin_bottom);
 
     // Set anchors
-    gboolean *anchors = bow_get_anchor(((struct bow_config *)data)->anchor);
-    for (int i = 0; i < GTK_LAYER_SHELL_EDGE_ENTRY_NUMBER; i++) {
+    gboolean *anchors = bow_get_anchor(((struct bow_config *)bow_config)->anchor);
+    // current anchor print out value of enum
+    // bow_log_debug("current anchor: %d", data->anchor);
+    for (int i = 0; i < 4; i++) {
+        bow_log_debug("anchors[%d]: %d", i, anchors[i]);
         gtk_layer_set_anchor(gtk_window, i, anchors[i]);
     }
-    free(anchors);
-
+    //
     // Set up a widget
     GtkWidget *label = gtk_label_new(NULL);
     if (label == NULL) {
@@ -83,27 +88,25 @@ static void bow_render_window(GtkApplication *app, gpointer data) {
     }
 
     // print len of volume_expression
-    bow_log_debug("len of volume_expression: %lu", strlen(((struct bow_config *)data)->volume_expression));
+    bow_log_info("len of volume_expression: %lu", strlen(((struct bow_config *)bow_config)->volume_expression));
+    bow_log_info("volume_expression: %s", ((struct bow_config *)bow_config)->volume_expression);
 
     // combine markup and border
-    gtk_label_set_markup(GTK_LABEL(label), ((struct bow_config *)data)->volume_expression);
+    gtk_label_set_markup(GTK_LABEL(label), ((struct bow_config *)bow_config)->volume_expression);
     gtk_window_set_child(gtk_window, label);
 
+    bow_log_debug("window_timeout: %d", ((struct bow_config *)bow_config)->window_timeout);
+    g_timeout_add(((struct bow_config *)bow_config)->window_timeout, (GSourceFunc)gtk_window_close, gtk_window);
     gtk_window_present(gtk_window);
 
-    bow_log_debug("window_timeout: %d", ((struct bow_config *)data)->window_timeout);
-    g_timeout_add(((struct bow_config *)data)->window_timeout, (GSourceFunc)gtk_window_close, gtk_window);
+    g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
 }
 
-int bow_create_run_window(char *volume_expression, int window_timeout) {
-    bow_log_info("Received string: %s", volume_expression);
+int bow_create_run_window(gpointer bow_config) {
+    // bow_log_info("Received string: %s", volume_expression);
     GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
-    gpointer data = g_new(struct bow_config, 1);
-    ((struct bow_config *)data)->volume_expression = volume_expression;
-    ((struct bow_config *)data)->window_timeout = window_timeout;
-    g_signal_connect(app, "activate", G_CALLBACK(bow_render_window), data);
+    g_signal_connect(app, "activate", G_CALLBACK(bow_render_window), bow_config);
     int status = g_application_run(G_APPLICATION(app), 0, NULL);
     g_object_unref(app);
-    g_free(data);
     return status;
 }

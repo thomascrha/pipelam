@@ -6,18 +6,20 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "glib.h"
 #include "log.h"
 #include "window.h"
 
 int main(int argc, char *argv[]) {
-    struct bow_config *bow_config = bow_setup_config();
+    gpointer bow_config = bow_setup_config();
     if (bow_config == NULL) {
         bow_log_error("Failed to setup bow config");
         bow_destroy_config(bow_config);
         return EXIT_FAILURE;
     }
 
-    bow_log_info("Starting bow with log level %d buffer size %d", bow_config->log_level, bow_config->buffer_size);
+    bow_log_info("soehting");
+    bow_log_info("Starting bow with log level %d buffer size %d", ((struct bow_config *)bow_config)->log_level, ((struct bow_config *)bow_config)->buffer_size);
 
     if (argc != 2) {
         bow_log_panic("Usage: %s <pipe_path>", argv[0]);
@@ -33,25 +35,22 @@ int main(int argc, char *argv[]) {
         FILE *pipe_fd = fopen(pipe_path, "r");
         if (pipe_fd == NULL) {
             perror("fopen");
+            bow_log_error("Failed to open pipe");
             bow_destroy_config(bow_config);
             return EXIT_FAILURE;
         }
 
-        char volume_expression[bow_config->buffer_size];
-        if (fgets(volume_expression, bow_config->buffer_size, pipe_fd) == NULL) {
+        char volume_expression[((struct bow_config *)bow_config)->buffer_size];
+        if (fgets(volume_expression, ((struct bow_config *)bow_config)->buffer_size, pipe_fd) == NULL) {
             bow_log_error("Input is larger than buffer size");
             continue;
         }
         fclose(pipe_fd);
 
-        // Remove trailing newline if it exists
-        if (volume_expression[strlen(volume_expression) - 1] == '\n') {
-            volume_expression[strlen(volume_expression) - 1] = '\0';
-        }
-
         bow_log_info("Received string: %s", volume_expression);
+        ((struct bow_config *)bow_config)->volume_expression = volume_expression;
 
-        int code = bow_create_run_window(volume_expression, bow_config->window_timeout);
+        int code = bow_create_run_window(bow_config);
         if (code != 0) {
             bow_log_error("bow_create_run_window() returned %d", code);
             bow_destroy_config(bow_config);

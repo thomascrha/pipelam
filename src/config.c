@@ -1,4 +1,5 @@
 #include "config.h"
+#include <gtk/gtk.h>
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -25,27 +26,25 @@ static void bow_log_level_set_from_string(const char *log_level) {
 
 void bow_destroy_config(struct bow_config *config) { free(config); }
 
-struct bow_config *bow_setup_config(void) {
-    struct bow_config *config = malloc(sizeof(struct bow_config));
-    if (config == NULL) {
-        bow_log_error("Failed to allocate memory for bow_config");
-        return NULL;
-    }
+gpointer *bow_setup_config(void) {
+    gpointer config = g_new(struct bow_config, 1);
 
     // Only set at startup
-    config->buffer_size = 2048;
-    config->log_level = 1;
+    ((struct bow_config *)config)->buffer_size = 2048;
+    ((struct bow_config *)config)->log_level = 1;
 
     // Only set at startup or at runtime
-    config->window_timeout = 600;
+    ((struct bow_config *)config)->window_timeout = 600;
 
     // can be set at runtime
-    config->volume_expression = NULL;
-    config->anchor = CENTER;
-    config->margin_left = 0;
-    config->margin_right = 0;
-    config->margin_top = 0;
-    config->margin_bottom = 0;
+    ((struct bow_config *)config)->volume_expression = NULL;
+    ((struct bow_config *)config)->anchor = TOP_LEFT;
+    ((struct bow_config *)config)->margin_left = 100;
+    ((struct bow_config *)config)->margin_right = 0;
+    ((struct bow_config *)config)->margin_top = 100;
+    ((struct bow_config *)config)->margin_bottom = 0;
+
+    bow_log_debug("config anchor = %d", ((struct bow_config *)config)->anchor);
 
     const char *log_level_env = getenv("BOW_LOG_LEVEL");
     if (log_level_env == NULL) {
@@ -55,13 +54,15 @@ struct bow_config *bow_setup_config(void) {
 
     const char *buffer_size_env = getenv("BOW_BUFFER_SIZE");
     if (buffer_size_env != NULL) {
-        config->buffer_size = atoi(buffer_size_env);
+        ((struct bow_config *)config)->buffer_size = atoi(buffer_size_env);
     }
 
     const char *window_timeout_env = getenv("BOW_WINDOW_TIMEOUT");
     if (window_timeout_env != NULL) {
-        config->window_timeout = atoi(window_timeout_env);
+        ((struct bow_config *)config)->window_timeout = atoi(window_timeout_env);
     }
+
+    bow_log_info("Volume expression: %s", ((struct bow_config *)config)->volume_expression);
 
     return config;
 }

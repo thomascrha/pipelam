@@ -1,5 +1,5 @@
 # Variables
-CFLAGS       := -Wall -Wextra -Werror -std=c17
+CFLAGS       := -g -Wall -Wextra -Werror -std=c17
 CC           := clang
 FILES        := src/main.c src/window.c src/log.c src/config.c
 FORMAT_STYLE := "{BasedOnStyle: llvm, IndentWidth: 4, ColumnLimit: 200}"
@@ -24,3 +24,6 @@ $(OUTPUT): $(FILES)
 
 clean:
 	rm -f $(OUTPUT)
+
+json: src/json.c
+	$(CC) $(CFLAGS) -o json src/json.c

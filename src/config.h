@@ -1,6 +1,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <gtk/gtk.h>
 #define LOG_DEBUG 0
 #define LOG_INFO 1
 #define LOG_WARNING 2
@@ -34,7 +35,7 @@ struct bow_config {
 	int margin_bottom;
 };
 
-struct bow_config* bow_setup_config(void);
+gpointer *bow_setup_config(void);
 void bow_destroy_config(struct bow_config *config);
 
 #endif // CONFIG_H
