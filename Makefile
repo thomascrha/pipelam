@@ -1,7 +1,7 @@
 # Variables
 CFLAGS       := -g -Wall -Wextra -Werror -std=c17
 CC           := clang
-FILES        := src/main.c src/window.c src/log.c src/config.c
+FILES        := src/main.c src/window.c src/log.c src/config.c src/message.c
 FORMAT_STYLE := "{BasedOnStyle: llvm, IndentWidth: 4, ColumnLimit: 200}"
 OUTPUT       := bow
 
@@ -26,4 +26,4 @@ clean:
 	rm -f $(OUTPUT)
 
 json: src/json.c
-	$(CC) $(CFLAGS) -o json src/json.c
+	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o json src/json.c src/log.c src/config.c $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)

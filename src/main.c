@@ -8,6 +8,7 @@
 #include "config.h"
 #include "glib.h"
 #include "log.h"
+#include "message.h"
 #include "window.h"
 
 int main(int argc, char *argv[]) {
@@ -48,14 +49,14 @@ int main(int argc, char *argv[]) {
         fclose(pipe_fd);
 
         bow_log_info("Received string: %s", volume_expression);
-        ((struct bow_config *)bow_config)->volume_expression = volume_expression;
+        bow_parse_message(volume_expression, bow_config);
 
-        int code = bow_create_run_window(bow_config);
-        if (code != 0) {
-            bow_log_error("bow_create_run_window() returned %d", code);
-            bow_destroy_config(bow_config);
-            return EXIT_FAILURE;
-        }
+        bow_create_run_window(bow_config);
+        // if (code != 0) {
+        //     bow_log_error("bow_create_run_window() returned %d", code);
+        //     bow_destroy_config(bow_config);
+        //     return EXIT_FAILURE;
+        // }
     }
 
     bow_destroy_config(bow_config);

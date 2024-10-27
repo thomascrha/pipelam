@@ -23,11 +23,17 @@ enum bow_window_anchor {
 	CENTER
 };
 
+enum bow_message_type {
+	TEXT,
+	IMAGE
+};
+
 struct bow_config {
 	int buffer_size;
 	int log_level;
 	int window_timeout;
-	char *volume_expression;
+	char *expression;
+	enum bow_message_type type;
 	enum bow_window_anchor anchor;
 	int margin_left;
 	int margin_right;

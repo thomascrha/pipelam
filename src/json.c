@@ -22,12 +22,12 @@ struct bow_json_config {
     char* description;
 };
 
-static struct bow_json_config_settings* bow_json_config_settings_parse(struct json_object_s* object) {
-	struct bow_json_config_settings settings = {0};
-
+static struct bow_json_config_settings *bow_json_config_settings_parse(struct json_object_s* object) {
+	struct bow_json_config_settings* settings = malloc(sizeof(struct bow_json_config_settings));
 	char* keys[] = {"window_timeout", "volume_expression", "anchor", "margin_left", "margin_right", "margin_top", "margin_bottom"};
 
 	struct json_object_element_s* element = object->start;
+	printf("bow_json_config_settings_parse\n");
 	while (element != NULL) {
 		struct json_string_s* name = element->name;
 		struct json_value_s* value = element->value;
@@ -37,28 +37,33 @@ static struct bow_json_config_settings* bow_json_config_settings_parse(struct js
 		for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
 			char* key = keys[i];
 
+			printf("key: %s\n", key);
+			printf("name: %s\n", name->string);
+			printf("value: %s\n", json_value_as_number(value)->number);
 			if (0 == strcmp(name->string, key)) {
-
+				printf("key: %s\n", key);
 				if (0 == strcmp(name->string, "window_timeout")) {
-					settings.window_timeout = atoi(value_string->string);
-
+					printf("here window_timeout\n");
+					settings->window_timeout = atoi(json_value_as_number(value)->number);
+					// settings->window_timeout = json_value_as_number(value)->number;
+					printf("window_timeout: %d\n", settings->window_timeout);
 				} else if (0 == strcmp(name->string, "volume_expression")) {
-					settings.volume_expression = (char*)value_string->string;
+					settings->volume_expression = (char*)value_string->string;
 
 				} else if (0 == strcmp(name->string, "anchor")) {
-					settings.anchor = (enum bow_window_anchor)atoi(value_string->string);
+					settings->anchor = (enum bow_window_anchor)atoi(value_string->string);
 
 				} else if (0 == strcmp(name->string, "margin_left")) {
-					settings.margin_left = atoi(value_string->string);
+					settings->margin_left = atoi(value_string->string);
 
 				} else if (0 == strcmp(name->string, "margin_right")) {
-					settings.margin_right = atoi(value_string->string);
+					settings->margin_right = atoi(value_string->string);
 
 				} else if (0 == strcmp(name->string, "margin_top")) {
-					settings.margin_top = atoi(value_string->string);
+					settings->margin_top = atoi(value_string->string);
 
 				} else if (0 == strcmp(name->string, "margin_bottom")) {
-					settings.margin_bottom = atoi(value_string->string);
+					settings->margin_bottom = atoi(value_string->string);
 
 				} else {
 					printf("unknown key: %s\n", name->string);
@@ -83,37 +88,35 @@ static int bow_test_json(const char* json) {
 
     char* exprssion = NULL;
     char* type = NULL;
-    struct json_object_s* settings = NULL;
+    struct bow_json_config* config = NULL;
+    struct bow_json_config_settings* settings = NULL;
     char* description = NULL;
 
     char* keys[] = {"type", "expression"};
-    char* optional_keys[] = {"settings", "description"};
+    char* optional_key = "settings";
 
     struct json_object_element_s* element = object->start;
     while (element != NULL) {
         struct json_string_s* name = element->name;
         struct json_value_s* value = element->value;
-        struct json_object_s* value_object = json_value_as_object(value); // Use a different variable
         struct json_string_s* value_string = json_value_as_string(value);
 
-        for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]) + sizeof(optional_keys)/sizeof(optional_keys[0]); i++) {
-            char* key = i < sizeof(keys)/sizeof(keys[0]) ? keys[i] : optional_keys[i - sizeof(keys)/sizeof(keys[0])];
+        for (size_t i = 0; i < sizeof(keys)/sizeof(keys[0]) + 1; i++) {
+            char* key = i < sizeof(keys)/sizeof(keys[0]) ? keys[i] : optional_key;
 
             if (0 == strcmp(name->string, key)) {
 
                 if (0 == strcmp(name->string, "expression")) {
-                    exprssion = (char*)value_string->string;
+                    config->expression = (char*)value_string->string;
 
 				} else if (0 == strcmp(name->string, "type")) {
-                    type = (char*)value_string->string;
+                    config->type = (char*)value_string->string;
 
 				} else if (0 == strcmp(name->string, "settings")) {
-                    settings = bow_json_config_settings_parse(value_object);
-                    // settings = value_object; // Use the correct variable
-
-				} else if (0 == strcmp(name->string, "description")) {
-					description = (char*)value_string->string;
-
+					// pass
+					//
+					// printf("setting unsupported %s\n", (char*)value->payload);
+					settings = bow_json_config_settings_parse(json_value_as_object(value));
 				} else {
                     printf("unknown key: %s\n", name->string);
                 }
@@ -132,7 +135,7 @@ static int bow_test_json(const char* json) {
     printf("expression: %s\n", exprssion);
 
     if (settings != NULL) {
-        printf("settings: %s\n", settings->window_timeout);
+        printf("settings: %d\n", settings->window_timeout);
     }
 
     if (description != NULL) {
@@ -144,7 +147,8 @@ static int bow_test_json(const char* json) {
 }
 
 int main(void) {
-    const char *json = "{\"type\" : \"text\", \"expression\" : \"/some/path/to/a/file\", \"settings\" : {\"window_timeout\": 600}, \"description\" : \"description_value\"}";
+    const char *json = "{\"type\": \"text\", \"expression\": \"/some/path/to/a/file\", \"settings\": {\"window_timeout\": 600}}";
 
     return bow_test_json(json);
+
 }

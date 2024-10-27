@@ -37,7 +37,7 @@ gpointer *bow_setup_config(void) {
     ((struct bow_config *)config)->window_timeout = 600;
 
     // can be set at runtime
-    ((struct bow_config *)config)->volume_expression = NULL;
+    ((struct bow_config *)config)->expression = NULL;
     ((struct bow_config *)config)->anchor = TOP_LEFT;
     ((struct bow_config *)config)->margin_left = 100;
     ((struct bow_config *)config)->margin_right = 0;
@@ -62,7 +62,7 @@ gpointer *bow_setup_config(void) {
         ((struct bow_config *)config)->window_timeout = atoi(window_timeout_env);
     }
 
-    bow_log_info("Volume expression: %s", ((struct bow_config *)config)->volume_expression);
+    bow_log_info("Volume expression: %s", ((struct bow_config *)config)->expression);
 
     return config;
 }

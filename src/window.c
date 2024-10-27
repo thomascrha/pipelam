@@ -43,9 +43,9 @@ static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
 
 static void bow_render_window(GtkApplication *app, gpointer bow_config) {
     bow_log_info("Creating window");
-    bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->volume_expression);
+    bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->expression);
 
-    if (((struct bow_config *)bow_config)->volume_expression == NULL) {
+    if (((struct bow_config *)bow_config)->expression == NULL) {
         bow_log_error("data is NULL");
         return;
     }
@@ -87,12 +87,12 @@ static void bow_render_window(GtkApplication *app, gpointer bow_config) {
         return;
     }
 
-    // print len of volume_expression
-    bow_log_info("len of volume_expression: %lu", strlen(((struct bow_config *)bow_config)->volume_expression));
-    bow_log_info("volume_expression: %s", ((struct bow_config *)bow_config)->volume_expression);
+    // print len of expression
+    bow_log_info("len of expression: %lu", strlen(((struct bow_config *)bow_config)->expression));
+    bow_log_info("expression: %s", ((struct bow_config *)bow_config)->expression);
 
     // combine markup and border
-    gtk_label_set_markup(GTK_LABEL(label), ((struct bow_config *)bow_config)->volume_expression);
+    gtk_label_set_markup(GTK_LABEL(label), ((struct bow_config *)bow_config)->expression);
     gtk_window_set_child(gtk_window, label);
 
     bow_log_debug("window_timeout: %d", ((struct bow_config *)bow_config)->window_timeout);
@@ -102,11 +102,10 @@ static void bow_render_window(GtkApplication *app, gpointer bow_config) {
     g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
 }
 
-int bow_create_run_window(gpointer bow_config) {
-    // bow_log_info("Received string: %s", volume_expression);
+void bow_create_run_window(gpointer bow_config) {
+    // bow_log_info("Received string: %s", expression);
     GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
     g_signal_connect(app, "activate", G_CALLBACK(bow_render_window), bow_config);
-    int status = g_application_run(G_APPLICATION(app), 0, NULL);
+    g_application_run(G_APPLICATION(app), 0, NULL);
     g_object_unref(app);
-    return status;
 }
