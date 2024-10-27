@@ -41,7 +41,59 @@ static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
     return anchors;
 }
 
-static void bow_render_window(GtkApplication *app, gpointer bow_config) {
+static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
+    bow_log_info("Creating window");
+    bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->expression);
+
+    if (((struct bow_config *)bow_config)->expression == NULL) {
+        bow_log_error("data is NULL");
+        return;
+    }
+
+    GtkWindow *gtk_window = GTK_WINDOW(gtk_application_window_new(app));
+    if (gtk_window == NULL) {
+        bow_log_error("gtk_application_window_new() returned NULL");
+        return;
+    }
+
+    // Before the window is first realized, set it up to be a layer surface
+    gtk_layer_init_for_window(gtk_window);
+
+    // Order below normal windows
+    gtk_layer_set_layer(gtk_window, GTK_LAYER_SHELL_LAYER_TOP);
+
+    // Push other windows out of the way
+    gtk_layer_auto_exclusive_zone_enable(gtk_window);
+
+    // Set margins
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, ((struct bow_config *)bow_config)->margin_left);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, ((struct bow_config *)bow_config)->margin_right);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, ((struct bow_config *)bow_config)->margin_top);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, ((struct bow_config *)bow_config)->margin_bottom);
+
+    // Set anchors
+    gboolean *anchors = bow_get_anchor(((struct bow_config *)bow_config)->anchor);
+    // current anchor print out value of enum
+    // bow_log_debug("current anchor: %d", data->anchor);
+    for (int i = 0; i < 4; i++) {
+        bow_log_debug("anchors[%d]: %d", i, anchors[i]);
+        gtk_layer_set_anchor(gtk_window, i, anchors[i]);
+    }
+    //
+    // Set up a widget
+    GtkWidget *image = gtk_image_new_from_file(((struct bow_config *)bow_config)->expression);
+    if (image == NULL) {
+        bow_log_error("gtk_image_new_from_file() returned NULL");
+        return;
+    }
+
+    gtk_window_set_child(gtk_window, image);
+    gtk_window_present(gtk_window);
+
+    g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
+}
+
+static void bow_render_text_window(GtkApplication *app, gpointer bow_config) {
     bow_log_info("Creating window");
     bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->expression);
 
@@ -105,7 +157,15 @@ static void bow_render_window(GtkApplication *app, gpointer bow_config) {
 void bow_create_run_window(gpointer bow_config) {
     // bow_log_info("Received string: %s", expression);
     GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
-    g_signal_connect(app, "activate", G_CALLBACK(bow_render_window), bow_config);
+
+    if (((struct bow_config *)bow_config)->type == IMAGE) {
+        g_signal_connect(app, "activate", G_CALLBACK(bow_render_image_window), bow_config);
+    } else if (((struct bow_config *)bow_config)->type == TEXT) {
+        g_signal_connect(app, "activate", G_CALLBACK(bow_render_text_window), bow_config);
+    } else {
+        bow_log_error("Unknown type: %d", ((struct bow_config *)bow_config)->type);
+        return;
+    }
     g_application_run(G_APPLICATION(app), 0, NULL);
     g_object_unref(app);
 }

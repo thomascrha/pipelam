@@ -1,5 +1,5 @@
 #!/bin/bash
 
-JSON_STRING='{"type": "image", "expression": "Hello, World!"}'
+JSON_STRING='{"type": "text", "expression": "Hello, World!"}'
 
 echo $JSON_STRING
