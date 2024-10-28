@@ -35,7 +35,7 @@ static char *get_level_colour(int log_level) {
 void bow_log_level_set(int log_level) { current_log_level = log_level; }
 
 void bow_log_message(int log_level, const char *file, int line, ...) {
-    if (current_log_level < log_level) {
+    if (current_log_level > log_level) {
         return;
     }
 

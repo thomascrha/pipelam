@@ -1,7 +1,11 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include "config.h"
+#define LOG_DEBUG 0
+#define LOG_INFO 1
+#define LOG_WARNING 2
+#define LOG_ERROR 3
+#define LOG_PANIC 4
 
 void bow_log_level_set(int log_level);
 void bow_log_message(int log_level, const char *file, int line, ...);

@@ -9,7 +9,8 @@
 #include "log.h"
 
 static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
-    gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean)); // Allocate memory for the array
+    gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
+
     if (anchors == NULL) {
         bow_log_error("Memory allocation failed");
         return NULL;
@@ -83,16 +84,15 @@ static GtkWindow *bow_render_gtk_window(GtkApplication *app, gpointer bow_config
         gtk_layer_set_anchor(gtk_window, i, anchors[i]);
     }
 
-	return gtk_window;
-
+    return gtk_window;
 }
 
 static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
-	GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
-	if (gtk_window == NULL) {
-		bow_log_error("gtk_render_gtk_window() returned NULL");
-		return;
-	}
+    GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
+    if (gtk_window == NULL) {
+        bow_log_error("gtk_render_gtk_window() returned NULL");
+        return;
+    }
 
     GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(((struct bow_config *)bow_config)->expression, NULL);
     if (pixbuf == NULL) {
@@ -126,11 +126,11 @@ static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
 }
 
 static void bow_render_text_window(GtkApplication *app, gpointer bow_config) {
-	GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
-	if (gtk_window == NULL) {
-		bow_log_error("gtk_render_gtk_window() returned NULL");
-		return;
-	}
+    GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
+    if (gtk_window == NULL) {
+        bow_log_error("gtk_render_gtk_window() returned NULL");
+        return;
+    }
 
     GtkWidget *label = gtk_label_new(NULL);
     if (label == NULL) {

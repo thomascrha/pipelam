@@ -28,7 +28,7 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
     char *keys[] = {"window_timeout", "anchor", "margin_left", "margin_right", "margin_top", "margin_bottom"};
 
     struct json_object_element_s *element = object->start;
-    printf("bow_json_config_settings_parse\n");
+    bow_log_debug("bow_json_config_settings_parse\n");
     while (element != NULL) {
         struct json_string_s *name = element->name;
         struct json_value_s *value = element->value;
@@ -36,18 +36,18 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
         for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
             char *key = keys[i];
             if (0 == strcmp(name->string, key)) {
-                printf("key: %s\n", key);
+                bow_log_debug("key: %s\n", key);
                 if (0 == strcmp(name->string, "window_timeout")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
-                        printf("window_timeout: %s\n", _value->number);
+                        bow_log_debug("window_timeout: %s\n", _value->number);
                         config->window_timeout = atoi(_value->number);
-                        printf("window_timeout: %d\n", config->window_timeout);
+                        bow_log_debug("window_timeout: %d\n", config->window_timeout);
                     }
 
                 } else if (0 == strcmp(name->string, "anchor")) {
                     struct json_string_s *_value = json_value_as_string(value);
-                    printf("anchor: %s\n", _value->string);
+                    bow_log_debug("anchor: %s\n", _value->string);
                     if (_value != NULL) {
                         config->anchor = bow_json_config_anchor_parse(_value);
                     }
@@ -77,7 +77,7 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
                     }
 
                 } else {
-                    printf("unknown key: %s\n", name->string);
+                    bow_log_error("unknown key: %s\n", name->string);
                 }
             }
         }
@@ -88,6 +88,7 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
 
 static void bow_json_config_parse(struct json_object_s *object, struct bow_config *config) {
     bow_log_info("bow_json_config_parse");
+    bow_log_error("YO");
     char *keys[] = {"expression", "type", "settings"};
 
     struct json_object_element_s *element = object->start;
@@ -127,7 +128,7 @@ static void bow_json_config_parse(struct json_object_s *object, struct bow_confi
                 } else if (0 == strcmp(name->string, "settings")) {
                     bow_json_config_settings_parse(json_value_as_object(value), config);
                 } else {
-                    printf("unknown key: %s\n", name->string);
+                    bow_log_error("unknown key: %s\n", name->string);
                 }
             }
         }
