@@ -24,6 +24,3 @@ $(OUTPUT): $(FILES)
 
 clean:
 	rm -f $(OUTPUT)
-
-json: src/json.c
-	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o json src/json.c src/log.c src/config.c $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
