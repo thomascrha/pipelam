@@ -47,6 +47,7 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
 
                 } else if (0 == strcmp(name->string, "anchor")) {
                     struct json_string_s *_value = json_value_as_string(value);
+                    printf("anchor: %s\n", _value->string);
                     if (_value != NULL) {
                         config->anchor = bow_json_config_anchor_parse(_value);
                     }
@@ -79,9 +80,8 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
                     printf("unknown key: %s\n", name->string);
                 }
             }
-
-            element = element->next;
         }
+        element = element->next;
     }
     bow_log_debug("window_timeout: %d", config->window_timeout);
 }
