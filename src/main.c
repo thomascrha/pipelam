@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    bow_log_info("soehting");
+    bow_log_debug("soehting");
     bow_log_info("Starting bow with log level %d buffer size %d", ((struct bow_config *)bow_config)->log_level, ((struct bow_config *)bow_config)->buffer_size);
 
     if (argc != 2) {

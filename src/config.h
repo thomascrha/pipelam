@@ -2,11 +2,6 @@
 #define CONFIG_H
 
 #include <gtk/gtk.h>
-#define LOG_DEBUG 0
-#define LOG_INFO 1
-#define LOG_WARNING 2
-#define LOG_ERROR 3
-#define LOG_PANIC 4
 
 #define RED "\033[0;31m"
 #define BOLD_RED "\033[1;31m"
@@ -30,7 +25,7 @@ enum bow_message_type {
 
 struct bow_config {
 	int buffer_size;
-	int log_level;
+	char *log_level;
 	int window_timeout;
 	char *expression;
 	enum bow_message_type type;
@@ -43,5 +38,17 @@ struct bow_config {
 
 gpointer *bow_setup_config(void);
 void bow_destroy_config(struct bow_config *config);
+
+// taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
+#define CONFIG_ARG_MAX_BYTES 128
+
+typedef struct bow_config_option bow_config_option;
+typedef bow_config_option* bow_config_option_t;
+
+struct bow_config_option {
+    bow_config_option_t prev;
+    char key[CONFIG_ARG_MAX_BYTES];
+    char value[CONFIG_ARG_MAX_BYTES];
+};
 
 #endif // CONFIG_H

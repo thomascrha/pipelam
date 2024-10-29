@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "config.h"
+#include "log.h"
 
 static int current_log_level = LOG_INFO;
 
