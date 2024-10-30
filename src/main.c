@@ -51,11 +51,6 @@ int main(int argc, char *argv[]) {
         bow_parse_message(volume_expression, bow_config);
 
         bow_create_run_window(bow_config);
-        // if (code != 0) {
-        //     bow_log_error("bow_create_run_window() returned %d", code);
-        //     bow_destroy_config(bow_config);
-        //     return EXIT_FAILURE;
-        // }
     }
 
     bow_destroy_config(bow_config);

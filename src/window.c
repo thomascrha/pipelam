@@ -1,6 +1,8 @@
+#include <gtk-4.0/gtk/gtk.h>
 #include <gtk/gtk.h>
 
 #include "config.h"
+#include "gdk-pixbuf/gdk-pixbuf.h"
 #include "gdk/gdk.h"
 #include "gio/gio.h"
 #include "glib.h"
@@ -93,22 +95,23 @@ static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
         bow_log_error("gtk_render_gtk_window() returned NULL");
         return;
     }
-
-    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(((struct bow_config *)bow_config)->expression, NULL);
-    if (pixbuf == NULL) {
-        bow_log_error("gdk_pixbuf_new_from_stream() returned NULL");
-        return;
-    }
-
-    GdkPixbuf *scaled_pixbuf = gdk_pixbuf_scale_simple(pixbuf, 1000, 1000, GDK_INTERP_BILINEAR);
-    if (scaled_pixbuf == NULL) {
-        bow_log_error("gdk_pixbuf_scale_simple() returned NULL");
-        return;
-    }
-
-    GdkTexture *texture = gdk_texture_new_for_pixbuf(scaled_pixbuf);
-    GdkPaintable *paintable = GDK_PAINTABLE(texture);
-    GtkWidget *image = gtk_image_new_from_paintable(paintable);
+    //
+    // GdkPixbuf *_pixbuf = gdk_pixbuf_new_from_file(((struct bow_config *)bow_config)->expression, NULL);
+    // if (_pixbuf == NULL) {
+    //     bow_log_error("gdk_pixbuf_new_from_stream() returned NULL");
+    //     return;
+    // }
+    //
+    // gint width = gdk_pixbuf_get_width(_pixbuf);
+    // gint height = gdk_pixbuf_get_height(_pixbuf);
+    // bow_log_debug("width: %d, height: %d", width, height);
+    //
+    // GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file_at_size(((struct bow_config *)bow_config)->expression, width, height, NULL);
+    //
+    // GdkTexture *texture = gdk_texture_new_for_pixbuf(pixbuf);
+    // GdkPaintable *paintable = GDK_PAINTABLE(texture);
+    GtkWidget *image = gtk_image_new_from_file(((struct bow_config *)bow_config)->expression);
+    // GtkImage *gtk_image = GTK_IMAGE(image);
 
     if (image == NULL) {
         bow_log_error("gtk_image_new_from_file() returned NULL");

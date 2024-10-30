@@ -206,7 +206,7 @@ gpointer *bow_setup_config(void) {
 
     // can be set at runtime
     ((struct bow_config *)config)->expression = NULL;
-    ((struct bow_config *)config)->anchor = TOP_LEFT;
+    ((struct bow_config *)config)->anchor = CENTER;
     ((struct bow_config *)config)->margin_left = 100;
     ((struct bow_config *)config)->margin_right = 0;
     ((struct bow_config *)config)->margin_top = 100;
