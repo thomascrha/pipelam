@@ -59,6 +59,21 @@ Then you can write a JSON payload to the FIFO file to display the overlay. Here 
 jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/bow.fifo
 ```
 
+### Examples
+
+There are several example scripts in the `examples` directory that you can use to test the overlay. You can run these scripts by running the following command:
+
+#### Text Overlay
+```shell
+./examples/volume-bar-expression.sh > /tmp/bow.fifo
+```
+
+```shell
+./examples/volume-text-expression.sh > /tmp/bow.fifo
+```
+
+```shell
+
 ## Json Payload
 
 1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `text` and the text is just displayed.
@@ -91,6 +106,7 @@ Bow has two configuration files that can be used to customise the appearance of 
     - The default configuration file is loaded first. (`/etc/bow/config`)
     - The user configuration file is loaded second. (`$HOME/.config/bow/config`)
 3. Environment variables take precedence over the configuration file. If an environment variable is set, it will override the value in the configuration file. These environment variables are the name of the attribute in the config file prefaced with `BOW_` - for example `log_level` is overwritten by the environment variable `BOW_LOG_LEVEL`.
+    - Note: there is one undocumented environment variable - `BOW_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
 
 ### Configuration Options
 

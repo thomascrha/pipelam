@@ -1,0 +1,2 @@
+BOW_LOG_LEVEL=DEBUG
+BOW_CONFIG_FILE_PATH=./config/config
