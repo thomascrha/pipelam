@@ -72,8 +72,6 @@ There are several example scripts in the `examples` directory that you can use t
 ./examples/volume-text-expression.sh > /tmp/bow.fifo
 ```
 
-```shell
-
 ## Json Payload
 
 1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `text` and the text is just displayed.
