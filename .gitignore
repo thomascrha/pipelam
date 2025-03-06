@@ -3,4 +3,5 @@ bow
 json
 hello
 compile_commands.json
+build/
 .cache/
