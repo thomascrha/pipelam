@@ -27,31 +27,31 @@ static void bow_log_level_set_from_string(const char *log_level) {
 void bow_destroy_config(struct bow_config *config) { free(config); }
 
 void bow_override_from_environment(struct bow_config *config) {
-    bow_log_info("overriding config from environment");
+    bow_log_debug("overriding config from environment");
     const char *log_level_env = getenv("BOW_LOG_LEVEL");
     if (log_level_env == NULL) {
         log_level_env = "INFO";
     }
-    bow_log_info("log_level: %s", log_level_env);
+    bow_log_debug("log_level: %s", log_level_env);
     ((struct bow_config *)config)->log_level = (char *)log_level_env;
     bow_log_level_set_from_string(log_level_env);
 
     const char *buffer_size_env = getenv("BOW_BUFFER_SIZE");
     if (buffer_size_env != NULL) {
-        bow_log_info("buffer_size: %d", ((struct bow_config *)config)->buffer_size);
+        bow_log_debug("buffer_size: %d", ((struct bow_config *)config)->buffer_size);
         ((struct bow_config *)config)->buffer_size = atoi(buffer_size_env);
     }
 
     const char *window_timeout_env = getenv("BOW_WINDOW_TIMEOUT");
     if (window_timeout_env != NULL) {
-        bow_log_info("log_level: %d", ((struct bow_config *)config)->log_level);
-        bow_log_info("window_timeout: %d", ((struct bow_config *)config)->window_timeout);
+        bow_log_debug("log_level: %d", ((struct bow_config *)config)->log_level);
+        bow_log_debug("window_timeout: %d", ((struct bow_config *)config)->window_timeout);
         ((struct bow_config *)config)->window_timeout = atoi(window_timeout_env);
     }
 
     const char *anchor_env = getenv("BOW_ANCHOR");
     if (anchor_env != NULL) {
-        bow_log_info("anchor: %d", ((struct bow_config *)config)->anchor);
+        bow_log_debug("anchor: %d", ((struct bow_config *)config)->anchor);
         if (strcmp(anchor_env, "BOTTOM_LEFT") == 0) {
             ((struct bow_config *)config)->anchor = BOTTOM_LEFT;
         } else if (strcmp(anchor_env, "BOTTOM_RIGHT") == 0) {
@@ -69,25 +69,25 @@ void bow_override_from_environment(struct bow_config *config) {
 
     const char *margin_left_env = getenv("BOW_MARGIN_LEFT");
     if (margin_left_env != NULL) {
-        bow_log_info("margin_left: %d", ((struct bow_config *)config)->margin_left);
+        bow_log_debug("margin_left: %d", ((struct bow_config *)config)->margin_left);
         ((struct bow_config *)config)->margin_left = atoi(margin_left_env);
     }
 
     const char *margin_right_env = getenv("BOW_MARGIN_RIGHT");
     if (margin_right_env != NULL) {
-        bow_log_info("margin_right: %d", ((struct bow_config *)config)->margin_right);
+        bow_log_debug("margin_right: %d", ((struct bow_config *)config)->margin_right);
         ((struct bow_config *)config)->margin_right = atoi(margin_right_env);
     }
 
     const char *margin_top_env = getenv("BOW_MARGIN_TOP");
     if (margin_top_env != NULL) {
-        bow_log_info("margin_top: %d", ((struct bow_config *)config)->margin_top);
+        bow_log_debug("margin_top: %d", ((struct bow_config *)config)->margin_top);
         ((struct bow_config *)config)->margin_top = atoi(margin_top_env);
     }
 
     const char *margin_bottom_env = getenv("BOW_MARGIN_BOTTOM");
     if (margin_bottom_env != NULL) {
-        bow_log_info("margin_bottom: %d", ((struct bow_config *)config)->margin_bottom);
+        bow_log_debug("margin_bottom: %d", ((struct bow_config *)config)->margin_bottom);
         ((struct bow_config *)config)->margin_bottom = atoi(margin_bottom_env);
     }
 }
@@ -215,10 +215,10 @@ gpointer *bow_setup_config(void) {
     // order of precedence: config file, environment variables
     char *config_fp = bow_get_config_file();
     if (config_fp != NULL) {
-        bow_log_info("found config file: %s", config_fp);
-        bow_log_info("config->window_timeout: %d", ((struct bow_config *)config)->window_timeout);
+        bow_log_debug("found config file: %s", config_fp);
+        bow_log_debug("config->window_timeout: %d", ((struct bow_config *)config)->window_timeout);
         bow_parse_config_file(config_fp, config);
-        bow_log_info("config->window_timeout: %d", ((struct bow_config *)config)->window_timeout);
+        bow_log_debug("config->window_timeout: %d", ((struct bow_config *)config)->window_timeout);
     }
     bow_override_from_environment(config);
 

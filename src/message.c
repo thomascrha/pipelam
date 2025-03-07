@@ -87,8 +87,8 @@ static void bow_json_config_settings_parse(struct json_object_s *object, struct 
 }
 
 static void bow_json_config_parse(struct json_object_s *object, struct bow_config *config) {
-    bow_log_info("bow_json_config_parse");
-    bow_log_error("YO");
+    bow_log_debug("bow_json_config_parse");
+    bow_log_debug("YO");
     char *keys[] = {"expression", "type", "settings"};
 
     struct json_object_element_s *element = object->start;
@@ -144,7 +144,7 @@ void bow_parse_message(const char *expression, struct bow_config *config) {
     // char is not '{' then we can assume its a string
     bow_log_debug("bow parse string");
     if (expression[0] != '{') {
-        bow_log_info("Treating as string %s", expression);
+        bow_log_warning("Treating as string %s", expression);
         config->expression = (char *)expression;
         config->type = TEXT;
         return;

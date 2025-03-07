@@ -11,6 +11,7 @@
 #include "log.h"
 
 static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
+    // Allocate memory for GTK_LAYER_SHELL_EDGE_LEFT, RIGHT, TOP, BOTTOM
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
 
     if (anchors == NULL) {
@@ -18,38 +19,46 @@ static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
         return NULL;
     }
 
-    anchors[0] = FALSE;
-    anchors[1] = FALSE;
-    anchors[2] = FALSE;
-    anchors[3] = FALSE; // Initialize with default values
+    // Initialize all anchors to FALSE
+    // [0]=LEFT, [1]=RIGHT, [2]=TOP, [3]=BOTTOM
+    for (int i = 0; i < 4; i++) {
+        anchors[i] = FALSE;
+    }
 
     bow_log_debug("current anchor: %d", anchor);
 
-    if (anchor == BOTTOM_LEFT) {
-        anchors[0] = TRUE;
-        anchors[3] = TRUE; // BOTTOM LEFT
-    } else if (anchor == BOTTOM_RIGHT) {
-        anchors[1] = TRUE;
-        anchors[3] = TRUE; // BOTTOM RIGHT
-    } else if (anchor == TOP_LEFT) {
-        anchors[0] = TRUE;
-        anchors[2] = TRUE; // TOP LEFT
-    } else if (anchor == TOP_RIGHT) {
-        anchors[1] = TRUE;
-        anchors[2] = TRUE; // TOP RIGHT
-    } else if (anchor == CENTER) {
-        return anchors; // All values are already FALSE for CENTER
-    } else {
+    switch (anchor) {
+    case BOTTOM_LEFT:
+        anchors[GTK_LAYER_SHELL_EDGE_LEFT] = TRUE;
+        anchors[GTK_LAYER_SHELL_EDGE_BOTTOM] = TRUE;
+        break;
+    case BOTTOM_RIGHT:
+        anchors[GTK_LAYER_SHELL_EDGE_RIGHT] = TRUE;
+        anchors[GTK_LAYER_SHELL_EDGE_BOTTOM] = TRUE;
+        break;
+    case TOP_LEFT:
+        anchors[GTK_LAYER_SHELL_EDGE_LEFT] = TRUE;
+        anchors[GTK_LAYER_SHELL_EDGE_TOP] = TRUE;
+        break;
+    case TOP_RIGHT:
+        anchors[GTK_LAYER_SHELL_EDGE_RIGHT] = TRUE;
+        anchors[GTK_LAYER_SHELL_EDGE_TOP] = TRUE;
+        break;
+    case CENTER:
+        // All anchors remain FALSE
+        break;
+    default:
         bow_log_error("Unknown anchor: %d, using center", anchor);
-        return anchors; // Return default values
+        // All anchors remain FALSE
+        break;
     }
 
     return anchors;
 }
 
 static GtkWindow *bow_render_gtk_window(GtkApplication *app, gpointer bow_config) {
-    bow_log_info("Creating window");
-    bow_log_info("Received string: %s", ((struct bow_config *)bow_config)->expression);
+    bow_log_debug("Creating window");
+    bow_log_debug("Received string: %s", ((struct bow_config *)bow_config)->expression);
 
     if (((struct bow_config *)bow_config)->expression == NULL) {
         bow_log_error("data is NULL");
@@ -79,53 +88,92 @@ static GtkWindow *bow_render_gtk_window(GtkApplication *app, gpointer bow_config
 
     // Set anchors
     gboolean *anchors = bow_get_anchor(((struct bow_config *)bow_config)->anchor);
-    // current anchor print out value of enum
-    // bow_log_debug("current anchor: %d", data->anchor);
-    for (int i = 0; i < 4; i++) {
-        bow_log_debug("anchors[%d]: %d", i, anchors[i]);
-        gtk_layer_set_anchor(gtk_window, i, anchors[i]);
+    if (anchors != NULL) {
+        // Explicitly use the GTK_LAYER_SHELL_EDGE_* constants for clarity
+        gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, anchors[GTK_LAYER_SHELL_EDGE_LEFT]);
+        gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, anchors[GTK_LAYER_SHELL_EDGE_RIGHT]);
+        gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, anchors[GTK_LAYER_SHELL_EDGE_TOP]);
+        gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, anchors[GTK_LAYER_SHELL_EDGE_BOTTOM]);
+
+        // Debug logging
+        for (int i = 0; i < 4; i++) {
+            bow_log_debug("anchors[%d]: %d", i, anchors[i]);
+        }
+
+        free(anchors); // Free memory after use
     }
 
     return gtk_window;
 }
 
+static gboolean close_window_callback(gpointer window) {
+    gtk_window_close(GTK_WINDOW(window));
+    return G_SOURCE_REMOVE; // Return FALSE to remove the source
+}
+
 static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
+    bow_log_debug("Creating image window");
     GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
     if (gtk_window == NULL) {
         bow_log_error("gtk_render_gtk_window() returned NULL");
         return;
     }
-    //
-    // GdkPixbuf *_pixbuf = gdk_pixbuf_new_from_file(((struct bow_config *)bow_config)->expression, NULL);
-    // if (_pixbuf == NULL) {
-    //     bow_log_error("gdk_pixbuf_new_from_stream() returned NULL");
-    //     return;
-    // }
-    //
-    // gint width = gdk_pixbuf_get_width(_pixbuf);
-    // gint height = gdk_pixbuf_get_height(_pixbuf);
-    // bow_log_debug("width: %d, height: %d", width, height);
-    //
-    // GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file_at_size(((struct bow_config *)bow_config)->expression, width, height, NULL);
-    //
-    // GdkTexture *texture = gdk_texture_new_for_pixbuf(pixbuf);
-    // GdkPaintable *paintable = GDK_PAINTABLE(texture);
-    GtkWidget *image = gtk_image_new_from_file(((struct bow_config *)bow_config)->expression);
-    // GtkImage *gtk_image = GTK_IMAGE(image);
 
-    if (image == NULL) {
-        bow_log_error("gtk_image_new_from_file() returned NULL");
+    const char *image_path = ((struct bow_config *)bow_config)->expression;
+    bow_log_debug("Loading image from path: %s", image_path);
+
+    GError *error = NULL;
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path, &error);
+    if (pixbuf == NULL) {
+        bow_log_error("Failed to load image: %s", error ? error->message : "Unknown error");
+        if (error)
+            g_error_free(error);
         return;
     }
 
-    gtk_window_set_child(gtk_window, image);
-    gtk_window_present(gtk_window);
+    gint width = gdk_pixbuf_get_width(pixbuf);
+    gint height = gdk_pixbuf_get_height(pixbuf);
+    bow_log_debug("Image dimensions - width: %d, height: %d", width, height);
+
+    // Create paintable from pixbuf
+    GdkPaintable *paintable = GDK_PAINTABLE(gdk_texture_new_for_pixbuf(pixbuf));
+    if (paintable == NULL) {
+        bow_log_error("Failed to create paintable from pixbuf");
+        g_object_unref(pixbuf);
+        return;
+    }
+
+    // Create image widget from paintable
+    GtkWidget *image = gtk_image_new_from_paintable(paintable);
+    if (image == NULL) {
+        bow_log_error("Failed to create image widget");
+        g_object_unref(paintable);
+        g_object_unref(pixbuf);
+        return;
+    }
+
+    // Make sure image is shown at its natural size
+    gtk_widget_set_size_request(image, width, height);
+    gtk_image_set_pixel_size(GTK_IMAGE(image), -1); // Use natural size
+
+    // Create a box to hold the image with proper sizing
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_box_append(GTK_BOX(box), image);
+
+    gtk_window_set_child(gtk_window, box);
+
+    // Set window to default size matching the image
+    gtk_window_set_default_size(gtk_window, width, height);
 
     bow_log_debug("window_timeout: %d", ((struct bow_config *)bow_config)->window_timeout);
-    g_timeout_add(((struct bow_config *)bow_config)->window_timeout, (GSourceFunc)gtk_window_close, gtk_window);
+    g_timeout_add(((struct bow_config *)bow_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
     g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
+
+    // Unref paintable and pixbuf after they're used
+    g_object_unref(paintable);
+    g_object_unref(pixbuf);
 }
 
 static void bow_render_text_window(GtkApplication *app, gpointer bow_config) {
@@ -142,22 +190,22 @@ static void bow_render_text_window(GtkApplication *app, gpointer bow_config) {
     }
 
     // print len of expression
-    bow_log_info("len of expression: %lu", strlen(((struct bow_config *)bow_config)->expression));
-    bow_log_info("expression: %s", ((struct bow_config *)bow_config)->expression);
+    bow_log_debug("len of expression: %lu", strlen(((struct bow_config *)bow_config)->expression));
+    bow_log_debug("expression: %s", ((struct bow_config *)bow_config)->expression);
 
     // combine markup and border
     gtk_label_set_markup(GTK_LABEL(label), ((struct bow_config *)bow_config)->expression);
     gtk_window_set_child(gtk_window, label);
 
     bow_log_debug("window_timeout: %d", ((struct bow_config *)bow_config)->window_timeout);
-    g_timeout_add(((struct bow_config *)bow_config)->window_timeout, (GSourceFunc)gtk_window_close, gtk_window);
+    g_timeout_add(((struct bow_config *)bow_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
     g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
 }
 
 void bow_create_run_window(gpointer bow_config) {
-    // bow_log_info("Received string: %s", expression);
+    // bow_log_debug("Received string: %s", expression);
     GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
 
     if (((struct bow_config *)bow_config)->type == IMAGE) {

@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
         }
         fclose(pipe_fd);
 
-        bow_log_info("Received string: %s", volume_expression);
+        bow_log_info("Recieved string");
+        bow_log_debug("%s", volume_expression);
         bow_parse_message(volume_expression, bow_config);
 
         bow_create_run_window(bow_config);

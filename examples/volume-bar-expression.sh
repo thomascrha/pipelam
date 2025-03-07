@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# check if arg is passed and if it is "up" or "down"
+if [ "$1" == "up" ]; then
+	wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+
+elif [ "$1" == "down" ]; then
+	wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+fi
+
 # read in current volume - extract just the numeric part
 VOLUME=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -o '[0-9]\+\.\?[0-9]*' | head -1)
 
@@ -57,7 +64,8 @@ fi
 
 # Create the expression with volume bar included and fully transparent background
 # Display volume with proper padding
-EXPRESSION="<span font_desc='JetBrains Mono 50'>${LEFT_PAD}${FORMATTED_VOLUME}</span>\r<span font_desc='JetBrains Mono 50'>${VOLUME_BAR}</span>"
+EXPRESSION="<span font_desc='JetBrains Mono 50'>${VOLUME_BAR}</span>"
+# EXPRESSION="<span font_desc='JetBrains Mono 50'>${LEFT_PAD}${FORMATTED_VOLUME}</span>\r<span font_desc='JetBrains Mono 50'>${VOLUME_BAR}</span>"
 
 # generate JSON string with emoji
 JSON_STRING="{\"type\": \"text\", \"expression\": \"${EXPRESSION}\"}" #, \"settings\": {\"anchor\": \"center\"}}"
