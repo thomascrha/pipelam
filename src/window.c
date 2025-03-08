@@ -10,6 +10,21 @@
 #include "gtk4-layer-shell.h"
 #include "log.h"
 
+/* Global variable to track current active window */
+static GtkWindow *current_window = NULL;
+
+/* Function to check if there's an active window */
+int bow_has_active_window(void) { return (current_window != NULL); }
+
+/* Function to close the current window if one exists */
+void bow_close_current_window(void) {
+    if (current_window != NULL) {
+        bow_log_debug("Closing current window due to new message");
+        gtk_window_close(current_window);
+        current_window = NULL;
+    }
+}
+
 static gboolean *bow_get_anchor(enum bow_window_anchor anchor) {
     // Allocate memory for GTK_LAYER_SHELL_EDGE_LEFT, RIGHT, TOP, BOTTOM
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -108,16 +123,31 @@ static GtkWindow *bow_render_gtk_window(GtkApplication *app, gpointer bow_config
 
 static gboolean close_window_callback(gpointer window) {
     gtk_window_close(GTK_WINDOW(window));
+    // Clear the current_window pointer if this is the current window
+    if (current_window == GTK_WINDOW(window)) {
+        current_window = NULL;
+    }
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
 
 static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
     bow_log_debug("Creating image window");
+
+    // Close previous window if exists
+    // if (current_window != NULL) {
+    //     bow_log_debug("Closing previous window");
+    //     gtk_window_close(current_window);
+    //     current_window = NULL;
+    // }
+
     GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
     if (gtk_window == NULL) {
         bow_log_error("gtk_render_gtk_window() returned NULL");
         return;
     }
+
+    // Store the new window as the current window
+    current_window = gtk_window;
 
     const char *image_path = ((struct bow_config *)bow_config)->expression;
     bow_log_debug("Loading image from path: %s", image_path);
@@ -177,11 +207,21 @@ static void bow_render_image_window(GtkApplication *app, gpointer bow_config) {
 }
 
 static void bow_render_text_window(GtkApplication *app, gpointer bow_config) {
+    // Close previous window if exists
+    // if (current_window != NULL) {
+    //     bow_log_debug("Closing previous window");
+    //     gtk_window_close(current_window);
+    //     current_window = NULL;
+    // }
+
     GtkWindow *gtk_window = bow_render_gtk_window(app, bow_config);
     if (gtk_window == NULL) {
         bow_log_error("gtk_render_gtk_window() returned NULL");
         return;
     }
+
+    // Store the new window as the current window
+    current_window = gtk_window;
 
     GtkWidget *label = gtk_label_new(NULL);
     if (label == NULL) {

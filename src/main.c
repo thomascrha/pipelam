@@ -32,6 +32,11 @@ int main(int argc, char *argv[]) {
     }
 
     while (1) {
+        // If there's an active window, close it first to ensure new message shows immediately
+        if (bow_has_active_window()) {
+            bow_close_current_window();
+        }
+
         FILE *pipe_fd = fopen(pipe_path, "r");
         if (pipe_fd == NULL) {
             perror("fopen");
@@ -47,7 +52,7 @@ int main(int argc, char *argv[]) {
         }
         fclose(pipe_fd);
 
-        bow_log_info("Recieved string");
+        bow_log_info("Received string");
         bow_log_debug("%s", volume_expression);
         bow_parse_message(volume_expression, bow_config);
 
