@@ -9,6 +9,7 @@
 #define GREEN "\033[0;32m"
 #define BLUE "\033[0;34m"
 #define RESET "\033[0m"
+#define ORANGE "\033[0;33m"
 
 // These are fallback defaults if no config is provided
 #define FALLBACK_WINDOW_TIMEOUT 600
@@ -65,7 +66,7 @@ struct pipelam_config {
 	int default_margin_bottom;
 };
 
-gpointer *pipelam_setup_config(void);
+struct pipelam_config *pipelam_setup_config(const char *config_file_path);
 void pipelam_destroy_config(struct pipelam_config *config);
 
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h

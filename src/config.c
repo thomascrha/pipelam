@@ -33,13 +33,13 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
         log_level_env = "INFO";
     }
     pipelam_log_debug("log_level: %s", log_level_env);
-    ((struct pipelam_config *)config)->log_level = (char *)log_level_env;
+    config->log_level = (char *)log_level_env;
     pipelam_log_level_set_from_string(log_level_env);
 
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
-        pipelam_log_debug("runtime_behaviour: %d", ((struct pipelam_config *)config)->runtime_behaviour);
-        enum pipelam_runtime_behaviour runtime_behaviour_val = ((struct pipelam_config *)config)->runtime_behaviour;
+        pipelam_log_debug("runtime_behaviour: %d", config->runtime_behaviour);
+        enum pipelam_runtime_behaviour runtime_behaviour_val = config->runtime_behaviour;
         if (strcmp(runtime_behaviour_env, "queue") == 0) {
             runtime_behaviour_val = QUEUE;
         } else if (strcmp(runtime_behaviour_env, "replace") == 0) {
@@ -47,22 +47,22 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
         } else {
             pipelam_log_error("Unknown runtime behaviour: %s", runtime_behaviour_env);
         }
-        ((struct pipelam_config *)config)->runtime_behaviour = runtime_behaviour_val;
+        config->runtime_behaviour = runtime_behaviour_val;
     }
 
     const char *window_timeout_env = getenv("PIPELAM_WINDOW_TIMEOUT");
     if (window_timeout_env != NULL) {
-        pipelam_log_debug("log_level: %d", ((struct pipelam_config *)config)->log_level);
-        pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)config)->window_timeout);
+        pipelam_log_debug("log_level: %s", config->log_level);
+        pipelam_log_debug("window_timeout: %d", config->window_timeout);
         int timeout = atoi(window_timeout_env);
-        ((struct pipelam_config *)config)->window_timeout = timeout;
-        ((struct pipelam_config *)config)->default_window_timeout = timeout;
+        config->window_timeout = timeout;
+        config->default_window_timeout = timeout;
     }
 
     const char *anchor_env = getenv("PIPELAM_ANCHOR");
     if (anchor_env != NULL) {
-        pipelam_log_debug("anchor: %d", ((struct pipelam_config *)config)->anchor);
-        enum pipelam_window_anchor anchor_val = ((struct pipelam_config *)config)->anchor;
+        pipelam_log_debug("anchor: %d", config->anchor);
+        enum pipelam_window_anchor anchor_val = config->anchor;
         if (strcmp(anchor_env, "BOTTOM_LEFT") == 0) {
             anchor_val = BOTTOM_LEFT;
         } else if (strcmp(anchor_env, "BOTTOM_RIGHT") == 0) {
@@ -76,40 +76,40 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
         } else {
             pipelam_log_error("Unknown anchor: %s", anchor_env);
         }
-        ((struct pipelam_config *)config)->anchor = anchor_val;
-        ((struct pipelam_config *)config)->default_anchor = anchor_val;
+        config->anchor = anchor_val;
+        config->default_anchor = anchor_val;
     }
 
     const char *margin_left_env = getenv("PIPELAM_MARGIN_LEFT");
     if (margin_left_env != NULL) {
-        pipelam_log_debug("margin_left: %d", ((struct pipelam_config *)config)->margin_left);
+        pipelam_log_debug("margin_left: %d", config->margin_left);
         int margin = atoi(margin_left_env);
-        ((struct pipelam_config *)config)->margin_left = margin;
-        ((struct pipelam_config *)config)->default_margin_left = margin;
+        config->margin_left = margin;
+        config->default_margin_left = margin;
     }
 
     const char *margin_right_env = getenv("PIPELAM_MARGIN_RIGHT");
     if (margin_right_env != NULL) {
-        pipelam_log_debug("margin_right: %d", ((struct pipelam_config *)config)->margin_right);
+        pipelam_log_debug("margin_right: %d", config->margin_right);
         int margin = atoi(margin_right_env);
-        ((struct pipelam_config *)config)->margin_right = margin;
-        ((struct pipelam_config *)config)->default_margin_right = margin;
+        config->margin_right = margin;
+        config->default_margin_right = margin;
     }
 
     const char *margin_top_env = getenv("PIPELAM_MARGIN_TOP");
     if (margin_top_env != NULL) {
-        pipelam_log_debug("margin_top: %d", ((struct pipelam_config *)config)->margin_top);
+        pipelam_log_debug("margin_top: %d", config->margin_top);
         int margin = atoi(margin_top_env);
-        ((struct pipelam_config *)config)->margin_top = margin;
-        ((struct pipelam_config *)config)->default_margin_top = margin;
+        config->margin_top = margin;
+        config->default_margin_top = margin;
     }
 
     const char *margin_bottom_env = getenv("PIPELAM_MARGIN_BOTTOM");
     if (margin_bottom_env != NULL) {
-        pipelam_log_debug("margin_bottom: %d", ((struct pipelam_config *)config)->margin_bottom);
+        pipelam_log_debug("margin_bottom: %d", config->margin_bottom);
         int margin = atoi(margin_bottom_env);
-        ((struct pipelam_config *)config)->margin_bottom = margin;
-        ((struct pipelam_config *)config)->default_margin_bottom = margin;
+        config->margin_bottom = margin;
+        config->default_margin_bottom = margin;
     }
 }
 
@@ -215,11 +215,17 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
     }
 }
 
-static char *pipelam_get_config_file(void) {
+static char *pipelam_get_config_file(const char *config_file_path) {
     // the precedence of the config file is as follows:
-    // 1. pipelam_CONFIG_FILE_PATH environment variable
-    // 2. $HOME/.config/bow/config
-    // 3. /etc/bow/config
+    // 1. Set by providing it explicitly to the function
+    // 2. PIPELAM_CONFIG_FILE_PATH environment variable
+    // 3. $HOME/.config/bow/config
+    // 4. /etc/bow/config
+
+    if (config_file_path != NULL) {
+        return (char *)config_file_path;
+    }
+
     const char *config_file_path_env = getenv("PIPELAM_CONFIG_FILE_PATH");
     if (config_file_path_env != NULL) {
         return (char *)config_file_path_env;
@@ -235,34 +241,34 @@ static char *pipelam_get_config_file(void) {
     return NULL;
 }
 
-gpointer *pipelam_setup_config(void) {
-    gpointer config = g_new(struct pipelam_config, 1);
+struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
+    struct pipelam_config *config = g_new(struct pipelam_config, 1);
 
     // Only set at startup
-    ((struct pipelam_config *)config)->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
-    ((struct pipelam_config *)config)->log_level = FALLBACK_LOG_LEVEL;
+    config->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
+    config->log_level = FALLBACK_LOG_LEVEL;
 
     // Only set at startup or at runtime
-    ((struct pipelam_config *)config)->window_timeout = FALLBACK_WINDOW_TIMEOUT;
+    config->window_timeout = FALLBACK_WINDOW_TIMEOUT;
 
     // can be set at runtime
-    ((struct pipelam_config *)config)->expression = NULL;
-    ((struct pipelam_config *)config)->anchor = FALLBACK_ANCHOR;
-    ((struct pipelam_config *)config)->margin_left = FALLBACK_MARGIN_LEFT;
-    ((struct pipelam_config *)config)->margin_right = FALLBACK_MARGIN_RIGHT;
-    ((struct pipelam_config *)config)->margin_top = FALLBACK_MARGIN_TOP;
-    ((struct pipelam_config *)config)->margin_bottom = FALLBACK_MARGIN_BOTTOM;
+    config->expression = NULL;
+    config->anchor = FALLBACK_ANCHOR;
+    config->margin_left = FALLBACK_MARGIN_LEFT;
+    config->margin_right = FALLBACK_MARGIN_RIGHT;
+    config->margin_top = FALLBACK_MARGIN_TOP;
+    config->margin_bottom = FALLBACK_MARGIN_BOTTOM;
 
     // Save these initial values as our default values
-    ((struct pipelam_config *)config)->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;
-    ((struct pipelam_config *)config)->default_anchor = FALLBACK_ANCHOR;
-    ((struct pipelam_config *)config)->default_margin_left = FALLBACK_MARGIN_LEFT;
-    ((struct pipelam_config *)config)->default_margin_right = FALLBACK_MARGIN_RIGHT;
-    ((struct pipelam_config *)config)->default_margin_top = FALLBACK_MARGIN_TOP;
-    ((struct pipelam_config *)config)->default_margin_bottom = FALLBACK_MARGIN_BOTTOM;
+    config->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;
+    config->default_anchor = FALLBACK_ANCHOR;
+    config->default_margin_left = FALLBACK_MARGIN_LEFT;
+    config->default_margin_right = FALLBACK_MARGIN_RIGHT;
+    config->default_margin_top = FALLBACK_MARGIN_TOP;
+    config->default_margin_bottom = FALLBACK_MARGIN_BOTTOM;
 
     // order of precedence: config file, environment variables
-    char *config_fp = pipelam_get_config_file();
+    char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
         pipelam_log_debug("found config file: %s", config_fp);
         pipelam_parse_config_file(config_fp, config);

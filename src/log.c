@@ -13,7 +13,7 @@
 static int current_log_level = LOG_INFO;
 
 static const char *verbosity_names[] = {
-    "DEBUG", "INFO", "WARNING", "ERROR", "PANIC",
+    "DEBUG", "INFO", "WARNING", "ERROR", "PANIC", "TEST",
 };
 
 static char *get_level_colour(int log_level) {
@@ -28,6 +28,8 @@ static char *get_level_colour(int log_level) {
         return RED;
     case LOG_PANIC:
         return BOLD_RED;
+    case LOG_TEST:
+        return ORANGE;
     default:
         return GREEN;
     }

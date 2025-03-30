@@ -64,14 +64,14 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 }
 
 int main(int argc, char *argv[]) {
-    gpointer pipelam_config = pipelam_setup_config();
+    struct pipelam_config *pipelam_config = pipelam_setup_config(NULL);
     if (pipelam_config == NULL) {
         pipelam_log_error("Failed to setup bow config");
         pipelam_destroy_config(pipelam_config);
         return EXIT_FAILURE;
     }
 
-    pipelam_log_info("Starting bow with log level %s", ((struct pipelam_config *)pipelam_config)->log_level);
+    pipelam_log_info("Starting bow with log level %s", pipelam_config->log_level);
 
     if (argc != 2) {
         pipelam_log_panic("Usage: %s <pipe_path>", argv[0]);
