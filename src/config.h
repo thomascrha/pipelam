@@ -19,7 +19,7 @@
 #define FALLBACK_MARGIN_TOP 100
 #define FALLBACK_MARGIN_BOTTOM 0
 #define FALLBACK_LOG_LEVEL "INFO"
-#define FALLBACK_RUNTIME_BEHAVIOUR QUEUE
+#define FALLBACK_RUNTIME_BEHAVIOUR OVERLAY
 
 enum pipelam_window_anchor {
 	BOTTOM_LEFT,
@@ -36,7 +36,8 @@ enum pipelam_message_type {
 
 enum pipelam_runtime_behaviour {
 	QUEUE,
-	REPLACE
+	REPLACE,
+	OVERLAY
 };
 
 struct pipelam_config {

@@ -10,6 +10,10 @@
 #include "gtk4-layer-shell.h"
 #include "log.h"
 
+// Global variables
+static GtkWindow *current_window = NULL;
+static GtkApplication *app = NULL;
+
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     // Allocate memory for GTK_LAYER_SHELL_EDGE_LEFT, RIGHT, TOP, BOTTOM
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -54,6 +58,16 @@ static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     }
 
     return anchors;
+}
+
+void pipelam_close_current_window(void) {
+    if (current_window != NULL) {
+        pipelam_log_debug("Closing current window");
+        gtk_window_close(current_window);
+        current_window = NULL;
+    } else {
+        pipelam_log_debug("No current window to close");
+    }
 }
 
 static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipelam_config) {
@@ -112,8 +126,6 @@ static gboolean close_window_callback(gpointer window) {
     if (GTK_IS_WINDOW(window)) {
         pipelam_log_debug("Closing window via timeout");
         gtk_window_close(GTK_WINDOW(window));
-    } else {
-        pipelam_log_error("Invalid window pointer in close_window_callback");
     }
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
@@ -175,6 +187,9 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
+    // Track this as the current window
+    current_window = gtk_window;
+
     g_object_unref(paintable);
     g_object_unref(pixbuf);
 }
@@ -205,20 +220,33 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
     pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)pipelam_config)->window_timeout);
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
+
+    // Track this as the current window
+    current_window = gtk_window;
 }
 
-void pipelam_create_run_window(gpointer pipelam_config) {
-    pipelam_log_debug("Creating run window");
-    GtkApplication *app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_DEFAULT_FLAGS);
+void pipelam_create_window(gpointer pipelam_config) {
+    pipelam_log_debug("Creating window");
+    app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
+    g_application_register(G_APPLICATION(app), NULL, NULL);
 
     if (((struct pipelam_config *)pipelam_config)->type == IMAGE) {
-        g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), pipelam_config);
+        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), pipelam_config);
+            g_application_run(G_APPLICATION(app), 0, NULL);
+        } else {
+            pipelam_render_image_window(app, pipelam_config);
+        }
     } else if (((struct pipelam_config *)pipelam_config)->type == TEXT) {
-        g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_text_window), pipelam_config);
+        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_text_window), pipelam_config);
+            g_application_run(G_APPLICATION(app), 0, NULL);
+        } else {
+            pipelam_render_text_window(app, pipelam_config);
+        }
     } else {
         pipelam_log_error("Unknown type: %d", ((struct pipelam_config *)pipelam_config)->type);
-        return;
     }
-    g_application_run(G_APPLICATION(app), 0, NULL);
+
     g_object_unref(app);
 }

@@ -40,10 +40,17 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
     }
 
     if (message != NULL && length > 0) {
-        pipelam_log_debug("Received message of length: %lu", length);
+        pipelam_log_info("Received message of length: %lu", length);
+
+        pipelam_log_info("ruintime %d", config->runtime_behaviour);
+        if (config->runtime_behaviour == (int)REPLACE) {
+            pipelam_log_debug("Runtime behavior is REPLACE, closing any existing window");
+            pipelam_close_current_window();
+        }
+
         pipelam_reset_default_config(config);
         pipelam_parse_message(message, config);
-        pipelam_create_run_window(config);
+        pipelam_create_window(config);
         g_free(message);
     }
 
@@ -61,6 +68,8 @@ int main(int argc, char *argv[]) {
         pipelam_destroy_config(pipelam_config);
         return EXIT_FAILURE;
     }
+
+    gtk_init();
 
     pipelam_log_info("Starting pipelam with log level %s", pipelam_config->log_level);
 
