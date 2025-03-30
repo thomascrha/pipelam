@@ -66,7 +66,7 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 int main(int argc, char *argv[]) {
     struct pipelam_config *pipelam_config = pipelam_setup_config(NULL);
     if (pipelam_config == NULL) {
-        pipelam_log_error("Failed to setup bow config");
+        pipelam_log_panic("Failed to setup bow config - exiting");
         pipelam_destroy_config(pipelam_config);
         return EXIT_FAILURE;
     }
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
     int pipe_fd = open(pipe_path, O_RDONLY | O_NONBLOCK);
     if (pipe_fd == -1) {
         perror("open");
-        pipelam_log_error("Failed to open pipe in non-blocking mode");
+        pipelam_log_panic("Failed to open pipe in non-blocking mode - exiting");
         pipelam_destroy_config(pipelam_config);
         return EXIT_FAILURE;
     }

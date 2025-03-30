@@ -25,14 +25,14 @@ int main(void) {
     }
 
     // Run message tests
-    // pipelam_log_test("[Running Message Tests]");
-    // pipelam_log_test("---------------------------------------");
-    // if (test_message_main() != 0) {
-    //     tests_failed++;
-    //     pipelam_log_test("MESSAGE TESTS FAILED!");
-    // } else {
-    //     pipelam_log_test("MESSAGE TESTS PASSED!");
-    // }
+    pipelam_log_test("[Running Message Tests]");
+    pipelam_log_test("---------------------------------------");
+    if (test_message_main() != 0) {
+        tests_failed++;
+        pipelam_log_test("MESSAGE TESTS FAILED!");
+    } else {
+        pipelam_log_test("MESSAGE TESTS PASSED!");
+    }
 
     // Summary
     pipelam_log_test("=======================================");

@@ -28,7 +28,7 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
     char *keys[] = {"window_timeout", "anchor", "margin_left", "margin_right", "margin_top", "margin_bottom"};
 
     struct json_object_element_s *element = object->start;
-    pipelam_log_debug("pipelam_json_config_settings_parse\n");
+    pipelam_log_debug("pipelam_json_config_settings_parse");
     while (element != NULL) {
         struct json_string_s *name = element->name;
         struct json_value_s *value = element->value;
@@ -36,18 +36,18 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
         for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
             char *key = keys[i];
             if (0 == strcmp(name->string, key)) {
-                pipelam_log_debug("key: %s\n", key);
+                pipelam_log_debug("key: %s", key);
                 if (0 == strcmp(name->string, "window_timeout")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
-                        pipelam_log_debug("window_timeout: %s\n", _value->number);
+                        pipelam_log_debug("window_timeout: %s", _value->number);
                         config->window_timeout = atoi(_value->number);
-                        pipelam_log_debug("window_timeout: %d\n", config->window_timeout);
+                        pipelam_log_debug("window_timeout: %d", config->window_timeout);
                     }
 
                 } else if (0 == strcmp(name->string, "anchor")) {
                     struct json_string_s *_value = json_value_as_string(value);
-                    pipelam_log_debug("anchor: %s\n", _value->string);
+                    pipelam_log_debug("anchor: %s", _value->string);
                     if (_value != NULL) {
                         config->anchor = pipelam_json_config_anchor_parse(_value);
                     }
@@ -77,7 +77,7 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
                     }
 
                 } else {
-                    pipelam_log_error("unknown key: %s\n", name->string);
+                    pipelam_log_error("unknown key: %s", name->string);
                 }
             }
         }
@@ -128,7 +128,7 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
                 } else if (0 == strcmp(name->string, "settings")) {
                     pipelam_json_config_settings_parse(json_value_as_object(value), config);
                 } else {
-                    pipelam_log_error("unknown key: %s\n", name->string);
+                    pipelam_log_error("unknown key: %s", name->string);
                 }
             }
         }

@@ -161,9 +161,8 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
 
     while (co != NULL) {
         if (strcmp(co->key, "log_level") == 0) {
-            pipelam_log_info("Found log_level %s", co->value);
             config->log_level = co->value;
-            pipelam_log_info("Setting log level to %s", config->log_level);
+
         } else if (strcmp(co->key, "runtime_behaviour") == 0) {
             if (strcmp(co->value, "queue") == 0) {
                 config->runtime_behaviour = QUEUE;
@@ -177,41 +176,50 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
             int timeout = atoi(co->value);
             config->window_timeout = timeout;
             config->default_window_timeout = timeout;
-        } else if (strcmp(co->key, "expression") == 0) {
-            config->expression = co->value;
+
         } else if (strcmp(co->key, "anchor") == 0) {
             enum pipelam_window_anchor anchor_val = config->anchor;
             if (strcmp(co->value, "bottom-left") == 0) {
                 anchor_val = BOTTOM_LEFT;
+
             } else if (strcmp(co->value, "bottom-right") == 0) {
                 anchor_val = BOTTOM_RIGHT;
+
             } else if (strcmp(co->value, "top-left") == 0) {
                 anchor_val = TOP_LEFT;
+
             } else if (strcmp(co->value, "top-right") == 0) {
                 anchor_val = TOP_RIGHT;
+
             } else if (strcmp(co->value, "center") == 0) {
                 anchor_val = CENTER;
+
             } else {
                 pipelam_log_error("Unknown anchor: %s", co->value);
             }
             config->anchor = anchor_val;
             config->default_anchor = anchor_val;
+
         } else if (strcmp(co->key, "margin_left") == 0) {
             int margin = atoi(co->value);
             config->margin_left = margin;
             config->default_margin_left = margin;
+
         } else if (strcmp(co->key, "margin_right") == 0) {
             int margin = atoi(co->value);
             config->margin_right = margin;
             config->default_margin_right = margin;
+
         } else if (strcmp(co->key, "margin_top") == 0) {
             int margin = atoi(co->value);
             config->margin_top = margin;
             config->default_margin_top = margin;
+
         } else if (strcmp(co->key, "margin_bottom") == 0) {
             int margin = atoi(co->value);
             config->margin_bottom = margin;
             config->default_margin_bottom = margin;
+
         } else {
             pipelam_log_error("Unknown key: %s", co->key);
         }
@@ -227,7 +235,6 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // 4. /etc/bow/config
 
     if (config_file_path != NULL) {
-        pipelam_log_info("Setting explicitly");
         return (char *)config_file_path;
     }
 
@@ -276,6 +283,8 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
         pipelam_parse_config_file(config_fp, config);
+    } else {
+        pipelam_log_warning("No config file found, using default values");
     }
     pipelam_override_from_environment(config);
 

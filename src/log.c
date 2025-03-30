@@ -29,7 +29,7 @@ static char *get_level_colour(int log_level) {
     case LOG_PANIC:
         return BOLD_RED;
     case LOG_TEST:
-        return ORANGE;
+        return PURPLE;
     default:
         return GREEN;
     }
