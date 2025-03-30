@@ -44,7 +44,6 @@ struct pipelam_config {
 	char *log_level;
 	enum pipelam_runtime_behaviour runtime_behaviour;
 
-
 	// Message behaviour
 	char *expression;
 	enum pipelam_message_type type;

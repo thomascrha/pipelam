@@ -110,7 +110,6 @@ pipelam has two configuration files that can be used to customise the appearance
 
 The configuration file is a TOML file with the following options:
 ```toml
-buffer_size = 2048 # The size of the buffer for reading the FIFO file. (Default: 2048)
 log_level = "INFO" # The log level for the application. (Default: "INFO")
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
 anchor = "center" # The anchor point of the overlay. (Default: "center") (Can be overridden by the JSON payload)

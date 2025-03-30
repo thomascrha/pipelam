@@ -64,6 +64,10 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 }
 
 int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        pipelam_log_panic("Usage: %s <pipe_path>", argv[0]);
+    };
+
     struct pipelam_config *pipelam_config = pipelam_setup_config(NULL);
     if (pipelam_config == NULL) {
         pipelam_log_panic("Failed to setup bow config - exiting");
@@ -72,10 +76,6 @@ int main(int argc, char *argv[]) {
     }
 
     pipelam_log_info("Starting bow with log level %s", pipelam_config->log_level);
-
-    if (argc != 2) {
-        pipelam_log_panic("Usage: %s <pipe_path>", argv[0]);
-    };
 
     char *pipe_path = argv[1];
 

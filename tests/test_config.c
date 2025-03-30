@@ -34,7 +34,7 @@ static void cleanup_temp_file(char* filename) {
 }
 
 // Test default config values
-static void test_default_config() {
+static void test_default_config(void) {
     pipelam_log_test("Testing default configuration...");
 
     // Ensure no environment variables affect our test
@@ -75,7 +75,7 @@ static void test_default_config() {
 }
 
 // Test config from a file
-static void test_config_from_file() {
+static void test_config_from_file(void) {
     pipelam_log_test("Testing configuration from file...");
 
     // Create a temporary config file
@@ -134,7 +134,7 @@ static void test_config_from_file() {
 }
 
 // Test config from environment variables
-static void test_config_from_env() {
+static void test_config_from_env(void) {
     pipelam_log_test("Testing configuration from environment variables...");
 
     // Ensure no config file affects our test
@@ -188,7 +188,7 @@ static void test_config_from_env() {
 }
 
 // Test environment variables overriding config file
-static void test_env_override_file() {
+static void test_env_override_file(void) {
     pipelam_log_test("Testing environment variables overriding config file...");
 
     // Create a temporary config file
@@ -239,7 +239,7 @@ static void test_env_override_file() {
 }
 
 // Test invalid config values
-static void test_invalid_config() {
+static void test_invalid_config(void) {
     pipelam_log_test("Testing handling of invalid configuration values...");
 
     // Create a temporary config file with some invalid values
@@ -268,6 +268,165 @@ static void test_invalid_config() {
     pipelam_log_test("Invalid configuration test: PASSED");
 }
 
+// Test various anchor settings
+static void test_all_anchor_values(void) {
+    pipelam_log_test("Testing all anchor values...");
+
+    // Create config files for each anchor type
+    const char* anchor_types[][2] = {
+        {"bottom-left", "BOTTOM_LEFT"},
+        {"bottom-right", "BOTTOM_RIGHT"},
+        {"top-left", "TOP_LEFT"},
+        {"top-right", "TOP_RIGHT"},
+        {"center", "CENTER"},
+    };
+
+    for (int i = 0; i < 5; i++) {
+        char config_content[256];
+        sprintf(config_content, "anchor = %s\n", anchor_types[i][0]);
+
+        char* temp_file = create_temp_config_file(config_content);
+        assert(temp_file != NULL);
+
+        struct pipelam_config* config = pipelam_setup_config(temp_file);
+        assert(config != NULL);
+
+        // Convert anchor enum to int for comparison to avoid string/pointer comparison issues
+        int expected_anchor = -1;
+        if (strcmp(anchor_types[i][1], "BOTTOM_LEFT") == 0) expected_anchor = BOTTOM_LEFT;
+        else if (strcmp(anchor_types[i][1], "BOTTOM_RIGHT") == 0) expected_anchor = BOTTOM_RIGHT;
+        else if (strcmp(anchor_types[i][1], "TOP_LEFT") == 0) expected_anchor = TOP_LEFT;
+        else if (strcmp(anchor_types[i][1], "TOP_RIGHT") == 0) expected_anchor = TOP_RIGHT;
+        else if (strcmp(anchor_types[i][1], "CENTER") == 0) expected_anchor = CENTER;
+
+        pipelam_log_test("Testing anchor: %s (expected value: %d, actual: %d)",
+                        anchor_types[i][0], expected_anchor, (int)config->anchor);
+        assert((int)config->anchor == expected_anchor);
+
+        pipelam_destroy_config(config);
+        cleanup_temp_file(temp_file);
+    }
+
+    pipelam_log_test("All anchor values test: PASSED");
+}
+
+// Test extreme window timeout values
+static void test_extreme_window_timeout(void) {
+    pipelam_log_test("Testing extreme window timeout values...");
+
+    // Test cases: very small, very large, negative, zero
+    const char* timeout_tests[][2] = {
+        {"1", "1"},           // Minimum practical
+        {"0", "0"},           // Zero
+        {"-100", "-100"},     // Negative (implementation dependent)
+        {"2147483647", "2147483647"}, // INT_MAX
+    };
+
+    for (int i = 0; i < 4; i++) {
+        char config_content[256];
+        sprintf(config_content, "window_timeout = %s\n", timeout_tests[i][0]);
+
+        char* temp_file = create_temp_config_file(config_content);
+        assert(temp_file != NULL);
+
+        struct pipelam_config* config = pipelam_setup_config(temp_file);
+        assert(config != NULL);
+
+        int expected = atoi(timeout_tests[i][1]);
+        pipelam_log_test("Testing window_timeout: %s (expected: %d, actual: %d)",
+                        timeout_tests[i][0], expected, config->window_timeout);
+
+        assert(config->window_timeout == expected);
+
+        pipelam_destroy_config(config);
+        cleanup_temp_file(temp_file);
+    }
+
+    pipelam_log_test("Extreme window timeout test: PASSED");
+}
+
+// Test config file with comments and empty lines
+static void test_config_with_comments(void) {
+    pipelam_log_test("Testing config file with comments and empty lines...");
+
+    const char* config_content =
+        "# This is a comment\n"
+        "\n"
+        "log_level = WARNING  # Inline comment\n"
+        "\n"
+        "# Another comment line\n"
+        "window_timeout = 750\n"
+        "\n"
+        "anchor = top-right\n";
+
+    char* temp_file = create_temp_config_file(config_content);
+    assert(temp_file != NULL);
+
+    struct pipelam_config* config = pipelam_setup_config(temp_file);
+    assert(config != NULL);
+
+    // Verify the non-comment lines were parsed correctly
+    assert(strcmp(config->log_level, "WARNING") == 0);
+    assert(config->window_timeout == 750);
+    assert((int)config->anchor == (int)TOP_RIGHT);
+
+    pipelam_destroy_config(config);
+    cleanup_temp_file(temp_file);
+
+    pipelam_log_test("Config with comments test: PASSED");
+}
+
+// Test margin edge cases
+static void test_margin_edge_cases(void) {
+    pipelam_log_test("Testing margin edge cases...");
+
+    // Test different combinations of margins
+    const char* config_content =
+        "margin_left = 0\n"
+        "margin_right = 0\n"
+        "margin_top = 0\n"
+        "margin_bottom = 0\n";
+
+    char* temp_file = create_temp_config_file(config_content);
+    assert(temp_file != NULL);
+
+    struct pipelam_config* config = pipelam_setup_config(temp_file);
+    assert(config != NULL);
+
+    // Verify all margins are zero
+    assert(config->margin_left == 0);
+    assert(config->margin_right == 0);
+    assert(config->margin_top == 0);
+    assert(config->margin_bottom == 0);
+
+    pipelam_destroy_config(config);
+    cleanup_temp_file(temp_file);
+
+    // Test negative margins
+    const char* config_content2 =
+        "margin_left = -50\n"
+        "margin_right = -60\n"
+        "margin_top = -70\n"
+        "margin_bottom = -80\n";
+
+    temp_file = create_temp_config_file(config_content2);
+    assert(temp_file != NULL);
+
+    config = pipelam_setup_config(temp_file);
+    assert(config != NULL);
+
+    // Verify negative margins
+    assert(config->margin_left == -50);
+    assert(config->margin_right == -60);
+    assert(config->margin_top == -70);
+    assert(config->margin_bottom == -80);
+
+    pipelam_destroy_config(config);
+    cleanup_temp_file(temp_file);
+
+    pipelam_log_test("Margin edge cases test: PASSED");
+}
+
 int test_config_main(void) {
     // Initialize with debug logging to see detailed output
     pipelam_log_level_set(LOG_DEBUG);
@@ -279,6 +438,12 @@ int test_config_main(void) {
     test_config_from_env();
     test_env_override_file();
     test_invalid_config();
+
+    // New test cases
+    test_all_anchor_values();
+    test_extreme_window_timeout();
+    test_config_with_comments();
+    test_margin_edge_cases();
 
     pipelam_log_test("=== All Config Tests Passed ===");
     return 0;
