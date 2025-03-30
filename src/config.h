@@ -10,6 +10,17 @@
 #define BLUE "\033[0;34m"
 #define RESET "\033[0m"
 
+// These are fallback defaults if no config is provided
+#define FALLBACK_WINDOW_TIMEOUT 600
+#define FALLBACK_ANCHOR CENTER
+#define FALLBACK_MARGIN_LEFT 100
+#define FALLBACK_MARGIN_RIGHT 0
+#define FALLBACK_MARGIN_TOP 100
+#define FALLBACK_MARGIN_BOTTOM 0
+#define FALLBACK_LOG_LEVEL "INFO"
+#define FALLBACK_RUNTIME_BEHAVIOUR QUEUE
+#define FALLBACK_MAX_MESSAGE_SIZE 4096
+
 enum pipelam_window_anchor {
 	BOTTOM_LEFT,
 	BOTTOM_RIGHT,
@@ -23,17 +34,36 @@ enum pipelam_message_type {
 	IMAGE
 };
 
+enum pipelam_runtime_behaviour {
+	QUEUE,
+	REPLACE
+};
+
 struct pipelam_config {
-	int buffer_size;
+	// Startrup behaviour
 	char *log_level;
-	int window_timeout;
+	enum pipelam_runtime_behaviour runtime_behaviour;
+	int max_message_size;
+
+	// Message behaviour
 	char *expression;
 	enum pipelam_message_type type;
+
+	// Runtime behaviour
+	int window_timeout;
 	enum pipelam_window_anchor anchor;
 	int margin_left;
 	int margin_right;
 	int margin_top;
 	int margin_bottom;
+
+	// Default values (set at startup from config/env)
+	int default_window_timeout;
+	enum pipelam_window_anchor default_anchor;
+	int default_margin_left;
+	int default_margin_right;
+	int default_margin_top;
+	int default_margin_bottom;
 };
 
 gpointer *pipelam_setup_config(void);

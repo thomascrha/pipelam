@@ -36,59 +36,87 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
     ((struct pipelam_config *)config)->log_level = (char *)log_level_env;
     pipelam_log_level_set_from_string(log_level_env);
 
-    const char *buffer_size_env = getenv("PIPELAM_BUFFER_SIZE");
-    if (buffer_size_env != NULL) {
-        pipelam_log_debug("buffer_size: %d", ((struct pipelam_config *)config)->buffer_size);
-        ((struct pipelam_config *)config)->buffer_size = atoi(buffer_size_env);
+    const char *max_message_size_env = getenv("PIPELAME_MAX_MESSAGE_SIZE");
+    if (max_message_size_env != NULL) {
+        pipelam_log_debug("max_message_size: %d", ((struct pipelam_config *)config)->max_message_size);
+        int max_message_size = atoi(max_message_size_env);
+        ((struct pipelam_config *)config)->max_message_size = max_message_size;
+    }
+
+    const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
+    if (runtime_behaviour_env != NULL) {
+        pipelam_log_debug("runtime_behaviour: %d", ((struct pipelam_config *)config)->runtime_behaviour);
+        enum pipelam_runtime_behaviour runtime_behaviour_val = ((struct pipelam_config *)config)->runtime_behaviour;
+        if (strcmp(runtime_behaviour_env, "queue") == 0) {
+            runtime_behaviour_val = QUEUE;
+        } else if (strcmp(runtime_behaviour_env, "replace") == 0) {
+            runtime_behaviour_val = REPLACE;
+        } else {
+            pipelam_log_error("Unknown runtime behaviour: %s", runtime_behaviour_env);
+        }
+        ((struct pipelam_config *)config)->runtime_behaviour = runtime_behaviour_val;
     }
 
     const char *window_timeout_env = getenv("PIPELAM_WINDOW_TIMEOUT");
     if (window_timeout_env != NULL) {
         pipelam_log_debug("log_level: %d", ((struct pipelam_config *)config)->log_level);
         pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)config)->window_timeout);
-        ((struct pipelam_config *)config)->window_timeout = atoi(window_timeout_env);
+        int timeout = atoi(window_timeout_env);
+        ((struct pipelam_config *)config)->window_timeout = timeout;
+        ((struct pipelam_config *)config)->default_window_timeout = timeout;
     }
 
     const char *anchor_env = getenv("PIPELAM_ANCHOR");
     if (anchor_env != NULL) {
         pipelam_log_debug("anchor: %d", ((struct pipelam_config *)config)->anchor);
+        enum pipelam_window_anchor anchor_val = ((struct pipelam_config *)config)->anchor;
         if (strcmp(anchor_env, "BOTTOM_LEFT") == 0) {
-            ((struct pipelam_config *)config)->anchor = BOTTOM_LEFT;
+            anchor_val = BOTTOM_LEFT;
         } else if (strcmp(anchor_env, "BOTTOM_RIGHT") == 0) {
-            ((struct pipelam_config *)config)->anchor = BOTTOM_RIGHT;
+            anchor_val = BOTTOM_RIGHT;
         } else if (strcmp(anchor_env, "TOP_LEFT") == 0) {
-            ((struct pipelam_config *)config)->anchor = TOP_LEFT;
+            anchor_val = TOP_LEFT;
         } else if (strcmp(anchor_env, "TOP_RIGHT") == 0) {
-            ((struct pipelam_config *)config)->anchor = TOP_RIGHT;
+            anchor_val = TOP_RIGHT;
         } else if (strcmp(anchor_env, "CENTER") == 0) {
-            ((struct pipelam_config *)config)->anchor = CENTER;
+            anchor_val = CENTER;
         } else {
             pipelam_log_error("Unknown anchor: %s", anchor_env);
         }
+        ((struct pipelam_config *)config)->anchor = anchor_val;
+        ((struct pipelam_config *)config)->default_anchor = anchor_val;
     }
 
     const char *margin_left_env = getenv("PIPELAM_MARGIN_LEFT");
     if (margin_left_env != NULL) {
         pipelam_log_debug("margin_left: %d", ((struct pipelam_config *)config)->margin_left);
-        ((struct pipelam_config *)config)->margin_left = atoi(margin_left_env);
+        int margin = atoi(margin_left_env);
+        ((struct pipelam_config *)config)->margin_left = margin;
+        ((struct pipelam_config *)config)->default_margin_left = margin;
     }
 
     const char *margin_right_env = getenv("PIPELAM_MARGIN_RIGHT");
     if (margin_right_env != NULL) {
         pipelam_log_debug("margin_right: %d", ((struct pipelam_config *)config)->margin_right);
-        ((struct pipelam_config *)config)->margin_right = atoi(margin_right_env);
+        int margin = atoi(margin_right_env);
+        ((struct pipelam_config *)config)->margin_right = margin;
+        ((struct pipelam_config *)config)->default_margin_right = margin;
     }
 
     const char *margin_top_env = getenv("PIPELAM_MARGIN_TOP");
     if (margin_top_env != NULL) {
         pipelam_log_debug("margin_top: %d", ((struct pipelam_config *)config)->margin_top);
-        ((struct pipelam_config *)config)->margin_top = atoi(margin_top_env);
+        int margin = atoi(margin_top_env);
+        ((struct pipelam_config *)config)->margin_top = margin;
+        ((struct pipelam_config *)config)->default_margin_top = margin;
     }
 
     const char *margin_bottom_env = getenv("PIPELAM_MARGIN_BOTTOM");
     if (margin_bottom_env != NULL) {
         pipelam_log_debug("margin_bottom: %d", ((struct pipelam_config *)config)->margin_bottom);
-        ((struct pipelam_config *)config)->margin_bottom = atoi(margin_bottom_env);
+        int margin = atoi(margin_bottom_env);
+        ((struct pipelam_config *)config)->margin_bottom = margin;
+        ((struct pipelam_config *)config)->default_margin_bottom = margin;
     }
 }
 
@@ -137,36 +165,59 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
     }
 
     while (co != NULL) {
-        if (strcmp(co->key, "buffer_size") == 0) {
-            config->buffer_size = atoi(co->value);
+        if (strcmp(co->key, "max_message_size") == 0) {
+            config->max_message_size = atoi(co->value);
         } else if (strcmp(co->key, "log_level") == 0) {
             config->log_level = co->value;
+        } else if (strcmp(co->key, "runtime_behaviour") == 0) {
+            if (strcmp(co->value, "queue") == 0) {
+                config->runtime_behaviour = QUEUE;
+            } else if (strcmp(co->value, "replace") == 0) {
+                config->runtime_behaviour = REPLACE;
+            } else {
+                pipelam_log_error("Unknown runtime behaviour: %s", co->value);
+            }
+        } else if (strcmp(co->key, "max_message_size") == 0) {
+            config->max_message_size = atoi(co->value);
         } else if (strcmp(co->key, "window_timeout") == 0) {
-            config->window_timeout = atoi(co->value);
+            int timeout = atoi(co->value);
+            config->window_timeout = timeout;
+            config->default_window_timeout = timeout;
         } else if (strcmp(co->key, "expression") == 0) {
             config->expression = co->value;
         } else if (strcmp(co->key, "anchor") == 0) {
+            enum pipelam_window_anchor anchor_val = config->anchor;
             if (strcmp(co->value, "bottom-left") == 0) {
-                config->anchor = BOTTOM_LEFT;
+                anchor_val = BOTTOM_LEFT;
             } else if (strcmp(co->value, "bottom-right") == 0) {
-                config->anchor = BOTTOM_RIGHT;
+                anchor_val = BOTTOM_RIGHT;
             } else if (strcmp(co->value, "top-left") == 0) {
-                config->anchor = TOP_LEFT;
+                anchor_val = TOP_LEFT;
             } else if (strcmp(co->value, "top-right") == 0) {
-                config->anchor = TOP_RIGHT;
+                anchor_val = TOP_RIGHT;
             } else if (strcmp(co->value, "center") == 0) {
-                config->anchor = CENTER;
+                anchor_val = CENTER;
             } else {
                 pipelam_log_error("Unknown anchor: %s", co->value);
             }
+            config->anchor = anchor_val;
+            config->default_anchor = anchor_val;
         } else if (strcmp(co->key, "margin_left") == 0) {
-            config->margin_left = atoi(co->value);
+            int margin = atoi(co->value);
+            config->margin_left = margin;
+            config->default_margin_left = margin;
         } else if (strcmp(co->key, "margin_right") == 0) {
-            config->margin_right = atoi(co->value);
+            int margin = atoi(co->value);
+            config->margin_right = margin;
+            config->default_margin_right = margin;
         } else if (strcmp(co->key, "margin_top") == 0) {
-            config->margin_top = atoi(co->value);
+            int margin = atoi(co->value);
+            config->margin_top = margin;
+            config->default_margin_top = margin;
         } else if (strcmp(co->key, "margin_bottom") == 0) {
-            config->margin_bottom = atoi(co->value);
+            int margin = atoi(co->value);
+            config->margin_bottom = margin;
+            config->default_margin_bottom = margin;
         } else {
             pipelam_log_error("Unknown key: %s", co->key);
         }
@@ -198,27 +249,34 @@ gpointer *pipelam_setup_config(void) {
     gpointer config = g_new(struct pipelam_config, 1);
 
     // Only set at startup
-    ((struct pipelam_config *)config)->buffer_size = 2048;
-    ((struct pipelam_config *)config)->log_level = "INFO";
+    ((struct pipelam_config *)config)->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
+    ((struct pipelam_config *)config)->log_level = FALLBACK_LOG_LEVEL;
+    ((struct pipelam_config *)config)->max_message_size = FALLBACK_MAX_MESSAGE_SIZE;
 
     // Only set at startup or at runtime
-    ((struct pipelam_config *)config)->window_timeout = 600;
+    ((struct pipelam_config *)config)->window_timeout = FALLBACK_WINDOW_TIMEOUT;
 
     // can be set at runtime
     ((struct pipelam_config *)config)->expression = NULL;
-    ((struct pipelam_config *)config)->anchor = CENTER;
-    ((struct pipelam_config *)config)->margin_left = 100;
-    ((struct pipelam_config *)config)->margin_right = 0;
-    ((struct pipelam_config *)config)->margin_top = 100;
-    ((struct pipelam_config *)config)->margin_bottom = 0;
+    ((struct pipelam_config *)config)->anchor = FALLBACK_ANCHOR;
+    ((struct pipelam_config *)config)->margin_left = FALLBACK_MARGIN_LEFT;
+    ((struct pipelam_config *)config)->margin_right = FALLBACK_MARGIN_RIGHT;
+    ((struct pipelam_config *)config)->margin_top = FALLBACK_MARGIN_TOP;
+    ((struct pipelam_config *)config)->margin_bottom = FALLBACK_MARGIN_BOTTOM;
+
+    // Save these initial values as our default values
+    ((struct pipelam_config *)config)->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;
+    ((struct pipelam_config *)config)->default_anchor = FALLBACK_ANCHOR;
+    ((struct pipelam_config *)config)->default_margin_left = FALLBACK_MARGIN_LEFT;
+    ((struct pipelam_config *)config)->default_margin_right = FALLBACK_MARGIN_RIGHT;
+    ((struct pipelam_config *)config)->default_margin_top = FALLBACK_MARGIN_TOP;
+    ((struct pipelam_config *)config)->default_margin_bottom = FALLBACK_MARGIN_BOTTOM;
 
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file();
     if (config_fp != NULL) {
         pipelam_log_debug("found config file: %s", config_fp);
-        pipelam_log_debug("config->window_timeout: %d", ((struct pipelam_config *)config)->window_timeout);
         pipelam_parse_config_file(config_fp, config);
-        pipelam_log_debug("config->window_timeout: %d", ((struct pipelam_config *)config)->window_timeout);
     }
     pipelam_override_from_environment(config);
 

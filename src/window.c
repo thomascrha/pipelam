@@ -11,16 +11,20 @@
 #include "log.h"
 
 /* Global variable to track current active window */
-static GtkWindow *current_window = NULL;
+static GtkWidget *current_window = NULL;
 
 /* Function to check if there's an active window */
-int pipelam_has_active_window(void) { return (current_window != NULL); }
+int pipelam_has_active_window(void) { return (current_window != NULL && GTK_IS_WINDOW(current_window)); }
 
 /* Function to close the current window if one exists */
 void pipelam_close_current_window(void) {
     if (current_window != NULL) {
         pipelam_log_debug("Closing current window due to new message");
-        gtk_window_close(current_window);
+        if (GTK_IS_WINDOW(current_window)) {
+            gtk_window_close(GTK_WINDOW(current_window));
+        } else {
+            pipelam_log_error("Invalid window pointer in pipelam_close_current_window");
+        }
         current_window = NULL;
     }
 }
@@ -80,11 +84,13 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
         return NULL;
     }
 
-    GtkWindow *gtk_window = GTK_WINDOW(gtk_application_window_new(app));
-    if (gtk_window == NULL) {
+    GtkWidget *window = gtk_application_window_new(app);
+    if (window == NULL) {
         pipelam_log_error("gtk_application_window_new() returned NULL");
         return NULL;
     }
+
+    GtkWindow *gtk_window = GTK_WINDOW(window);
 
     // Before the window is first realized, set it up to be a layer surface
     gtk_layer_init_for_window(gtk_window);
@@ -122,23 +128,32 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
 }
 
 static gboolean close_window_callback(gpointer window) {
-    gtk_window_close(GTK_WINDOW(window));
-    // Clear the current_window pointer if this is the current window
-    if (current_window == GTK_WINDOW(window)) {
-        current_window = NULL;
+    if (GTK_IS_WINDOW(window)) {
+        pipelam_log_debug("Closing window via timeout");
+        gtk_window_close(GTK_WINDOW(window));
+        // Clear the current_window pointer if this is the current window
+        if (current_window == window) {
+            current_window = NULL;
+        }
+    } else {
+        pipelam_log_error("Invalid window pointer in close_window_callback");
     }
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
 
-static void pipelam_render_image_window(GtkApplication *app, gpointer pipelam_config) {
+// Custom handler for window destroy signals
+static void on_window_destroy(GtkWidget *widget, G_GNUC_UNUSED gpointer data) {
+    pipelam_log_debug("Window destroyed");
+    if (current_window == widget) {
+        current_window = NULL;
+    }
+}
+
+static void pipelam_render_image_window(GtkApplication *app, gpointer user_data) {
     pipelam_log_debug("Creating image window");
 
-    // Close previous window if exists
-    // if (current_window != NULL) {
-    //     pipelam_log_debug("Closing previous window");
-    //     gtk_window_close(current_window);
-    //     current_window = NULL;
-    // }
+    // Get the config from user_data
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
@@ -147,7 +162,7 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer pipelam_co
     }
 
     // Store the new window as the current window
-    current_window = gtk_window;
+    current_window = GTK_WIDGET(gtk_window);
 
     const char *image_path = ((struct pipelam_config *)pipelam_config)->expression;
     pipelam_log_debug("Loading image from path: %s", image_path);
@@ -199,20 +214,18 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer pipelam_co
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
-    g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
+    g_signal_connect(gtk_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
 
     // Unref paintable and pixbuf after they're used
     g_object_unref(paintable);
     g_object_unref(pixbuf);
 }
 
-static void pipelam_render_text_window(GtkApplication *app, gpointer pipelam_config) {
-    // Close previous window if exists
-    // if (current_window != NULL) {
-    //     pipelam_log_debug("Closing previous window");
-    //     gtk_window_close(current_window);
-    //     current_window = NULL;
-    // }
+static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) {
+    pipelam_log_debug("Creating text window");
+
+    // Get the config from user_data
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
@@ -221,7 +234,7 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer pipelam_con
     }
 
     // Store the new window as the current window
-    current_window = gtk_window;
+    current_window = GTK_WIDGET(gtk_window);
 
     GtkWidget *label = gtk_label_new(NULL);
     if (label == NULL) {
@@ -241,12 +254,12 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer pipelam_con
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
-    g_signal_connect(gtk_window, "destroy", G_CALLBACK(gtk_window_close), NULL);
+    g_signal_connect(gtk_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
 }
 
 void pipelam_create_run_window(gpointer pipelam_config) {
-    // pipelam_log_debug("Received string: %s", expression);
-    GtkApplication *app = gtk_application_new("com.github.wmww.bow", G_APPLICATION_DEFAULT_FLAGS);
+    pipelam_log_debug("Creating run window");
+    GtkApplication *app = gtk_application_new("com.github.wmww.pipelam", G_APPLICATION_DEFAULT_FLAGS);
 
     if (((struct pipelam_config *)pipelam_config)->type == IMAGE) {
         g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), pipelam_config);

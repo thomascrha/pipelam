@@ -138,6 +138,13 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
 }
 
 void pipelam_parse_message(const char *expression, struct pipelam_config *config) {
+    // Reset all configurable options to their custom default values before parsing new message
+    config->window_timeout = config->default_window_timeout;
+    config->anchor = config->default_anchor;
+    config->margin_left = config->default_margin_left;
+    config->margin_right = config->default_margin_right;
+    config->margin_top = config->default_margin_top;
+    config->margin_bottom = config->default_margin_bottom;
     // check if first char of expression is '{'
     // I know this is dumb, but its proably the best way in this instance to check
     // parsing only occurs with an object not a list of objects, and if the the first
