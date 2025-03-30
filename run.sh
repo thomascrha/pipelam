@@ -1,3 +1,3 @@
 #!/bin/sh
 
-bear -- make && ./build/bow /tmp/bow.fifo
+bear -- make && ./build/pipelam /tmp/pipelam.fifo

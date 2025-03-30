@@ -1,4 +1,4 @@
-# bow
+# pipelam
 
 A lightweight overlay volume/backlight/progress/anything hugely inspired and based on [wob](https://github.com/francma/wob) for wlroots based compositors.
 
@@ -7,7 +7,7 @@ A lightweight overlay volume/backlight/progress/anything hugely inspired and bas
 This tool differs from wob in several different ways:
 
  - It uses gkt4 and gtk4-layer-shell for displaying the overlay.
- - This overlay is customisable using the JSON payload you write into the FIFO file bow is listening to.
+ - This overlay is customisable using the JSON payload you write into the FIFO file pipelam is listening to.
     - It as two different types of overlays: `text` and `image`.
     - You can set the position, size, colour, font, text, image, etc. of the overlay.
     - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
@@ -33,17 +33,17 @@ This will build the project and place the binary in the `build` directory.
 
 ## Running
 
-To run the project, you will need to create a FIFO file that bow will listen to. You can do this by running the following command:
+To run the project, you will need to create a FIFO file that pipelam will listen to. You can do this by running the following command:
 
-Note: If no FIFO file is provided, bow will create one at the path you specify.
+Note: If no FIFO file is provided, pipelam will create one at the path you specify.
 ```shell
-mkfifo /tmp/bow.fifo
+mkfifo /tmp/pipelam.fifo
 ```
 
-Then you can run the following command to start bow:
+Then you can run the following command to start pipelam:
 
 ```shell
-./build/bow /tmp/bow.fifo
+./build/pipelam /tmp/pipelam.fifo
 ```
 
 Then you can write a JSON payload to the FIFO file to display the overlay. Here is an example payload:
@@ -56,7 +56,7 @@ Then you can write a JSON payload to the FIFO file to display the overlay. Here 
 ```
 
 ```shell
-jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/bow.fifo
+jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pipelam.fifo
 ```
 
 ### Examples
@@ -65,11 +65,11 @@ There are several example scripts in the `examples` directory that you can use t
 
 #### Text Overlay
 ```shell
-./examples/volume-bar-expression.sh > /tmp/bow.fifo
+./examples/volume-bar-expression.sh > /tmp/pipelam.fifo
 ```
 
 ```shell
-./examples/volume-text-expression.sh > /tmp/bow.fifo
+./examples/volume-text-expression.sh > /tmp/pipelam.fifo
 ```
 
 ## Json Payload
@@ -97,14 +97,14 @@ The expression for type `text` supports [pango markup](https://docs.gtk.org/Pang
 
 ## Configuration
 
-Bow has two configuration files that can be used to customise the appearance of the overlay. The default one is located at `/etc/bow/config` and a user one can be placed in `$HOME/.config/bow/config`
+pipelam has two configuration files that can be used to customise the appearance of the overlay. The default one is located at `/etc/pipelam/config` and a user one can be placed in `$HOME/.config/pipelam/config`
 
 1. If no configuration file is found, the default values will be used.
 2. If a configuration file is found, they will be loaded in this order (with the last one taking precedence):
-    - The default configuration file is loaded first. (`/etc/bow/config`)
-    - The user configuration file is loaded second. (`$HOME/.config/bow/config`)
-3. Environment variables take precedence over the configuration file. If an environment variable is set, it will override the value in the configuration file. These environment variables are the name of the attribute in the config file prefaced with `BOW_` - for example `log_level` is overwritten by the environment variable `BOW_LOG_LEVEL`.
-    - Note: there is one undocumented environment variable - `BOW_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
+    - The default configuration file is loaded first. (`/etc/pipelam/config`)
+    - The user configuration file is loaded second. (`$HOME/.config/pipelam/config`)
+3. Environment variables take precedence over the configuration file. If an environment variable is set, it will override the value in the configuration file. These environment variables are the name of the attribute in the config file prefaced with `pipelam_` - for example `log_level` is overwritten by the environment variable `pipelam_LOG_LEVEL`.
+    - Note: there is one undocumented environment variable - `pipelam_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
 
 ### Configuration Options
 

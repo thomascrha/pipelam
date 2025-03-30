@@ -3,7 +3,7 @@ CFLAGS       := -g -Wall -Wextra -std=c17
 CC           := clang
 FILES        := src/main.c src/window.c src/log.c src/config.c src/message.c
 FORMAT_STYLE := "{BasedOnStyle: llvm, IndentWidth: 4, ColumnLimit: 200}"
-OUTPUT       := build/bow
+OUTPUT       := build/pipelam
 
 # Get pkg-config flags
 GTK4_LAYER_SHELL_CFLAGS := $(shell pkg-config --cflags gtk4-layer-shell-0)

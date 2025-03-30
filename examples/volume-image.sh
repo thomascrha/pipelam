@@ -12,13 +12,13 @@ elif [ "$1" == "mute" ]; then
 fi
 
 if [ "$VOLUME" -le 0 ]; then
-	IMAGE_PATH="/home/tcrha/Projects/bow/examples/volume-0.png"
+	IMAGE_PATH="/home/tcrha/Projects/pipelam/examples/volume-0.png"
 elif [ "$VOLUME" -le 40 ]; then
-	IMAGE_PATH="/home/tcrha/Projects/bow/examples/volume-30.png"
+	IMAGE_PATH="/home/tcrha/Projects/pipelam/examples/volume-30.png"
 elif [ "$VOLUME" -le 80 ]; then
-	IMAGE_PATH="/home/tcrha/Projects/bow/examples/volume-70.png"
+	IMAGE_PATH="/home/tcrha/Projects/pipelam/examples/volume-70.png"
 else
-	IMAGE_PATH="/home/tcrha/Projects/bow/examples/volume-100.png"
+	IMAGE_PATH="/home/tcrha/Projects/pipelam/examples/volume-100.png"
 fi
 
 JSON_STRING="{\"type\": \"image\", \"expression\": \"${IMAGE_PATH}\", \"settings\": {\"anchor\": \"top-left\"}}"
