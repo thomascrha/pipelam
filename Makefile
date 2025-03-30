@@ -14,6 +14,7 @@ GTK4_CFLAGS := $(shell pkg-config --cflags gtk4)
 GTK4_LIBS := $(shell pkg-config --libs gtk4)
 GTK4_LAYER_SHELL_CFLAGS := $(shell pkg-config --cflags gtk4-layer-shell-0)
 GTK4_LAYER_SHELL_LIBS := $(shell pkg-config --libs gtk4-layer-shell-0)
+
 # Targets
 .PHONY: all format build_dir clean rebuild test
 
@@ -25,7 +26,7 @@ all: format build_dir $(OUTPUT)
 
 build_dir:
 	mkdir -p ./build
-	mkdir -p ./build
+
 clean:
 	rm -f $(OUTPUT) $(TEST_OUTPUT)
 
@@ -38,6 +39,4 @@ $(TEST_OUTPUT): $(TEST_FILES)
 
 $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o $(OUTPUT) $(FILES) $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
-clean:
-	rm -f $(OUTPUT) $(TEST_OUTPUT)
-	rm -f $(OUTPUT)
+	clang-format -i $(FILES) --style=$(FORMAT_STYLE)

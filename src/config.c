@@ -19,6 +19,8 @@ static void pipelam_log_level_set_from_string(const char *log_level) {
         pipelam_log_level_set(LOG_ERROR);
     } else if (strcmp(log_level, "PANIC") == 0) {
         pipelam_log_level_set(LOG_PANIC);
+    } else if (strcmp(log_level, "TEST") == 0) {
+        pipelam_log_level_set(LOG_TEST);
     } else {
         pipelam_log_error("Unknown log level: %s", log_level);
     }
@@ -27,14 +29,14 @@ static void pipelam_log_level_set_from_string(const char *log_level) {
 void pipelam_destroy_config(struct pipelam_config *config) { free(config); }
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
-    pipelam_log_debug("overriding config from environment");
     const char *log_level_env = getenv("PIPELAM_LOG_LEVEL");
-    if (log_level_env == NULL) {
-        log_level_env = "INFO";
+    if (log_level_env != NULL) {
+        config->log_level = (char *)log_level_env;
     }
-    pipelam_log_debug("log_level: %s", log_level_env);
-    config->log_level = (char *)log_level_env;
-    pipelam_log_level_set_from_string(log_level_env);
+
+    // anything other than info logs befor this point will only print log info as the level isn't set until this point
+    // and the log level is set to info by default
+    pipelam_log_level_set_from_string(config->log_level);
 
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
@@ -159,7 +161,9 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
 
     while (co != NULL) {
         if (strcmp(co->key, "log_level") == 0) {
+            pipelam_log_info("Found log_level %s", co->value);
             config->log_level = co->value;
+            pipelam_log_info("Setting log level to %s", config->log_level);
         } else if (strcmp(co->key, "runtime_behaviour") == 0) {
             if (strcmp(co->value, "queue") == 0) {
                 config->runtime_behaviour = QUEUE;
@@ -223,6 +227,7 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // 4. /etc/bow/config
 
     if (config_file_path != NULL) {
+        pipelam_log_info("Setting explicitly");
         return (char *)config_file_path;
     }
 
@@ -270,7 +275,6 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
-        pipelam_log_debug("found config file: %s", config_fp);
         pipelam_parse_config_file(config_fp, config);
     }
     pipelam_override_from_environment(config);
