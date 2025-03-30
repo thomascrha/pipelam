@@ -28,6 +28,18 @@ static void pipelam_log_level_set_from_string(const char *log_level) {
 
 void pipelam_destroy_config(struct pipelam_config *config) { free(config); }
 
+void pipelam_reset_default_config(struct pipelam_config *config) {
+    // Reset all configurable options to their custom default values before parsing new message
+    config->window_timeout = config->default_window_timeout;
+    config->anchor = config->default_anchor;
+    config->margin_left = config->default_margin_left;
+    config->margin_right = config->default_margin_right;
+    config->margin_top = config->default_margin_top;
+    config->margin_bottom = config->default_margin_bottom;
+    config->expression = NULL;
+    config->type = TEXT;
+}
+
 void pipelam_override_from_environment(struct pipelam_config *config) {
     const char *log_level_env = getenv("PIPELAM_LOG_LEVEL");
     if (log_level_env != NULL) {
@@ -231,8 +243,8 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // the precedence of the config file is as follows:
     // 1. Set by providing it explicitly to the function
     // 2. PIPELAM_CONFIG_FILE_PATH environment variable
-    // 3. $HOME/.config/bow/config
-    // 4. /etc/bow/config
+    // 3. $HOME/.config/pipelam/config
+    // 4. /etc/pipelam/config
 
     if (config_file_path != NULL) {
         return (char *)config_file_path;

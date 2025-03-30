@@ -67,6 +67,7 @@ struct pipelam_config {
 
 struct pipelam_config *pipelam_setup_config(const char *config_file_path);
 void pipelam_destroy_config(struct pipelam_config *config);
+void pipelam_reset_default_config(struct pipelam_config *config);
 
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
 #define CONFIG_ARG_MAX_BYTES 128

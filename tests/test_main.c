@@ -3,6 +3,7 @@
 // Forward declarations for test functions in other files
 extern int test_config_main(void);
 extern int test_message_main(void);
+extern int test_window_main(void);
 
 int main(void) {
     // Set log level to debug for detailed test output

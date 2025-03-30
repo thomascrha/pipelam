@@ -10,25 +10,6 @@
 #include "gtk4-layer-shell.h"
 #include "log.h"
 
-/* Global variable to track current active window */
-static GtkWidget *current_window = NULL;
-
-/* Function to check if there's an active window */
-int pipelam_has_active_window(void) { return (current_window != NULL && GTK_IS_WINDOW(current_window)); }
-
-/* Function to close the current window if one exists */
-void pipelam_close_current_window(void) {
-    if (current_window != NULL) {
-        pipelam_log_debug("Closing current window due to new message");
-        if (GTK_IS_WINDOW(current_window)) {
-            gtk_window_close(GTK_WINDOW(current_window));
-        } else {
-            pipelam_log_error("Invalid window pointer in pipelam_close_current_window");
-        }
-        current_window = NULL;
-    }
-}
-
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     // Allocate memory for GTK_LAYER_SHELL_EDGE_LEFT, RIGHT, TOP, BOTTOM
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -131,28 +112,14 @@ static gboolean close_window_callback(gpointer window) {
     if (GTK_IS_WINDOW(window)) {
         pipelam_log_debug("Closing window via timeout");
         gtk_window_close(GTK_WINDOW(window));
-        // Clear the current_window pointer if this is the current window
-        if (current_window == window) {
-            current_window = NULL;
-        }
     } else {
         pipelam_log_error("Invalid window pointer in close_window_callback");
     }
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
 
-// Custom handler for window destroy signals
-static void on_window_destroy(GtkWidget *widget, G_GNUC_UNUSED gpointer data) {
-    pipelam_log_debug("Window destroyed");
-    if (current_window == widget) {
-        current_window = NULL;
-    }
-}
-
 static void pipelam_render_image_window(GtkApplication *app, gpointer user_data) {
     pipelam_log_debug("Creating image window");
-
-    // Get the config from user_data
     struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
@@ -160,9 +127,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
         return;
     }
-
-    // Store the new window as the current window
-    current_window = GTK_WIDGET(gtk_window);
 
     const char *image_path = ((struct pipelam_config *)pipelam_config)->expression;
     pipelam_log_debug("Loading image from path: %s", image_path);
@@ -204,27 +168,19 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
     // Create a box to hold the image with proper sizing
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_box_append(GTK_BOX(box), image);
-
     gtk_window_set_child(gtk_window, box);
-
-    // Set window to default size matching the image
     gtk_window_set_default_size(gtk_window, width, height);
 
     pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)pipelam_config)->window_timeout);
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
-    g_signal_connect(gtk_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
-
-    // Unref paintable and pixbuf after they're used
     g_object_unref(paintable);
     g_object_unref(pixbuf);
 }
 
 static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) {
     pipelam_log_debug("Creating text window");
-
-    // Get the config from user_data
     struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
@@ -233,16 +189,12 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
         return;
     }
 
-    // Store the new window as the current window
-    current_window = GTK_WIDGET(gtk_window);
-
     GtkWidget *label = gtk_label_new(NULL);
     if (label == NULL) {
         pipelam_log_error("gtk_label_new() returned NULL");
         return;
     }
 
-    // print len of expression
     pipelam_log_debug("len of expression: %lu", strlen(((struct pipelam_config *)pipelam_config)->expression));
     pipelam_log_debug("expression: %s", ((struct pipelam_config *)pipelam_config)->expression);
 
@@ -253,13 +205,11 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
     pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)pipelam_config)->window_timeout);
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
-
-    g_signal_connect(gtk_window, "destroy", G_CALLBACK(on_window_destroy), NULL);
 }
 
 void pipelam_create_run_window(gpointer pipelam_config) {
     pipelam_log_debug("Creating run window");
-    GtkApplication *app = gtk_application_new("com.github.wmww.pipelam", G_APPLICATION_DEFAULT_FLAGS);
+    GtkApplication *app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_DEFAULT_FLAGS);
 
     if (((struct pipelam_config *)pipelam_config)->type == IMAGE) {
         g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), pipelam_config);

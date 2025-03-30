@@ -88,7 +88,6 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
 
 static void pipelam_json_config_parse(struct json_object_s *object, struct pipelam_config *config) {
     pipelam_log_debug("pipelam_json_config_parse");
-    pipelam_log_debug("YO");
     char *keys[] = {"expression", "type", "settings"};
 
     struct json_object_element_s *element = object->start;
@@ -107,7 +106,7 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
                     if (_value != NULL) {
                         config->expression = (char *)_value->string;
                     } else {
-                        pipelam_log_error("expression is NULL");
+                        pipelam_log_error("expression is Invalid");
                         config->expression = NULL;
                     }
 
@@ -138,18 +137,11 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
 }
 
 void pipelam_parse_message(const char *expression, struct pipelam_config *config) {
-    // Reset all configurable options to their custom default values before parsing new message
-    config->window_timeout = config->default_window_timeout;
-    config->anchor = config->default_anchor;
-    config->margin_left = config->default_margin_left;
-    config->margin_right = config->default_margin_right;
-    config->margin_top = config->default_margin_top;
-    config->margin_bottom = config->default_margin_bottom;
     // check if first char of expression is '{'
     // I know this is dumb, but its proably the best way in this instance to check
     // parsing only occurs with an object not a list of objects, and if the the first
     // char is not '{' then we can assume its a string
-    pipelam_log_debug("bow parse string");
+    pipelam_log_debug("pipelam parse string");
     if (expression[0] != '{') {
         pipelam_log_warning("Treating as string %s", expression);
         config->expression = (char *)expression;
@@ -157,7 +149,7 @@ void pipelam_parse_message(const char *expression, struct pipelam_config *config
         return;
     }
 
-    pipelam_log_debug("bow parse json");
+    pipelam_log_debug("pipelam parse json");
     struct json_value_s *root = json_parse(expression, strlen(expression));
     if (root == NULL) {
         pipelam_log_error("Json not parsable, Invalid JSON: %s", expression);
@@ -166,9 +158,9 @@ void pipelam_parse_message(const char *expression, struct pipelam_config *config
         return;
     }
 
-    pipelam_log_debug("bow parse json object");
+    pipelam_log_debug("pipelam parse json object");
     struct json_object_s *object = json_value_as_object(root);
-    pipelam_log_debug("bow parse json object");
+    pipelam_log_debug("pipelam parse json object");
     if (object == NULL) {
         pipelam_log_error("No root object found, Invalid JSON: %s", expression);
         config->expression = (char *)expression;

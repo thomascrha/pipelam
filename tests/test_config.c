@@ -10,7 +10,6 @@
 #include <string.h>
 #include <unistd.h>
 
-// Helper function to create a temporary config file for testing
 static char* create_temp_config_file(const char* content) {
     char* filename = strdup("/tmp/pipelam_test_config_XXXXXX");
     int fd = mkstemp(filename);
@@ -33,7 +32,6 @@ static void cleanup_temp_file(char* filename) {
     }
 }
 
-// Test default config values
 static void test_default_config(void) {
     pipelam_log_test("Testing default configuration...");
 
@@ -48,10 +46,8 @@ static void test_default_config(void) {
     unsetenv("PIPELAM_MARGIN_BOTTOM");
     unsetenv("PIPELAM_CONFIG_FILE_PATH");
 
-    // Create config with defaults
     struct pipelam_config* config = pipelam_setup_config(NULL);
 
-    // Verify default values
     assert(config != NULL);
     assert(strcmp(config->log_level, FALLBACK_LOG_LEVEL) == 0);
     assert(config->runtime_behaviour == FALLBACK_RUNTIME_BEHAVIOUR);
@@ -62,7 +58,6 @@ static void test_default_config(void) {
     assert(config->margin_top == FALLBACK_MARGIN_TOP);
     assert(config->margin_bottom == FALLBACK_MARGIN_BOTTOM);
 
-    // Verify default values match the defaults
     assert(config->default_window_timeout == FALLBACK_WINDOW_TIMEOUT);
     assert(config->default_anchor == FALLBACK_ANCHOR);
     assert(config->default_margin_left == FALLBACK_MARGIN_LEFT);
@@ -74,11 +69,9 @@ static void test_default_config(void) {
     pipelam_log_test("Default configuration test: PASSED");
 }
 
-// Test config from a file
 static void test_config_from_file(void) {
     pipelam_log_test("Testing configuration from file...");
 
-    // Create a temporary config file
     const char* config_content =
         "log_level = DEBUG\n"
         "runtime_behaviour = replace\n"
@@ -104,7 +97,6 @@ static void test_config_from_file(void) {
     unsetenv("PIPELAM_MARGIN_TOP");
     unsetenv("PIPELAM_MARGIN_BOTTOM");
 
-    // Load the config
     struct pipelam_config* config = pipelam_setup_config(temp_file);
 
 	pipelam_log_test("Current value in log_level %s", config->log_level);
@@ -133,14 +125,12 @@ static void test_config_from_file(void) {
     pipelam_log_test("Configuration from file test: PASSED");
 }
 
-// Test config from environment variables
 static void test_config_from_env(void) {
     pipelam_log_test("Testing configuration from environment variables...");
 
     // Ensure no config file affects our test
     unsetenv("PIPELAM_CONFIG_FILE_PATH");
 
-    // Set environment variables
     setenv("PIPELAM_LOG_LEVEL", "WARNING", 1);
     setenv("PIPELAM_RUNTIME_BEHAVIOUR", "replace", 1);
     setenv("PIPELAM_WINDOW_TIMEOUT", "2000", 1);
@@ -150,10 +140,8 @@ static void test_config_from_env(void) {
     setenv("PIPELAM_MARGIN_TOP", "45", 1);
     setenv("PIPELAM_MARGIN_BOTTOM", "55", 1);
 
-    // Load the config
     struct pipelam_config* config = pipelam_setup_config(NULL);
 
-    // Verify config values from environment
     assert(config != NULL);
     assert(strcmp(config->log_level, "WARNING") == 0);
     assert(config->runtime_behaviour == REPLACE);
@@ -164,7 +152,6 @@ static void test_config_from_env(void) {
     assert(config->margin_top == 45);
     assert(config->margin_bottom == 55);
 
-    // Also verify these are now the default values
     assert(config->default_window_timeout == 2000);
     assert(config->default_anchor == TOP_LEFT);
     assert(config->default_margin_left == 25);
@@ -187,11 +174,9 @@ static void test_config_from_env(void) {
     pipelam_log_test("Configuration from environment test: PASSED");
 }
 
-// Test environment variables overriding config file
 static void test_env_override_file(void) {
     pipelam_log_test("Testing environment variables overriding config file...");
 
-    // Create a temporary config file
     const char* config_content =
         "log_level = DEBUG\n"
         "runtime_behaviour = queue\n"
@@ -210,13 +195,11 @@ static void test_env_override_file(void) {
     setenv("PIPELAM_WINDOW_TIMEOUT", "3000", 1);
     setenv("PIPELAM_MARGIN_LEFT", "100", 1);
 
-    // Load the config
     struct pipelam_config* config = pipelam_setup_config(temp_file);
 
 	pipelam_log_test("Current value in anchor %d", config->anchor);
 	pipelam_log_test("BOTTOM_RIGHT value %d", BOTTOM_RIGHT);
 
-    // Verify overridden values
     assert(config != NULL);
     assert(strcmp(config->log_level, "ERROR") == 0); // From env
     assert(config->runtime_behaviour == QUEUE);      // From file
@@ -238,11 +221,9 @@ static void test_env_override_file(void) {
     pipelam_log_test("Environment overriding config file test: PASSED");
 }
 
-// Test invalid config values
 static void test_invalid_config(void) {
     pipelam_log_test("Testing handling of invalid configuration values...");
 
-    // Create a temporary config file with some invalid values
     const char* config_content =
         "log_level = INVALID_LEVEL\n"
         "runtime_behaviour = invalid_behaviour\n"
@@ -268,11 +249,9 @@ static void test_invalid_config(void) {
     pipelam_log_test("Invalid configuration test: PASSED");
 }
 
-// Test various anchor settings
 static void test_all_anchor_values(void) {
     pipelam_log_test("Testing all anchor values...");
 
-    // Create config files for each anchor type
     const char* anchor_types[][2] = {
         {"bottom-left", "BOTTOM_LEFT"},
         {"bottom-right", "BOTTOM_RIGHT"},
@@ -310,7 +289,6 @@ static void test_all_anchor_values(void) {
     pipelam_log_test("All anchor values test: PASSED");
 }
 
-// Test extreme window timeout values
 static void test_extreme_window_timeout(void) {
     pipelam_log_test("Testing extreme window timeout values...");
 
@@ -345,7 +323,6 @@ static void test_extreme_window_timeout(void) {
     pipelam_log_test("Extreme window timeout test: PASSED");
 }
 
-// Test config file with comments and empty lines
 static void test_config_with_comments(void) {
     pipelam_log_test("Testing config file with comments and empty lines...");
 
@@ -376,11 +353,9 @@ static void test_config_with_comments(void) {
     pipelam_log_test("Config with comments test: PASSED");
 }
 
-// Test margin edge cases
 static void test_margin_edge_cases(void) {
     pipelam_log_test("Testing margin edge cases...");
 
-    // Test different combinations of margins
     const char* config_content =
         "margin_left = 0\n"
         "margin_right = 0\n"
@@ -402,7 +377,6 @@ static void test_margin_edge_cases(void) {
     pipelam_destroy_config(config);
     cleanup_temp_file(temp_file);
 
-    // Test negative margins
     const char* config_content2 =
         "margin_left = -50\n"
         "margin_right = -60\n"
@@ -428,7 +402,6 @@ static void test_margin_edge_cases(void) {
 }
 
 int test_config_main(void) {
-    // Initialize with debug logging to see detailed output
     pipelam_log_level_set(LOG_DEBUG);
 
     pipelam_log_test("=== Starting Config Tests ===");
