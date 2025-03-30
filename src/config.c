@@ -36,13 +36,6 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
     ((struct pipelam_config *)config)->log_level = (char *)log_level_env;
     pipelam_log_level_set_from_string(log_level_env);
 
-    const char *max_message_size_env = getenv("PIPELAME_MAX_MESSAGE_SIZE");
-    if (max_message_size_env != NULL) {
-        pipelam_log_debug("max_message_size: %d", ((struct pipelam_config *)config)->max_message_size);
-        int max_message_size = atoi(max_message_size_env);
-        ((struct pipelam_config *)config)->max_message_size = max_message_size;
-    }
-
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
         pipelam_log_debug("runtime_behaviour: %d", ((struct pipelam_config *)config)->runtime_behaviour);
@@ -165,9 +158,7 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
     }
 
     while (co != NULL) {
-        if (strcmp(co->key, "max_message_size") == 0) {
-            config->max_message_size = atoi(co->value);
-        } else if (strcmp(co->key, "log_level") == 0) {
+        if (strcmp(co->key, "log_level") == 0) {
             config->log_level = co->value;
         } else if (strcmp(co->key, "runtime_behaviour") == 0) {
             if (strcmp(co->value, "queue") == 0) {
@@ -177,8 +168,7 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
             } else {
                 pipelam_log_error("Unknown runtime behaviour: %s", co->value);
             }
-        } else if (strcmp(co->key, "max_message_size") == 0) {
-            config->max_message_size = atoi(co->value);
+
         } else if (strcmp(co->key, "window_timeout") == 0) {
             int timeout = atoi(co->value);
             config->window_timeout = timeout;
@@ -251,7 +241,6 @@ gpointer *pipelam_setup_config(void) {
     // Only set at startup
     ((struct pipelam_config *)config)->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
     ((struct pipelam_config *)config)->log_level = FALLBACK_LOG_LEVEL;
-    ((struct pipelam_config *)config)->max_message_size = FALLBACK_MAX_MESSAGE_SIZE;
 
     // Only set at startup or at runtime
     ((struct pipelam_config *)config)->window_timeout = FALLBACK_WINDOW_TIMEOUT;

@@ -19,7 +19,6 @@
 #define FALLBACK_MARGIN_BOTTOM 0
 #define FALLBACK_LOG_LEVEL "INFO"
 #define FALLBACK_RUNTIME_BEHAVIOUR QUEUE
-#define FALLBACK_MAX_MESSAGE_SIZE 4096
 
 enum pipelam_window_anchor {
 	BOTTOM_LEFT,
@@ -43,7 +42,7 @@ struct pipelam_config {
 	// Startrup behaviour
 	char *log_level;
 	enum pipelam_runtime_behaviour runtime_behaviour;
-	int max_message_size;
+
 
 	// Message behaviour
 	char *expression;

@@ -10,7 +10,6 @@
 #include "log.h"
 #include "message.h"
 #include "window.h"
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -72,7 +71,7 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    pipelam_log_info("Starting bow with log level %s buffer size %d", ((struct pipelam_config *)pipelam_config)->log_level, ((struct pipelam_config *)pipelam_config)->max_message_size);
+    pipelam_log_info("Starting bow with log level %s", ((struct pipelam_config *)pipelam_config)->log_level);
 
     if (argc != 2) {
         pipelam_log_panic("Usage: %s <pipe_path>", argv[0]);
