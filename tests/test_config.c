@@ -192,6 +192,7 @@ static void test_env_override_file(void) {
 
     // Set some environment variables to override
     setenv("PIPELAM_LOG_LEVEL", "ERROR", 1);
+    setenv("PIPELAM_RUNTIME_BEHAVIOUR", "overlay", 1);
     setenv("PIPELAM_WINDOW_TIMEOUT", "3000", 1);
     setenv("PIPELAM_MARGIN_LEFT", "100", 1);
 
@@ -199,11 +200,12 @@ static void test_env_override_file(void) {
 
 	pipelam_log_test("Current value in anchor %d", config->anchor);
 	pipelam_log_test("BOTTOM_RIGHT value %d", BOTTOM_RIGHT);
+    pipelam_log_test("Current value in runtime_behaviour %d", config->runtime_behaviour);
 
     assert(config != NULL);
-    assert(strcmp(config->log_level, "ERROR") == 0); // From env
-    assert(config->runtime_behaviour == QUEUE);      // From file
-    assert(config->window_timeout == 3000);          // From env
+    assert(strcmp(config->log_level, "ERROR") == 0);  // From env
+    assert(config->runtime_behaviour == OVERLAY);     // From env (overriding file)
+    assert(config->window_timeout == 3000);           // From env
     assert(config->anchor == BOTTOM_RIGHT);          // From file
     assert(config->margin_left == 100);              // From env
     assert(config->margin_right == 60);              // From file
@@ -215,6 +217,7 @@ static void test_env_override_file(void) {
 
     // Clean up environment
     unsetenv("PIPELAM_LOG_LEVEL");
+    unsetenv("PIPELAM_RUNTIME_BEHAVIOUR");
     unsetenv("PIPELAM_WINDOW_TIMEOUT");
     unsetenv("PIPELAM_MARGIN_LEFT");
 
@@ -247,6 +250,42 @@ static void test_invalid_config(void) {
     cleanup_temp_file(temp_file);
 
     pipelam_log_test("Invalid configuration test: PASSED");
+}
+
+static void test_all_runtime_behaviour_values(void) {
+    pipelam_log_test("Testing all runtime behavior values...");
+
+    const char* behaviour_types[][2] = {
+        {"queue", "QUEUE"},
+        {"replace", "REPLACE"},
+        {"overlay", "OVERLAY"},
+    };
+
+    for (int i = 0; i < 3; i++) {
+        char config_content[256];
+        sprintf(config_content, "runtime_behaviour = %s\n", behaviour_types[i][0]);
+
+        char* temp_file = create_temp_config_file(config_content);
+        assert(temp_file != NULL);
+
+        struct pipelam_config* config = pipelam_setup_config(temp_file);
+        assert(config != NULL);
+
+        // Convert runtime_behaviour enum to int for comparison
+        int expected_behaviour = -1;
+        if (strcmp(behaviour_types[i][1], "QUEUE") == 0) expected_behaviour = QUEUE;
+        else if (strcmp(behaviour_types[i][1], "REPLACE") == 0) expected_behaviour = REPLACE;
+        else if (strcmp(behaviour_types[i][1], "OVERLAY") == 0) expected_behaviour = OVERLAY;
+
+        pipelam_log_test("Testing runtime_behaviour: %s (expected value: %d, actual: %d)",
+                        behaviour_types[i][0], expected_behaviour, (int)config->runtime_behaviour);
+        assert((int)config->runtime_behaviour == expected_behaviour);
+
+        pipelam_destroy_config(config);
+        cleanup_temp_file(temp_file);
+    }
+
+    pipelam_log_test("All runtime behavior values test: PASSED");
 }
 
 static void test_all_anchor_values(void) {
@@ -330,6 +369,7 @@ static void test_config_with_comments(void) {
         "# This is a comment\n"
         "\n"
         "log_level = WARNING  # Inline comment\n"
+        "runtime_behaviour = overlay  # Another inline comment\n"
         "\n"
         "# Another comment line\n"
         "window_timeout = 750\n"
@@ -344,6 +384,7 @@ static void test_config_with_comments(void) {
 
     // Verify the non-comment lines were parsed correctly
     assert(strcmp(config->log_level, "WARNING") == 0);
+    assert(config->runtime_behaviour == OVERLAY);
     assert(config->window_timeout == 750);
     assert((int)config->anchor == (int)TOP_RIGHT);
 
@@ -411,8 +452,7 @@ int test_config_main(void) {
     test_config_from_env();
     test_env_override_file();
     test_invalid_config();
-
-    // New test cases
+    test_all_runtime_behaviour_values();
     test_all_anchor_values();
     test_extreme_window_timeout();
     test_config_with_comments();

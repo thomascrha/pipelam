@@ -29,7 +29,7 @@ static void pipelam_log_level_set_from_string(const char *log_level) {
 void pipelam_destroy_config(struct pipelam_config *config) { free(config); }
 
 void pipelam_reset_default_config(struct pipelam_config *config) {
-    // Reset all configurable options to their custom default values before parsing new message
+    // Reset all runtime configurable options to their custom default values before parsing new message
     config->window_timeout = config->default_window_timeout;
     config->anchor = config->default_anchor;
     config->margin_left = config->default_margin_left;
@@ -58,6 +58,8 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
             runtime_behaviour_val = QUEUE;
         } else if (strcmp(runtime_behaviour_env, "replace") == 0) {
             runtime_behaviour_val = REPLACE;
+        } else if (strcmp(runtime_behaviour_env, "overlay") == 0) {
+            runtime_behaviour_val = OVERLAY;
         } else {
             pipelam_log_error("Unknown runtime behaviour: %s", runtime_behaviour_env);
         }
@@ -180,6 +182,8 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
                 config->runtime_behaviour = QUEUE;
             } else if (strcmp(co->value, "replace") == 0) {
                 config->runtime_behaviour = REPLACE;
+            } else if (strcmp(co->value, "overlay") == 0) {
+                config->runtime_behaviour = OVERLAY;
             } else {
                 pipelam_log_error("Unknown runtime behaviour: %s", co->value);
             }
