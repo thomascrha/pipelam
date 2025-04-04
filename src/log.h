@@ -22,7 +22,7 @@ void pipelam_log_message(int log_level, const char *file, int line, ...);
 #define pipelam_log_test(...) pipelam_log_message(LOG_TEST, __FILE__, __LINE__, __VA_ARGS__)
 
 #define pipelam_log_panic(...)  \
-	pipelam_log_message(LOG_PANIC, __FILE__, __LINE__, __VA_ARGS__);  \
-	exit(2)
+    pipelam_log_message(LOG_PANIC, __FILE__, __LINE__, __VA_ARGS__);  \
+    exit(2)
 
 #endif // LOG_H

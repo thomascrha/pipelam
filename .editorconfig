@@ -5,11 +5,15 @@ end_of_line = lf
 insert_final_newline = true
 charset = utf-8
 trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
 
 [*.{c,h,txt,sh}]
-indent_style = tab
 indent_size = 4
 
 [*.{xml,yml}]
-indent_style = space
 indent_size = 2
+
+[{Makefile,**.mk}]
+# Use tabs for indentation (Makefiles require tabs)
+indent_style = tab

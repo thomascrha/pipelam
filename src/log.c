@@ -18,20 +18,20 @@ static const char *verbosity_names[] = {
 
 static char *get_level_colour(int log_level) {
     switch (log_level) {
-    case LOG_DEBUG:
-        return BLUE;
-    case LOG_INFO:
-        return GREEN;
-    case LOG_WARNING:
-        return YELLOW;
-    case LOG_ERROR:
-        return RED;
-    case LOG_PANIC:
-        return BOLD_RED;
-    case LOG_TEST:
-        return PURPLE;
-    default:
-        return GREEN;
+        case LOG_DEBUG:
+            return BLUE;
+        case LOG_INFO:
+            return GREEN;
+        case LOG_WARNING:
+            return YELLOW;
+        case LOG_ERROR:
+            return RED;
+        case LOG_PANIC:
+            return BOLD_RED;
+        case LOG_TEST:
+            return PURPLE;
+        default:
+            return GREEN;
     }
 }
 

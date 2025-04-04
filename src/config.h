@@ -24,49 +24,49 @@
 #define CURRENT_VERSION 0
 
 enum pipelam_window_anchor {
-	BOTTOM_LEFT,
-	BOTTOM_RIGHT,
-	TOP_LEFT,
-	TOP_RIGHT,
-	CENTER
+    BOTTOM_LEFT,
+    BOTTOM_RIGHT,
+    TOP_LEFT,
+    TOP_RIGHT,
+    CENTER
 };
 
 enum pipelam_message_type {
-	TEXT,
-	IMAGE
+    TEXT,
+    IMAGE
 };
 
 enum pipelam_runtime_behaviour {
-	QUEUE,
-	REPLACE,
-	OVERLAY
+    QUEUE,
+    REPLACE,
+    OVERLAY
 };
 
 struct pipelam_config {
-	// Startrup behaviour
-	char *log_level;
-	enum pipelam_runtime_behaviour runtime_behaviour;
+    // Startrup behaviour
+    char *log_level;
+    enum pipelam_runtime_behaviour runtime_behaviour;
 
-	// Message behaviour
-	char *expression;
-	enum pipelam_message_type type;
-	int version;
+    // Message behaviour
+    char *expression;
+    enum pipelam_message_type type;
+    int version;
 
-	// Runtime behaviour
-	int window_timeout;
-	enum pipelam_window_anchor anchor;
-	int margin_left;
-	int margin_right;
-	int margin_top;
-	int margin_bottom;
+    // Runtime behaviour
+    int window_timeout;
+    enum pipelam_window_anchor anchor;
+    int margin_left;
+    int margin_right;
+    int margin_top;
+    int margin_bottom;
 
-	// Default values (set at startup from config/env)
-	int default_window_timeout;
-	enum pipelam_window_anchor default_anchor;
-	int default_margin_left;
-	int default_margin_right;
-	int default_margin_top;
-	int default_margin_bottom;
+    // Default values (set at startup from config/env)
+    int default_window_timeout;
+    enum pipelam_window_anchor default_anchor;
+    int default_margin_left;
+    int default_margin_right;
+    int default_margin_top;
+    int default_margin_bottom;
 };
 
 struct pipelam_config *pipelam_setup_config(const char *config_file_path);
