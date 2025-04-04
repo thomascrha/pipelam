@@ -43,7 +43,9 @@ clean: ## Remove built executables
 
 test: build_dir $(TEST_OUTPUT) ## Build the test suite
 
-rebuild: clean all ## Clean and rebuild the project
+rebuild: clean all ## Clean and build the project
+
+build: all ## Build the project without cleaning
 
 $(TEST_OUTPUT): $(TEST_FILES)
 	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o $(TEST_OUTPUT) $(TEST_FILES) $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
@@ -53,7 +55,7 @@ $(OUTPUT): $(FILES)
 	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o $(OUTPUT) $(FILES) $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
 	clang-format -i $(FILES) --style=$(FORMAT_STYLE)
 
-run_test: rebuild test ## Rebuild the project and run tests
+run_test: build test ## Rebuild the project and run tests
 	./$(TEST_OUTPUT)
 	@if [ $$? -eq 0 ]; then \
 		echo -e "\n=== All tests completed successfully! ==="; \
@@ -63,7 +65,7 @@ run_test: rebuild test ## Rebuild the project and run tests
 	fi
 	@echo -e "\n=== Project built and tested successfully ==="
 
-run: ## Run the project
+run: build ## Run the project
 	./$(OUTPUT) $(ARGS)
 
 help: ## Display this help message

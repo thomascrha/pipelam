@@ -10,12 +10,10 @@
 #include "gtk4-layer-shell.h"
 #include "log.h"
 
-// Global variables
 static GtkWindow *current_window = NULL;
 static GtkApplication *app = NULL;
 
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
-    // Allocate memory for GTK_LAYER_SHELL_EDGE_LEFT, RIGHT, TOP, BOTTOM
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
 
     if (anchors == NULL) {
@@ -87,13 +85,8 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
 
     GtkWindow *gtk_window = GTK_WINDOW(window);
 
-    // Before the window is first realized, set it up to be a layer surface
     gtk_layer_init_for_window(gtk_window);
-
-    // Order below normal windows
     gtk_layer_set_layer(gtk_window, GTK_LAYER_SHELL_LAYER_TOP);
-
-    // Push other windows out of the way
     gtk_layer_auto_exclusive_zone_enable(gtk_window);
 
     // Set margins
@@ -102,7 +95,6 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
     gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, ((struct pipelam_config *)pipelam_config)->margin_top);
     gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, ((struct pipelam_config *)pipelam_config)->margin_bottom);
 
-    // Set anchors
     gboolean *anchors = pipelam_get_anchor(((struct pipelam_config *)pipelam_config)->anchor);
     if (anchors != NULL) {
         // Explicitly use the GTK_LAYER_SHELL_EDGE_* constants for clarity
@@ -111,12 +103,11 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
         gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, anchors[GTK_LAYER_SHELL_EDGE_TOP]);
         gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, anchors[GTK_LAYER_SHELL_EDGE_BOTTOM]);
 
-        // Debug logging
         for (int i = 0; i < 4; i++) {
             pipelam_log_debug("anchors[%d]: %d", i, anchors[i]);
         }
 
-        free(anchors); // Free memory after use
+        free(anchors);
     }
 
     return gtk_window;
@@ -187,7 +178,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
-    // Track this as the current window
     current_window = gtk_window;
 
     g_object_unref(paintable);
@@ -213,7 +203,6 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
     pipelam_log_debug("len of expression: %lu", strlen(((struct pipelam_config *)pipelam_config)->expression));
     pipelam_log_debug("expression: %s", ((struct pipelam_config *)pipelam_config)->expression);
 
-    // combine markup and border
     gtk_label_set_markup(GTK_LABEL(label), ((struct pipelam_config *)pipelam_config)->expression);
     gtk_window_set_child(gtk_window, label);
 
@@ -221,7 +210,6 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
     g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
-    // Track this as the current window
     current_window = gtk_window;
 }
 

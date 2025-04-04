@@ -42,7 +42,6 @@ void pipelam_log_message(int log_level, const char *file, int line, ...) {
         return;
     }
 
-    // get the current time and format it as a string
     struct timespec current_unix_time;
     if (clock_gettime(CLOCK_REALTIME, &current_unix_time) != 0) {
         fprintf(stderr, "clock_gettime() failed: %s\n", strerror(errno));
@@ -55,11 +54,9 @@ void pipelam_log_message(int log_level, const char *file, int line, ...) {
     datetime_info = localtime(&(current_unix_time.tv_sec));
     strftime(datetime, 20, "%Y-%m-%d %H:%M:%S", datetime_info);
 
-    // colour the importance level
     char importance_coloured[20];
     sprintf(importance_coloured, "%s%s%s", get_level_colour(log_level), verbosity_names[log_level], RESET);
 
-    // print the message minus the actual message
     fprintf(stderr, "%s %s %s:%d: ", datetime, importance_coloured, file, line);
 
     // unpack the variadic arguments and print the message

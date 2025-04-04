@@ -36,8 +36,11 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
     config->margin_right = config->default_margin_right;
     config->margin_top = config->default_margin_top;
     config->margin_bottom = config->default_margin_bottom;
+
+    // reset the message
     config->expression = NULL;
     config->type = TEXT;
+    config->version = CURRENT_VERSION;
 }
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
@@ -276,11 +279,8 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     config->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
     config->log_level = FALLBACK_LOG_LEVEL;
 
-    // Only set at startup or at runtime
-    config->window_timeout = FALLBACK_WINDOW_TIMEOUT;
-
     // can be set at runtime
-    config->expression = NULL;
+    config->window_timeout = FALLBACK_WINDOW_TIMEOUT;
     config->anchor = FALLBACK_ANCHOR;
     config->margin_left = FALLBACK_MARGIN_LEFT;
     config->margin_right = FALLBACK_MARGIN_RIGHT;

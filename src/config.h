@@ -21,6 +21,8 @@
 #define FALLBACK_LOG_LEVEL "INFO"
 #define FALLBACK_RUNTIME_BEHAVIOUR OVERLAY
 
+#define CURRENT_VERSION 0
+
 enum pipelam_window_anchor {
 	BOTTOM_LEFT,
 	BOTTOM_RIGHT,
@@ -48,6 +50,7 @@ struct pipelam_config {
 	// Message behaviour
 	char *expression;
 	enum pipelam_message_type type;
+	int version;
 
 	// Runtime behaviour
 	int window_timeout;

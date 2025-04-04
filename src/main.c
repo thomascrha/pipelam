@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -79,10 +78,8 @@ int main(int argc, char *argv[]) {
         mkfifo(pipe_path, 0666);
     }
 
-    // Set up GLib main loop for event handling
     GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
 
-    // Set up a file descriptor for the pipe
     int pipe_fd = open(pipe_path, O_RDONLY | O_NONBLOCK);
     if (pipe_fd == -1) {
         perror("open");
@@ -91,17 +88,14 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    // Create a GIOChannel from the file descriptor
     GIOChannel *io_channel = g_io_channel_unix_new(pipe_fd);
     g_io_channel_set_encoding(io_channel, NULL, NULL); // Binary mode
     g_io_channel_set_flags(io_channel, G_IO_FLAG_NONBLOCK, NULL);
 
-    // Set up a watch for the channel
     guint watch_id = g_io_add_watch(io_channel, G_IO_IN, handle_pipe_input, pipelam_config);
 
     pipelam_log_info("Pipe set up in non-blocking mode, waiting for messages on: %s", pipe_path);
 
-    // Start the main loop
     g_main_loop_run(main_loop);
 
     // Clean up (this code is reached only if the main loop is quit)
@@ -109,7 +103,7 @@ int main(int argc, char *argv[]) {
     g_io_channel_unref(io_channel);
     close(pipe_fd);
     g_main_loop_unref(main_loop);
-
     pipelam_destroy_config(pipelam_config);
+
     return EXIT_SUCCESS;
 }
