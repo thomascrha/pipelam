@@ -47,5 +47,3 @@ jobs:
           prerelease: false
           files: |
             pipelam-*.tar.gz
-            build/pipelam
-
