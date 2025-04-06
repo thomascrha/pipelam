@@ -8,10 +8,11 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-# Check for uncommitted changes
-if ! git diff --quiet || ! git diff --staged --quiet; then
-    echo "Error: You have uncommitted changes in your working directory."
-    echo "Please commit or stash all changes before creating a release."
+# Check for uncommitted changes or untracked files
+if ! git diff --quiet || ! git diff --staged --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    echo "Error: You have uncommitted changes or untracked files in your working directory."
+    echo "Please commit, stash, or remove all changes before creating a release."
+    git status --short
     exit 1
 fi
 
