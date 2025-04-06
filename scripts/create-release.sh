@@ -23,24 +23,6 @@ if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     exit 1
 fi
 
-if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
-    echo "Warning: Tag v$VERSION already exists."
-    read -p "Do you want to delete the existing tag locally and remotely? (y/N): " confirm
-
-    if [[ "${confirm:0:1}" == "y" || "${confirm:0:1}" == "Y" ]]; then
-        echo "Deleting existing tag v$VERSION locally and remotely..."
-        git tag -d "v$VERSION"
-        git push origin --delete "v$VERSION" || echo "Note: Tag may not have existed on remote"
-        sed -i "s/^#define PIPELAM_CURRENT_VERSION \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define PIPELAM_CURRENT_VERSION \"v0.0.0\"/" "$CONFIG_FILE"
-        git add "$CONFIG_FILE"
-        git commit -m "Release: Reset version to v0.0.0"
-        echo "Existing tag v$VERSION has been deleted."
-    else
-        echo "Operation cancelled. Exiting without creating release."
-        exit 0
-    fi
-fi
-
 echo "Updating version in $CONFIG_FILE to v$VERSION..."
 
 if [ ! -f "$CONFIG_FILE" ]; then
