@@ -129,8 +129,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer user_data) {
     if (pipelam_config->expression != NULL) {
         percentage = atoi(pipelam_config->expression);
         // Clamp to valid range
-        if (percentage < 0) percentage = 0;
-        if (percentage > 100) percentage = 100;
+        if (percentage < 0)
+            percentage = 0;
+        if (percentage > 100)
+            percentage = 100;
     }
     pipelam_log_debug("WOB value: %d%%", percentage);
 
@@ -154,17 +156,14 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer user_data) {
     gtk_widget_add_css_class(bar_bg, "wob-background");
     gtk_widget_add_css_class(bar_fg, "wob-foreground");
     GtkCssProvider *provider = gtk_css_provider_new();
-    const char *css_data =
-        ".wob-border { background-color: white; padding: 10px; margin: 3px; }"
-        ".wob-background { background-color: black; }"
-        ".wob-foreground { background-color: white; }";
+    const char *css_data = ".wob-border { background-color: white; padding: 10px; margin: 3px; }"
+                           ".wob-background { background-color: black; }"
+                           ".wob-foreground { background-color: white; }";
 
     gtk_css_provider_load_from_string(provider, css_data);
 
     GdkDisplay *display = gdk_display_get_default();
-    gtk_style_context_add_provider_for_display(display,
-                                         GTK_STYLE_PROVIDER(provider),
-                                         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     gtk_box_append(GTK_BOX(bar_bg), bar_fg);
     gtk_box_append(GTK_BOX(border_container), bar_bg);

@@ -299,6 +299,91 @@ static void test_long_text_message(void) {
     pipelam_log_test("Long text message test: PASSED");
 }
 
+static void test_parse_wob_integer(void) {
+    pipelam_log_test("Testing WOB integer message parsing...");
+
+    struct pipelam_config *config = pipelam_setup_config(NULL);
+
+    config->window_timeout = 1000;
+    config->anchor = TOP_RIGHT;
+    config->default_window_timeout = 1000;
+    config->default_anchor = TOP_RIGHT;
+
+    // Parse an integer message (should be detected as WOB)
+    const char *message = "75";
+    pipelam_parse_message(message, config);
+
+    assert(config->expression != NULL);
+    assert(strcmp(config->expression, message) == 0);
+    assert(config->type == WOB);
+
+    pipelam_destroy_config(config);
+    pipelam_log_test("WOB integer message parsing test: PASSED");
+}
+
+static void test_parse_wob_edge_cases(void) {
+    pipelam_log_test("Testing WOB integer edge cases...");
+
+    struct pipelam_config *config = pipelam_setup_config(NULL);
+
+    // Test cases: 0, 100, negative, with whitespace, non-integer
+    const char *test_cases[] = {"0", "100", "-10", "  50  ", "75.5"};
+    enum pipelam_message_type expected_types[] = {WOB, WOB, WOB, WOB, TEXT};
+
+    for (int i = 0; i < 5; i++) {
+        pipelam_reset_default_config(config);
+        pipelam_parse_message(test_cases[i], config);
+
+        assert(config->expression != NULL);
+        assert(strcmp(config->expression, test_cases[i]) == 0);
+        assert(config->type == expected_types[i]);
+
+        pipelam_log_test("WOB test case '%s': %s", test_cases[i],
+                         config->type == expected_types[i] ? "PASSED" : "FAILED");
+    }
+
+    pipelam_destroy_config(config);
+    pipelam_log_test("WOB integer edge cases test: PASSED");
+}
+
+static void test_parse_json_wob(void) {
+    pipelam_log_test("Testing JSON WOB message parsing...");
+
+    struct pipelam_config *config = pipelam_setup_config(NULL);
+
+    config->window_timeout = 1000;
+    config->anchor = TOP_RIGHT;
+    config->margin_left = 10;
+    config->margin_right = 20;
+    config->margin_top = 30;
+    config->margin_bottom = 40;
+
+    config->default_window_timeout = 1000;
+    config->default_anchor = TOP_RIGHT;
+    config->default_margin_left = 10;
+    config->default_margin_right = 20;
+    config->default_margin_top = 30;
+    config->default_margin_bottom = 40;
+
+    // Parse a JSON message with WOB content
+    const char *json_message = "{\"type\":\"wob\",\"expression\":\"85\",\"settings\":{\"window_timeout\":1500,\"anchor\":\"bottom-right\"}}";
+    pipelam_parse_message(json_message, config);
+
+    assert(config->expression != NULL);
+    assert(strcmp(config->expression, "85") == 0);
+    assert(config->type == WOB);
+
+    assert(config->window_timeout == 1500);
+    assert(config->anchor == BOTTOM_RIGHT);
+    assert(config->margin_left == 10);    // Unchanged
+    assert(config->margin_right == 20);   // Unchanged
+    assert(config->margin_top == 30);     // Unchanged
+    assert(config->margin_bottom == 40);  // Unchanged
+
+    pipelam_destroy_config(config);
+    pipelam_log_test("JSON WOB message parsing test: PASSED");
+}
+
 int test_message_main(void) {
     pipelam_log_level_set(LOG_DEBUG);
 
@@ -313,6 +398,9 @@ int test_message_main(void) {
     test_all_json_anchors();
     test_malformed_valid_json();
     test_long_text_message();
+    test_parse_wob_integer();
+    test_parse_wob_edge_cases();
+    test_parse_json_wob();
 
     pipelam_log_test("=== All Message Tests Passed ===");
     return 0;

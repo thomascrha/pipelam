@@ -2,6 +2,7 @@
 #include "config.h"
 #include "json.h"
 #include "log.h"
+#include <ctype.h>
 
 static const char *const KEYS[] = {KEY_EXPRESSION, KEY_TYPE, KEY_SETTINGS, KEY_VERSION};
 
@@ -128,16 +129,48 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
     }
 }
 
+static int is_valid_integer(const char *str) {
+    // Skip leading whitespace
+    while (*str && isspace(*str)) {
+        str++;
+    }
+    // Check for optional sign
+    if (*str == '-' || *str == '+') {
+        str++;
+    }
+    // String must contain at least one digit
+    if (!*str || !isdigit(*str)) {
+        return 0;
+    }
+    // Check that all remaining characters are digits
+    while (*str && isdigit(*str)) {
+        str++;
+    }
+    // Skip trailing whitespace
+    while (*str && isspace(*str)) {
+        str++;
+    }
+
+    return !*str;
+}
+
 void pipelam_parse_message(const char *expression, struct pipelam_config *config) {
-    // check if first char of expression is '{'
-    // I know this is dumb, but its proably the best way in this instance to check
-    // parsing only occurs with an object not a list of objects, and if the the first
-    // char is not '{' then we can assume its a string
+    // check if first char of expression is '{' - this could be considered a bit naive, but
+    // the applicaiton is only intrested in json objects, so this is a good enough check - one thing it doesn't
+    // handle is whitespace before the json object, but that could be handled by trimming the string but for now let's
+    // keep it simple
     pipelam_log_debug("pipelam parse string");
     if (expression[0] != '{') {
         pipelam_log_warning("Treating as string %s", expression);
-        config->expression = (char *)expression;
-        config->type = TEXT;
+        if (is_valid_integer(expression)) {
+            pipelam_log_debug("Detected integer value: %s, treating as WOB", expression);
+            config->expression = (char *)expression;
+            config->type = WOB;
+        } else {
+            pipelam_log_debug("Detected string value: %s, treating as TEXT", expression);
+            config->expression = (char *)expression;
+            config->type = TEXT;
+        }
         return;
     }
 
