@@ -28,7 +28,7 @@ static void test_default_config(void) {
 
     assert(config != NULL);
     assert(strcmp(config->log_level, "INFO") == 0);
-    assert(config->runtime_behaviour == QUEUE);
+    assert(config->runtime_behaviour == REPLACE);
     assert(config->window_timeout == FALLBACK_WINDOW_TIMEOUT);
     assert(config->anchor == FALLBACK_ANCHOR);
     assert(config->margin_left == FALLBACK_MARGIN_LEFT);
@@ -217,7 +217,7 @@ static void test_invalid_config(void) {
     // Values should be defaults when invalid
     assert(config != NULL);
     // Note: The log level might get set to INVALID_LEVEL because the code just takes the string value
-    assert(config->runtime_behaviour == QUEUE); // Should use default
+    assert(config->runtime_behaviour == REPLACE); // Should use default
     assert(config->anchor == FALLBACK_ANCHOR);  // Should use default
     // window_timeout might be 0 or default depending on implementation of atoi()
 
