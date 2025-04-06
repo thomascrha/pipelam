@@ -47,7 +47,7 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
     // Reset getopt
     optind = 1;
 
-    while ((opt = getopt_long(argc, argv, "l:r:t:a:L:R:T:B:v:h", long_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "l:r:t:a:L:R:T:B:vh", long_options, &option_index)) != -1) {
         switch (opt) {
         case 'l': // log-level
             config->log_level = strdup(optarg);
@@ -122,6 +122,7 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
             printf("  -R, --margin-right=PIXELS    Set right margin in pixels\n");
             printf("  -T, --margin-top=PIXELS      Set top margin in pixels\n");
             printf("  -B, --margin-bottom=PIXELS   Set bottom margin in pixels\n");
+            printf("  -v, --version                Show version information\n");
             printf("  -h, --help                   Display this help message\n");
             exit(EXIT_SUCCESS);
             break;

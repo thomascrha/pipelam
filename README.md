@@ -50,6 +50,7 @@ Options:
   -R, --margin-right=PIXELS    Set right margin in pixels
   -T, --margin-top=PIXELS      Set top margin in pixels
   -B, --margin-bottom=PIXELS   Set bottom margin in pixels
+  -v, --version                Display version information
   -h, --help                   Display this help message
 ```
 
