@@ -1,12 +1,7 @@
-
 #include "message.h"
 #include "config.h"
 #include "json.h"
 #include "log.h"
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 static const char *const KEYS[] = {KEY_EXPRESSION, KEY_TYPE, KEY_SETTINGS, KEY_VERSION};
 

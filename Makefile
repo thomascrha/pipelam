@@ -10,7 +10,7 @@ OUTPUT          := build/pipelam
 ARGS            := /tmp/pipelam.fifo
 
 # Test file s
-TEST_FILES      := tests/test_main.c tests/test_config.c tests/test_message.c tests/test_cmdline_options.c src/config.c src/log.c src/message.c
+TEST_FILES      := tests/utils.c tests/test_main.c tests/test_config.c tests/test_message.c tests/test_cmdline_options.c src/config.c src/log.c src/message.c
 TEST_OUTPUT     := build/test_runner
 
 # json.h lib

@@ -1,8 +1,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <gtk/gtk.h>
-
 #define RED "\033[0;31m"
 #define BOLD_RED "\033[1;31m"
 #define YELLOW "\033[0;33m"

@@ -1,15 +1,9 @@
-#include "config.h"
-#include "glib.h"
 #include "log.h"
 #include "message.h"
 #include "window.h"
 #include <fcntl.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
+#include <gtk/gtk.h>
 
 static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer user_data) {
     struct pipelam_config *config = (struct pipelam_config *)user_data;

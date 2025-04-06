@@ -1,6 +1,4 @@
 #include "../src/log.h"
-#define UTILS_IMPLEMENTATION
-#include "utils.h"
 
 extern int test_config_main(void);
 extern int test_message_main(void);

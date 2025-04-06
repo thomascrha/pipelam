@@ -2,9 +2,6 @@
 #include "../src/log.h"
 #include "../src/message.h"
 #include <assert.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
 
 static void test_parse_plain_text(void) {
     pipelam_log_test("Testing plain text message parsing...");

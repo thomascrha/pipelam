@@ -1,13 +1,6 @@
-#include <gtk-4.0/gtk/gtk.h>
-#include <gtk/gtk.h>
+#include "gtk4-layer-shell.h"
 
 #include "config.h"
-#include "gdk-pixbuf/gdk-pixbuf.h"
-#include "gdk/gdk.h"
-#include "gio/gio.h"
-#include "glib.h"
-#include "gtk/gtkshortcut.h"
-#include "gtk4-layer-shell.h"
 #include "log.h"
 
 static GtkWindow *current_window = NULL;

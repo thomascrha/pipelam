@@ -4,12 +4,9 @@
 #include "../src/config.h"
 #include "../src/log.h"
 #include <assert.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 
-#include "utils.h"
+extern char* create_temp_config_file(const char* content);
+extern void cleanup_temp_file(char* filename);
 
 static void test_cmdline_override_config_file(void) {
     pipelam_log_test("Testing command line options override config file...");

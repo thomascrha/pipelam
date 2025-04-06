@@ -1,11 +1,8 @@
 #include <errno.h>
 #include <stdarg.h>
-#include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "config.h"
 #include "log.h"

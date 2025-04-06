@@ -1,15 +1,11 @@
-#define _POSIX_C_SOURCE 200809L /* Or another appropriate feature test macro */
+#define _POSIX_C_SOURCE 200809L
 #include <string.h>
-#include "config.h"
+#include <getopt.h>
+#include <stdlib.h>
 #include <gtk/gtk.h>
 
-#include <getopt.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "log.h"
+#include "config.h"
 
 void pipelam_log_level_set_from_string(const char *log_level) {
     if (strcmp(log_level, "DEBUG") == 0) {

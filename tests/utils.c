@@ -4,18 +4,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifndef PIPELAM_UTILS_H
-#define PIPELAM_UTILS_H
-
-char* create_temp_config_file(const char* content);
-void cleanup_temp_file(char* filename);
-
-#endif /* PIPELAM_UTILS_H */
-
-#ifdef UTILS_IMPLEMENTATION
-#ifndef UTILS_IMPLEMENTATION_DEFINED
-#define UTILS_IMPLEMENTATION_DEFINED
-
 char* create_temp_config_file(const char* content) {
     char* filename = strdup("/tmp/pipelam_test_cmdline_XXXXXX");
     int fd = mkstemp(filename);
@@ -39,6 +27,3 @@ void cleanup_temp_file(char* filename) {
         free(filename);
     }
 }
-
-#endif /* UTILS_IMPLEMENTATION_DEFINED */
-#endif /* UTILS_IMPLEMENTATION */
