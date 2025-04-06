@@ -61,11 +61,12 @@ void pipelam_close_current_window(void) {
     }
 }
 
-static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipelam_config) {
-    pipelam_log_debug("Creating window");
-    pipelam_log_debug("Received string: %s", ((struct pipelam_config *)pipelam_config)->expression);
+static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer ptr_pipelam_config) {
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
-    if (((struct pipelam_config *)pipelam_config)->expression == NULL) {
+    pipelam_log_debug("Received string: %s", pipelam_config->expression);
+
+    if (pipelam_config->expression == NULL) {
         pipelam_log_error("data is NULL");
         return NULL;
     }
@@ -83,12 +84,12 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer pipela
     gtk_layer_auto_exclusive_zone_enable(gtk_window);
 
     // Set margins
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, ((struct pipelam_config *)pipelam_config)->margin_left);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, ((struct pipelam_config *)pipelam_config)->margin_right);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, ((struct pipelam_config *)pipelam_config)->margin_top);
-    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, ((struct pipelam_config *)pipelam_config)->margin_bottom);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, pipelam_config->margin_left);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_RIGHT, pipelam_config->margin_right);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_TOP, pipelam_config->margin_top);
+    gtk_layer_set_margin(gtk_window, GTK_LAYER_SHELL_EDGE_BOTTOM, pipelam_config->margin_bottom);
 
-    gboolean *anchors = pipelam_get_anchor(((struct pipelam_config *)pipelam_config)->anchor);
+    gboolean *anchors = pipelam_get_anchor(pipelam_config->anchor);
     if (anchors != NULL) {
         // Explicitly use the GTK_LAYER_SHELL_EDGE_* constants for clarity
         gtk_layer_set_anchor(gtk_window, GTK_LAYER_SHELL_EDGE_LEFT, anchors[GTK_LAYER_SHELL_EDGE_LEFT]);
@@ -114,9 +115,9 @@ static gboolean close_window_callback(gpointer window) {
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
 
-static void pipelam_render_wob_window(GtkApplication *app, gpointer user_data) {
+static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
     pipelam_log_debug("Creating wob window");
-    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
@@ -180,9 +181,9 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer user_data) {
     g_object_unref(provider);
 }
 
-static void pipelam_render_image_window(GtkApplication *app, gpointer user_data) {
+static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Creating image window");
-    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
@@ -190,7 +191,7 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
         return;
     }
 
-    const char *image_path = ((struct pipelam_config *)pipelam_config)->expression;
+    const char *image_path = pipelam_config->expression;
     pipelam_log_debug("Loading image from path: %s", image_path);
 
     GError *error = NULL;
@@ -233,8 +234,8 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
     gtk_window_set_child(gtk_window, box);
     gtk_window_set_default_size(gtk_window, width, height);
 
-    pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)pipelam_config)->window_timeout);
-    g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
+    pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
+    g_timeout_add(pipelam_config->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
     current_window = gtk_window;
@@ -243,9 +244,9 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer user_data)
     g_object_unref(pixbuf);
 }
 
-static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) {
+static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Creating text window");
-    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
@@ -259,47 +260,48 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer user_data) 
         return;
     }
 
-    pipelam_log_debug("len of expression: %lu", strlen(((struct pipelam_config *)pipelam_config)->expression));
-    pipelam_log_debug("expression: %s", ((struct pipelam_config *)pipelam_config)->expression);
+    pipelam_log_debug("len of expression: %lu", strlen(pipelam_config->expression));
+    pipelam_log_debug("expression: %s", pipelam_config->expression);
 
-    gtk_label_set_markup(GTK_LABEL(label), ((struct pipelam_config *)pipelam_config)->expression);
+    gtk_label_set_markup(GTK_LABEL(label), pipelam_config->expression);
     gtk_window_set_child(gtk_window, label);
 
-    pipelam_log_debug("window_timeout: %d", ((struct pipelam_config *)pipelam_config)->window_timeout);
-    g_timeout_add(((struct pipelam_config *)pipelam_config)->window_timeout, close_window_callback, gtk_window);
+    pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
+    g_timeout_add(pipelam_config->window_timeout, close_window_callback, gtk_window);
     gtk_window_present(gtk_window);
 
     current_window = gtk_window;
 }
 
-void pipelam_create_window(gpointer pipelam_config) {
+void pipelam_create_window(gpointer ptr_pipelam_config) {
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
     pipelam_log_debug("Creating window");
     app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
     g_application_register(G_APPLICATION(app), NULL, NULL);
 
-    if (((struct pipelam_config *)pipelam_config)->type == IMAGE) {
-        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), pipelam_config);
+    if (pipelam_config->type == IMAGE) {
+        if (pipelam_config->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), ptr_pipelam_config);
             g_application_run(G_APPLICATION(app), 0, NULL);
         } else {
-            pipelam_render_image_window(app, pipelam_config);
+            pipelam_render_image_window(app, ptr_pipelam_config);
         }
-    } else if (((struct pipelam_config *)pipelam_config)->type == TEXT) {
-        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_text_window), pipelam_config);
+    } else if (pipelam_config->type == TEXT) {
+        if (pipelam_config->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_text_window), ptr_pipelam_config);
             g_application_run(G_APPLICATION(app), 0, NULL);
         } else {
-            pipelam_render_text_window(app, pipelam_config);
+            pipelam_render_text_window(app, ptr_pipelam_config);
         }
-    } else if (((struct pipelam_config *)pipelam_config)->type == WOB) {
-        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_wob_window), pipelam_config);
+    } else if (pipelam_config->type == WOB) {
+        if (pipelam_config->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_wob_window), ptr_pipelam_config);
             g_application_run(G_APPLICATION(app), 0, NULL);
         } else {
-            pipelam_render_wob_window(app, pipelam_config);
+            pipelam_render_wob_window(app, ptr_pipelam_config);
         }
     } else {
-        pipelam_log_error("Unknown type: %d", ((struct pipelam_config *)pipelam_config)->type);
+        pipelam_log_error("Unknown type: %d", pipelam_config->type);
     }
 
     g_object_unref(app);
