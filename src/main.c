@@ -31,8 +31,6 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 
     if (message != NULL && length > 0) {
         pipelam_log_info("Received message of length: %lu", length);
-
-        pipelam_log_info("ruintime %d", config->runtime_behaviour);
         if (config->runtime_behaviour == (int)REPLACE) {
             pipelam_log_debug("Runtime behavior is REPLACE, closing any existing window");
             pipelam_close_current_window();
