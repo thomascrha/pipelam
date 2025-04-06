@@ -106,6 +106,8 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
                             config->type = TEXT;
                         } else if (0 == strcmp(type->string, "image")) {
                             config->type = IMAGE;
+                        } else if (0 == strcmp(type->string, "wob")) {
+                            config->type = WOB;
                         } else {
                             pipelam_log_error("Unknown type: %s", type->string);
                             config->type = TEXT;

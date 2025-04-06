@@ -28,7 +28,8 @@ enum pipelam_window_anchor {
 
 enum pipelam_message_type {
     TEXT,
-    IMAGE
+    IMAGE,
+    WOB
 };
 
 enum pipelam_runtime_behaviour {

@@ -114,6 +114,73 @@ static gboolean close_window_callback(gpointer window) {
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
 }
 
+static void pipelam_render_wob_window(GtkApplication *app, gpointer user_data) {
+    pipelam_log_debug("Creating wob window");
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
+
+    GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
+    if (gtk_window == NULL) {
+        pipelam_log_error("gtk_render_gtk_window() returned NULL");
+        return;
+    }
+
+    // Parse the percentage value (0-100)
+    int percentage = 0;
+    if (pipelam_config->expression != NULL) {
+        percentage = atoi(pipelam_config->expression);
+        // Clamp to valid range
+        if (percentage < 0) percentage = 0;
+        if (percentage > 100) percentage = 100;
+    }
+    pipelam_log_debug("WOB value: %d%%", percentage);
+
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    GtkWidget *bar_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    // Create the background of the bar with increased size
+    GtkWidget *bar_bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_hexpand(bar_bg, TRUE);
+    gtk_widget_set_size_request(bar_bg, 350, 35);
+
+    // Create the foreground (the actual volume indicator)
+    GtkWidget *bar_fg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    int bar_width = (350 * percentage) / 100;
+    gtk_widget_set_size_request(bar_fg, bar_width, 35);
+
+    // Create an outer container with padding for the border effect
+    GtkWidget *border_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    gtk_widget_add_css_class(border_container, "wob-border");
+    gtk_widget_add_css_class(bar_bg, "wob-background");
+    gtk_widget_add_css_class(bar_fg, "wob-foreground");
+    GtkCssProvider *provider = gtk_css_provider_new();
+    const char *css_data =
+        ".wob-border { background-color: white; padding: 10px; margin: 3px; }"
+        ".wob-background { background-color: black; }"
+        ".wob-foreground { background-color: white; }";
+
+    gtk_css_provider_load_from_string(provider, css_data);
+
+    GdkDisplay *display = gdk_display_get_default();
+    gtk_style_context_add_provider_for_display(display,
+                                         GTK_STYLE_PROVIDER(provider),
+                                         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    gtk_box_append(GTK_BOX(bar_bg), bar_fg);
+    gtk_box_append(GTK_BOX(border_container), bar_bg);
+    gtk_box_append(GTK_BOX(bar_container), border_container);
+    gtk_box_append(GTK_BOX(box), bar_container);
+
+    gtk_window_set_child(gtk_window, box);
+
+    pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
+    g_timeout_add(pipelam_config->window_timeout, close_window_callback, gtk_window);
+    gtk_window_present(gtk_window);
+
+    current_window = gtk_window;
+    g_object_unref(provider);
+}
+
 static void pipelam_render_image_window(GtkApplication *app, gpointer user_data) {
     pipelam_log_debug("Creating image window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)user_data;
@@ -224,6 +291,13 @@ void pipelam_create_window(gpointer pipelam_config) {
             g_application_run(G_APPLICATION(app), 0, NULL);
         } else {
             pipelam_render_text_window(app, pipelam_config);
+        }
+    } else if (((struct pipelam_config *)pipelam_config)->type == WOB) {
+        if (((struct pipelam_config *)pipelam_config)->runtime_behaviour == QUEUE) {
+            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_wob_window), pipelam_config);
+            g_application_run(G_APPLICATION(app), 0, NULL);
+        } else {
+            pipelam_render_wob_window(app, pipelam_config);
         }
     } else {
         pipelam_log_error("Unknown type: %d", ((struct pipelam_config *)pipelam_config)->type);

@@ -360,7 +360,7 @@ static char *pipelam_get_config_file(const char *config_file_path) {
 struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     struct pipelam_config *config = g_new(struct pipelam_config, 1);
 
-    config->runtime_behaviour = OVERLAY;
+    config->runtime_behaviour = REPLACE;
     config->log_level = "INFO";
 
     config->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;

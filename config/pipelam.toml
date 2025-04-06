@@ -4,16 +4,16 @@
 log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
-                 # messages; PANIC means the application will log all messages including panic messages. (Default: "INFO")
-runtime_behaviour = queue # The runtime behaviour of gtk windows; queue means the windows are queued and displayed one
-                          # after the other; replace means the windows are replaced; overlay means the windows are overlayed
-                          # on top of each other. (Default: "queue")
+                 # messages; PANIC means the application will log all messages including panic messages. (Default: INFO)
+runtime_behaviour = replace # The runtime behaviour of gtk windows; replace means the windows are replaced; queue means
+                            # the windows are queued and displayed one after the other;  overlay means the windows are
+                            # overlayed on top of each other. (Default: replace)
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
 anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
                 # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
                 # top right corner of the screen; bottom-left means the overlay is anchored to the bottom left corner of
                 # the screen; bottom-right means the overlay is anchored to the bottom right corner of the screen.
-                # (Default: "center") (Can be overridden by the JSON payload)
+                # (Default: center) (Can be overridden by the JSON payload)
 margin_left = 100 # The margin from the left edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
