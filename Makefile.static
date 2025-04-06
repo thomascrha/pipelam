@@ -1,0 +1,214 @@
+# Variables
+CFLAGS          := -g -O2 -Wall -Wextra -Wpedantic -std=c17
+CC              := clang
+# Use full static linking
+LDFLAGS         := -static
+
+# Build directory
+BUILD_DIR       := build
+# Dependencies directory
+DEPS_DIR        := $(BUILD_DIR)/deps
+DEPS_PREFIX     := $(abspath $(DEPS_DIR))
+
+# Installation paths
+PREFIX          ?= /usr/local
+BINDIR          := $(PREFIX)/bin
+
+# Default target
+.DEFAULT_GOAL   := help
+
+
+# Source files
+SRC_DIR         := src
+SRC_FILES       := $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES       := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
+
+# External dependencies
+GTK4_VERSION         := 4.10.0
+PANGO_VERSION        := 1.50.14
+CAIRO_VERSION        := 1.16.0
+GLIB_VERSION         := 2.78.0
+LAYER_SHELL_VERSION  := 0.8.0
+
+# Dependency flags - use local builds when available, fall back to system
+GTK4_CFLAGS             := -I$(DEPS_PREFIX)/include/gtk-4.0 -I$(DEPS_PREFIX)/include
+GTK4_LIBS               := -L$(DEPS_PREFIX)/lib -lgtk-4 -lpangocairo-1.0 -lpango-1.0 -lcairo -lgobject-2.0 -lglib-2.0
+GTK4_LAYER_SHELL_CFLAGS := -I$(DEPS_PREFIX)/include/gtk4-layer-shell
+GTK4_LAYER_SHELL_LIBS   := -L$(DEPS_PREFIX)/lib -lgtk4-layer-shell
+
+# PKG_CONFIG_PATH for local dependencies
+export PKG_CONFIG_PATH=$(DEPS_PREFIX)/lib/pkgconfig
+
+# json.h lib
+JSON_H_LIB_URL  := https://raw.githubusercontent.com/sheredom/json.h/cfdee7c025081ce722644f3ac286e1e27ad16f82/json.h
+
+# Test files
+TEST_DIR        := tests
+TEST_SRC        := $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJ        := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SRC))
+TEST_OUTPUT     := $(BUILD_DIR)/test_runner
+
+# Output binary
+OUTPUT          := $(BUILD_DIR)/pipelam
+
+all: build_dir download_json_h download_dependencies $(OUTPUT) ## Build the project
+
+help: ## Display this help message
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "Targets:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+build_dir: ## Create build directory if it doesn't exist
+	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(DEPS_DIR)
+	@mkdir -p $(DEPS_DIR)/src
+	@mkdir -p $(DEPS_PREFIX)/lib
+	@mkdir -p $(DEPS_PREFIX)/include
+
+download_json_h: ## Download the json.h external single header lib
+	@if [ ! -f $(SRC_DIR)/json.h ]; then \
+		echo "Downloading json.h..."; \
+		curl -L $(JSON_H_LIB_URL) -o $(SRC_DIR)/json.h; \
+	fi
+
+download_dependencies: ## Download and build all required dependencies
+	@echo "Setting up dependencies..."
+	@if [ ! -f $(DEPS_PREFIX)/lib/libgtk-4.a ]; then \
+		cd $(DEPS_DIR)/src && \
+		echo "Downloading and building dependencies (this may take a while)..." && \
+		\
+		echo "Downloading and building GLib..." && \
+		if [ ! -f glib-$(GLIB_VERSION).tar.xz ]; then \
+			curl -L "https://download.gnome.org/sources/glib/$(shell echo $(GLIB_VERSION) | cut -d. -f1-2)/glib-$(GLIB_VERSION).tar.xz" -o glib-$(GLIB_VERSION).tar.xz; \
+		fi && \
+		tar xf glib-$(GLIB_VERSION).tar.xz && \
+		cd glib-$(GLIB_VERSION) && \
+		meson setup --prefix=$(DEPS_PREFIX) --libdir=lib --buildtype=release -Ddefault_library=static build && \
+		cd build && ninja install && cd ../.. && \
+		\
+		echo "Downloading and building Cairo..." && \
+		if [ ! -f cairo-$(CAIRO_VERSION).tar.xz ]; then \
+			curl -L "https://www.cairographics.org/releases/cairo-$(CAIRO_VERSION).tar.xz" -o cairo-$(CAIRO_VERSION).tar.xz; \
+		fi && \
+		tar xf cairo-$(CAIRO_VERSION).tar.xz && \
+		cd cairo-$(CAIRO_VERSION) && \
+		./configure --prefix=$(DEPS_PREFIX) --enable-static --disable-shared && \
+		make -j$(shell nproc) && make install && cd .. && \
+		\
+		echo "Downloading and building Pango..." && \
+		if [ ! -f pango-$(PANGO_VERSION).tar.xz ]; then \
+			curl -L "https://download.gnome.org/sources/pango/$(shell echo $(PANGO_VERSION) | cut -d. -f1-2)/pango-$(PANGO_VERSION).tar.xz" -o pango-$(PANGO_VERSION).tar.xz; \
+		fi && \
+		tar xf pango-$(PANGO_VERSION).tar.xz && \
+		cd pango-$(PANGO_VERSION) && \
+		meson setup --prefix=$(DEPS_PREFIX) --libdir=lib --buildtype=release -Ddefault_library=static build && \
+		cd build && ninja install && cd ../.. && \
+		\
+		echo "Downloading and building GTK4..." && \
+		if [ ! -f gtk-$(GTK4_VERSION).tar.xz ]; then \
+			curl -L "https://download.gnome.org/sources/gtk/$(shell echo $(GTK4_VERSION) | cut -d. -f1-2)/gtk-$(GTK4_VERSION).tar.xz" -o gtk-$(GTK4_VERSION).tar.xz; \
+		fi && \
+		tar xf gtk-$(GTK4_VERSION).tar.xz && \
+		cd gtk-$(GTK4_VERSION) && \
+		meson setup --prefix=$(DEPS_PREFIX) --libdir=lib --buildtype=release -Ddefault_library=static build && \
+		cd build && ninja install && cd ../.. && \
+		\
+		echo "Downloading and building GTK4 Layer Shell..." && \
+		if [ ! -f gtk4-layer-shell-$(LAYER_SHELL_VERSION).tar.gz ]; then \
+			curl -L "https://github.com/wmww/gtk4-layer-shell/archive/refs/tags/v$(LAYER_SHELL_VERSION).tar.gz" -o gtk4-layer-shell-$(LAYER_SHELL_VERSION).tar.gz; \
+		fi && \
+		tar xf gtk4-layer-shell-$(LAYER_SHELL_VERSION).tar.gz && \
+		cd gtk4-layer-shell-$(LAYER_SHELL_VERSION) && \
+		meson setup --prefix=$(DEPS_PREFIX) --libdir=lib --buildtype=release -Ddefault_library=static build && \
+		cd build && ninja install && cd ../.. && \
+		\
+		echo "All dependencies built successfully."; \
+	else \
+		echo "Dependencies already built. Skipping."; \
+	fi
+
+# Create object files from C source files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
+
+# Create object files from test C source files
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
+
+# Build the pipelam executable
+$(OUTPUT): download_dependencies $(OBJ_FILES)
+	$(CC) $(CFLAGS) -o $@ $(OBJ_FILES) $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS) -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -lEGL -lGL -lpixman-1 -lpng -lz -lm -lpcre2-8 -lffi -lresolv -ldl -pthread $(LDFLAGS)
+
+# Dependencies for object files
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h
+$(BUILD_DIR)/log.o: $(SRC_DIR)/log.c $(SRC_DIR)/log.h $(SRC_DIR)/config.h
+$(BUILD_DIR)/window.o: $(SRC_DIR)/window.c $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+
+# Build test runner
+$(TEST_OUTPUT): download_dependencies build_dir $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
+	$(CC) $(CFLAGS) -o $@ $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ) $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS) -lwayland-client -lwayland-cursor -lwayland-egl -lxkbcommon -lEGL -lGL -lpixman-1 -lpng -lz -lm -lpcre2-8 -lffi -lresolv -ldl -pthread $(LDFLAGS)
+
+clean: ## Remove built executables and object files
+	rm -rf $(BUILD_DIR)/*.o $(BUILD_DIR)/pipelam $(BUILD_DIR)/test_runner
+
+clean_all: clean ## Remove everything including downloaded dependencies
+	rm -rf $(BUILD_DIR)
+
+build_test: $(TEST_OUTPUT) ## Build the test suite
+
+rebuild: clean all ## Clean and build the project
+
+format: ## Format the code using clang-format
+	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
+
+test: rebuild build_test ## Rebuild the project and run tests
+	./$(TEST_OUTPUT)
+	@if [ $$? -eq 0 ]; then \
+		echo -e "\n=== All tests completed successfully! ==="; \
+	else \
+		echo -e "\n=== Tests failed! ==="; \
+		exit 1; \
+	fi
+
+run: all ## Run the project
+	./$(OUTPUT) /tmp/pipelam.fifo
+
+release: ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
+	@echo "Creating release..."
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \
+		exit 1; \
+	fi
+	@./scripts/create-release.sh $(VERSION)
+
+install: all ## Install pipelam to the system
+	@install -d $(BINDIR)
+	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
+	@install -d /etc/pipelam
+	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
+	@install -d $(PREFIX)/share/man/man1 $(PREFIX)/share/man/man5
+	@install -m 644 man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
+	@install -m 644 man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
+	@if command -v makewhatis >/dev/null 2>&1; then \
+		makewhatis $(PREFIX)/share/man; \
+	elif command -v mandb >/dev/null 2>&1; then \
+		mandb; \
+	else \
+		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+	fi
+
+uninstall: ## Uninstall pipelam from the system
+	@rm -f $(BINDIR)/pipelam
+	@rm -rf /etc/pipelam
+	@rm -f $(PREFIX)/share/man/man1/pipelam.1
+	@rm -f $(PREFIX)/share/man/man5/pipelam.toml.5
+	@if command -v makewhatis >/dev/null 2>&1; then \
+		makewhatis $(PREFIX)/share/man; \
+	elif command -v mandb >/dev/null 2>&1; then \
+		mandb; \
+	else \
+		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+	fi
