@@ -42,38 +42,32 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
                         config->window_timeout = atoi(_value->number);
                         pipelam_log_debug("window_timeout: %d", config->window_timeout);
                     }
-
                 } else if (0 == strcmp(name->string, "anchor")) {
                     struct json_string_s *_value = json_value_as_string(value);
                     pipelam_log_debug("anchor: %s", _value->string);
                     if (_value != NULL) {
                         config->anchor = pipelam_json_config_anchor_parse(_value);
                     }
-
                 } else if (0 == strcmp(name->string, "margin_left")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
                         config->margin_left = atoi(_value->number);
                     }
-
                 } else if (0 == strcmp(name->string, "margin_right")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
                         config->margin_right = atoi(_value->number);
                     }
-
                 } else if (0 == strcmp(name->string, "margin_top")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
                         config->margin_top = atoi(_value->number);
                     }
-
                 } else if (0 == strcmp(name->string, "margin_bottom")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
                         config->margin_bottom = atoi(_value->number);
                     }
-
                 } else {
                     pipelam_log_error("unknown key: %s", name->string);
                 }
@@ -104,7 +98,6 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
                         pipelam_log_error("expression is Invalid");
                         config->expression = NULL;
                     }
-
                 } else if (0 == strcmp(name->string, KEY_TYPE)) {
                     struct json_string_s *type = json_value_as_string(value);
                     pipelam_log_debug("type: %s", (char *)type->string);
@@ -118,7 +111,6 @@ static void pipelam_json_config_parse(struct json_object_s *object, struct pipel
                             config->type = TEXT;
                         }
                     }
-
                 } else if (0 == strcmp(name->string, KEY_SETTINGS)) {
                     pipelam_json_config_settings_parse(json_value_as_object(value), config);
                 } else if (0 == strcmp(name->string, KEY_VERSION)) {

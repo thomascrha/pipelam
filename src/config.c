@@ -1,11 +1,11 @@
 #define _POSIX_C_SOURCE 200809L
-#include <string.h>
 #include <getopt.h>
-#include <stdlib.h>
 #include <gtk/gtk.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "log.h"
 #include "config.h"
+#include "log.h"
 
 void pipelam_log_level_set_from_string(const char *log_level) {
     if (strcmp(log_level, "DEBUG") == 0) {
@@ -233,7 +233,7 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
 static pipelam_config_option_t pipelam_read_config_file(char *path) {
     FILE *fp;
 
-    if ((fp = fopen(path, "r+")) == NULL) {
+    if ((fp = fopen(path, "r")) == NULL) {
         perror("fopen()");
         return NULL;
     }
@@ -277,7 +277,6 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
     while (co != NULL) {
         if (strcmp(co->key, "log_level") == 0) {
             config->log_level = co->value;
-
         } else if (strcmp(co->key, "runtime_behaviour") == 0) {
             if (strcmp(co->value, "queue") == 0) {
                 config->runtime_behaviour = QUEUE;
@@ -288,55 +287,43 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
             } else {
                 pipelam_log_error("Unknown runtime behaviour: %s", co->value);
             }
-
         } else if (strcmp(co->key, "window_timeout") == 0) {
             int timeout = atoi(co->value);
             config->window_timeout = timeout;
             config->default_window_timeout = timeout;
-
         } else if (strcmp(co->key, "anchor") == 0) {
             enum pipelam_window_anchor anchor_val = config->anchor;
             if (strcmp(co->value, "bottom-left") == 0) {
                 anchor_val = BOTTOM_LEFT;
-
             } else if (strcmp(co->value, "bottom-right") == 0) {
                 anchor_val = BOTTOM_RIGHT;
-
             } else if (strcmp(co->value, "top-left") == 0) {
                 anchor_val = TOP_LEFT;
-
             } else if (strcmp(co->value, "top-right") == 0) {
                 anchor_val = TOP_RIGHT;
-
             } else if (strcmp(co->value, "center") == 0) {
                 anchor_val = CENTER;
-
             } else {
                 pipelam_log_error("Unknown anchor: %s", co->value);
             }
             config->anchor = anchor_val;
             config->default_anchor = anchor_val;
-
         } else if (strcmp(co->key, "margin_left") == 0) {
             int margin = atoi(co->value);
             config->margin_left = margin;
             config->default_margin_left = margin;
-
         } else if (strcmp(co->key, "margin_right") == 0) {
             int margin = atoi(co->value);
             config->margin_right = margin;
             config->default_margin_right = margin;
-
         } else if (strcmp(co->key, "margin_top") == 0) {
             int margin = atoi(co->value);
             config->margin_top = margin;
             config->default_margin_top = margin;
-
         } else if (strcmp(co->key, "margin_bottom") == 0) {
             int margin = atoi(co->value);
             config->margin_bottom = margin;
             config->default_margin_bottom = margin;
-
         } else {
             pipelam_log_error("Unknown key: %s", co->key);
         }
@@ -348,8 +335,8 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // the precedence of the config file is as follows:
     // 1. Set by providing it explicitly to the function
     // 2. PIPELAM_CONFIG_FILE_PATH environment variable
-    // 3. $HOME/.config/pipelam/config
-    // 4. /etc/pipelam/config
+    // 3. $HOME/.config/pipelam/pipelam.ini
+    // 4. /etc/pipelam/pipelam.ini
 
     if (config_file_path != NULL) {
         return (char *)config_file_path;
@@ -360,7 +347,7 @@ static char *pipelam_get_config_file(const char *config_file_path) {
         return (char *)config_file_path_env;
     }
     // ordered by priority
-    char *paths[2] = {"$HOME/.config/pipelam/config", "/etc/pipelam/config"};
+    char *paths[2] = {"$HOME/.config/pipelam/pipelam.toml", "/etc/pipelam/pipelam.toml"};
     for (int i = 0; i < 2; i++) {
         if (access(paths[i], F_OK) != -1) {
             return paths[i];
@@ -373,7 +360,7 @@ static char *pipelam_get_config_file(const char *config_file_path) {
 struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     struct pipelam_config *config = g_new(struct pipelam_config, 1);
 
-    config->runtime_behaviour = QUEUE;
+    config->runtime_behaviour = OVERLAY;
     config->log_level = "INFO";
 
     config->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;

@@ -4,8 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
-char* create_temp_config_file(const char* content) {
-    char* filename = strdup("/tmp/pipelam_test_cmdline_XXXXXX");
+char *create_temp_config_file(const char *content) {
+    char *filename = strdup("/tmp/pipelam_test_cmdline_XXXXXX");
     int fd = mkstemp(filename);
     if (fd < 0) {
         perror("Failed to create temp file");
@@ -21,7 +21,7 @@ char* create_temp_config_file(const char* content) {
     return filename;
 }
 
-void cleanup_temp_file(char* filename) {
+void cleanup_temp_file(char *filename) {
     if (filename) {
         unlink(filename);
         free(filename);

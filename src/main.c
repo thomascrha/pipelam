@@ -2,8 +2,8 @@
 #include "message.h"
 #include "window.h"
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <gtk/gtk.h>
+#include <sys/stat.h>
 
 static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer user_data) {
     struct pipelam_config *config = (struct pipelam_config *)user_data;

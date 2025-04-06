@@ -1,29 +1,28 @@
 #define _POSIX_C_SOURCE 200809L
-#include <string.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../src/config.h"
 #include "../src/log.h"
 
-extern char* create_temp_config_file(const char* content);
-extern void cleanup_temp_file(char* filename);
+extern char *create_temp_config_file(const char *content);
+extern void cleanup_temp_file(char *filename);
 
 static void test_cmdline_override_config_file(void) {
     pipelam_log_test("Testing command line options override config file...");
 
     // Create config file with settings
-    const char* config_content =
-        "log_level = INFO\n"
-        "runtime_behaviour = queue\n"
-        "window_timeout = 1000\n"
-        "anchor = bottom-right\n"
-        "margin_left = 50\n"
-        "margin_right = 60\n"
-        "margin_top = 70\n"
-        "margin_bottom = 80\n";
+    const char *config_content = "log_level = INFO\n"
+                                 "runtime_behaviour = queue\n"
+                                 "window_timeout = 1000\n"
+                                 "anchor = bottom-right\n"
+                                 "margin_left = 50\n"
+                                 "margin_right = 60\n"
+                                 "margin_top = 70\n"
+                                 "margin_bottom = 80\n";
 
-    char* temp_file = create_temp_config_file(config_content);
+    char *temp_file = create_temp_config_file(config_content);
     assert(temp_file != NULL);
 
     // Ensure no environment variables affect our test
@@ -37,7 +36,7 @@ static void test_cmdline_override_config_file(void) {
     unsetenv("PIPELAM_MARGIN_BOTTOM");
 
     // First load the config with only the config file
-    struct pipelam_config* config = pipelam_setup_config(temp_file);
+    struct pipelam_config *config = pipelam_setup_config(temp_file);
 
     // Verify config values from file
     assert(config != NULL);
@@ -51,18 +50,16 @@ static void test_cmdline_override_config_file(void) {
     assert(config->margin_bottom == 80);
 
     // Now simulate command line arguments
-    char *argv[] = {
-        "pipelam",
-        "--log-level=DEBUG",
-        "--runtime-behaviour=replace",
-        "--window-timeout=2000",
-        "--anchor=top-left",
-        "--margin-left=100",
-        "--margin-right=110",
-        "--margin-top=120",
-        "--margin-bottom=130",
-        "/path/to/pipe"
-    };
+    char *argv[] = {"pipelam",
+                    "--log-level=DEBUG",
+                    "--runtime-behaviour=replace",
+                    "--window-timeout=2000",
+                    "--anchor=top-left",
+                    "--margin-left=100",
+                    "--margin-right=110",
+                    "--margin-top=120",
+                    "--margin-bottom=130",
+                    "/path/to/pipe"};
     int argc = sizeof(argv) / sizeof(argv[0]);
 
     // Process command line arguments to override settings
@@ -97,7 +94,7 @@ static void test_cmdline_override_environment(void) {
     setenv("PIPELAM_MARGIN_BOTTOM", "180", 1);
 
     // Load config with environment variables
-    struct pipelam_config* config = pipelam_setup_config(NULL);
+    struct pipelam_config *config = pipelam_setup_config(NULL);
 
     // Verify config values from environment
     assert(config != NULL);
@@ -111,18 +108,16 @@ static void test_cmdline_override_environment(void) {
     assert(config->margin_bottom == 180);
 
     // Now simulate command line arguments
-    char *argv[] = {
-        "pipelam",
-        "--log-level=DEBUG",
-        "--runtime-behaviour=replace",
-        "--window-timeout=2000",
-        "--anchor=top-left",
-        "--margin-left=100",
-        "--margin-right=110",
-        "--margin-top=120",
-        "--margin-bottom=130",
-        "/path/to/pipe"
-    };
+    char *argv[] = {"pipelam",
+                    "--log-level=DEBUG",
+                    "--runtime-behaviour=replace",
+                    "--window-timeout=2000",
+                    "--anchor=top-left",
+                    "--margin-left=100",
+                    "--margin-right=110",
+                    "--margin-top=120",
+                    "--margin-bottom=130",
+                    "/path/to/pipe"};
     int argc = sizeof(argv) / sizeof(argv[0]);
 
     // Process command line arguments to override environment variables
@@ -157,17 +152,16 @@ static void test_cmdline_override_both(void) {
     pipelam_log_test("Testing command line options override both config file and environment variables...");
 
     // Create config file with settings
-    const char* config_content =
-        "log_level = INFO\n"
-        "runtime_behaviour = queue\n"
-        "window_timeout = 1000\n"
-        "anchor = bottom-right\n"
-        "margin_left = 50\n"
-        "margin_right = 60\n"
-        "margin_top = 70\n"
-        "margin_bottom = 80\n";
+    const char *config_content = "log_level = INFO\n"
+                                 "runtime_behaviour = queue\n"
+                                 "window_timeout = 1000\n"
+                                 "anchor = bottom-right\n"
+                                 "margin_left = 50\n"
+                                 "margin_right = 60\n"
+                                 "margin_top = 70\n"
+                                 "margin_bottom = 80\n";
 
-    char* temp_file = create_temp_config_file(config_content);
+    char *temp_file = create_temp_config_file(config_content);
     assert(temp_file != NULL);
 
     // Set environment variables with different values
@@ -181,7 +175,7 @@ static void test_cmdline_override_both(void) {
     setenv("PIPELAM_MARGIN_BOTTOM", "180", 1);
 
     // Load config (this will have environment values which override config file)
-    struct pipelam_config* config = pipelam_setup_config(temp_file);
+    struct pipelam_config *config = pipelam_setup_config(temp_file);
 
     // Verify config values from environment (since env overrides config file)
     assert(config != NULL);
@@ -195,18 +189,16 @@ static void test_cmdline_override_both(void) {
     assert(config->margin_bottom == 180);
 
     // Now simulate command line arguments with yet different values
-    char *argv[] = {
-        "pipelam",
-        "--log-level=DEBUG",
-        "--runtime-behaviour=replace",
-        "--window-timeout=2000",
-        "--anchor=top-left",
-        "--margin-left=100",
-        "--margin-right=110",
-        "--margin-top=120",
-        "--margin-bottom=130",
-        "/path/to/pipe"
-    };
+    char *argv[] = {"pipelam",
+                    "--log-level=DEBUG",
+                    "--runtime-behaviour=replace",
+                    "--window-timeout=2000",
+                    "--anchor=top-left",
+                    "--margin-left=100",
+                    "--margin-right=110",
+                    "--margin-top=120",
+                    "--margin-bottom=130",
+                    "/path/to/pipe"};
     int argc = sizeof(argv) / sizeof(argv[0]);
 
     // Process command line arguments
@@ -241,7 +233,7 @@ static void test_cmdline_override_both(void) {
 static void test_cmdline_short_options(void) {
     pipelam_log_test("Testing command line short options...");
 
-    struct pipelam_config* config = pipelam_setup_config(NULL);
+    struct pipelam_config *config = pipelam_setup_config(NULL);
 
     // Reset to known values
     config->log_level = "INFO";
@@ -254,18 +246,7 @@ static void test_cmdline_short_options(void) {
     config->margin_bottom = 80;
 
     // Test with short options
-    char *argv[] = {
-        "pipelam",
-        "-l", "DEBUG",
-        "-r", "replace",
-        "-t", "2000",
-        "-a", "top-right",
-        "-L", "100",
-        "-R", "110",
-        "-T", "120",
-        "-B", "130",
-        "/path/to/pipe"
-    };
+    char *argv[] = {"pipelam", "-l", "DEBUG", "-r", "replace", "-t", "2000", "-a", "top-right", "-L", "100", "-R", "110", "-T", "120", "-B", "130", "/path/to/pipe"};
     int argc = sizeof(argv) / sizeof(argv[0]);
 
     pipelam_process_command_line_args(argc, argv, config);
@@ -287,7 +268,7 @@ static void test_cmdline_short_options(void) {
 static void test_cmdline_partial_options(void) {
     pipelam_log_test("Testing partial command line options...");
 
-    struct pipelam_config* config = pipelam_setup_config(NULL);
+    struct pipelam_config *config = pipelam_setup_config(NULL);
 
     // Reset to known values
     config->log_level = "INFO";
@@ -300,25 +281,20 @@ static void test_cmdline_partial_options(void) {
     config->margin_bottom = 80;
 
     // Only specify some options
-    char *argv[] = {
-        "pipelam",
-        "--log-level=DEBUG",
-        "--margin-top=120",
-        "/path/to/pipe"
-    };
+    char *argv[] = {"pipelam", "--log-level=DEBUG", "--margin-top=120", "/path/to/pipe"};
     int argc = sizeof(argv) / sizeof(argv[0]);
 
     pipelam_process_command_line_args(argc, argv, config);
 
     // Verify only specified options were changed
-    assert(strcmp(config->log_level, "DEBUG") == 0);  // Changed
-    assert(config->runtime_behaviour == QUEUE);       // Unchanged
-    assert(config->window_timeout == 1000);           // Unchanged
-    assert(config->anchor == CENTER);                 // Unchanged
-    assert(config->margin_left == 50);                // Unchanged
-    assert(config->margin_right == 60);               // Unchanged
-    assert(config->margin_top == 120);                // Changed
-    assert(config->margin_bottom == 80);              // Unchanged
+    assert(strcmp(config->log_level, "DEBUG") == 0); // Changed
+    assert(config->runtime_behaviour == QUEUE);      // Unchanged
+    assert(config->window_timeout == 1000);          // Unchanged
+    assert(config->anchor == CENTER);                // Unchanged
+    assert(config->margin_left == 50);               // Unchanged
+    assert(config->margin_right == 60);              // Unchanged
+    assert(config->margin_top == 120);               // Changed
+    assert(config->margin_bottom == 80);             // Unchanged
 
     pipelam_destroy_config(config);
     pipelam_log_test("Partial command line options test: PASSED");
@@ -338,4 +314,3 @@ int test_cmdline_options_main(void) {
     pipelam_log_test("=== All Command Line Options Tests Passed ===");
     return 0;
 }
-
