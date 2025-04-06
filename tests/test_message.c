@@ -338,8 +338,7 @@ static void test_parse_wob_edge_cases(void) {
         assert(strcmp(config->expression, test_cases[i]) == 0);
         assert(config->type == expected_types[i]);
 
-        pipelam_log_test("WOB test case '%s': %s", test_cases[i],
-                         config->type == expected_types[i] ? "PASSED" : "FAILED");
+        pipelam_log_test("WOB test case '%s': %s", test_cases[i], config->type == expected_types[i] ? "PASSED" : "FAILED");
     }
 
     pipelam_destroy_config(config);
@@ -375,10 +374,10 @@ static void test_parse_json_wob(void) {
 
     assert(config->window_timeout == 1500);
     assert(config->anchor == BOTTOM_RIGHT);
-    assert(config->margin_left == 10);    // Unchanged
-    assert(config->margin_right == 20);   // Unchanged
-    assert(config->margin_top == 30);     // Unchanged
-    assert(config->margin_bottom == 40);  // Unchanged
+    assert(config->margin_left == 10);   // Unchanged
+    assert(config->margin_right == 20);  // Unchanged
+    assert(config->margin_top == 30);    // Unchanged
+    assert(config->margin_bottom == 40); // Unchanged
 
     pipelam_destroy_config(config);
     pipelam_log_test("JSON WOB message parsing test: PASSED");

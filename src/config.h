@@ -16,7 +16,8 @@
 #define FALLBACK_MARGIN_TOP 100
 #define FALLBACK_MARGIN_BOTTOM 0
 
-#define CURRENT_VERSION 0
+#define MESSAGE_CURRENT_VERSION 0
+#define PIPELAM_CURRENT_VERSION "v0.0.1"
 
 enum pipelam_window_anchor {
     BOTTOM_LEFT,

@@ -27,7 +27,15 @@ GTK4_LAYER_SHELL_LIBS   := $(shell pkg-config --libs gtk4-layer-shell-0)
 
 
 # Targets
-.PHONY: all format build_dir clean rebuild build_test help run run_test download_json_h build test install uninstall
+.PHONY: all build build_dir build_test clean download_json_h format help install rebuild run test uninstall release
+
+release: ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
+	@echo "Creating release..."
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \
+		exit 1; \
+	fi
+	@./scripts/create-release.sh $(VERSION)
 
 help: ## Display this help message
 	@echo "Usage: make [target]"

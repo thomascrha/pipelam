@@ -40,13 +40,14 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
                                            {"margin-right", required_argument, 0, 'R'},
                                            {"margin-top", required_argument, 0, 'T'},
                                            {"margin-bottom", required_argument, 0, 'B'},
+                                           {"version", no_argument, 0, 'v'},
                                            {"help", no_argument, 0, 'h'},
                                            {0, 0, 0, 0}};
 
     // Reset getopt
     optind = 1;
 
-    while ((opt = getopt_long(argc, argv, "l:r:t:a:L:R:T:B:h", long_options, &option_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "l:r:t:a:L:R:T:B:v:h", long_options, &option_index)) != -1) {
         switch (opt) {
         case 'l': // log-level
             config->log_level = strdup(optarg);
@@ -106,6 +107,10 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
             config->default_margin_bottom = config->margin_bottom;
             break;
 
+        case 'v': // version
+            printf("Pipelam version %s\n", PIPELAM_CURRENT_VERSION);
+            exit(EXIT_SUCCESS);
+
         case 'h': // help
             printf("Usage: %s [OPTIONS] <pipe_path>\n", argv[0]);
             printf("Options:\n");
@@ -122,7 +127,6 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
             break;
 
         default:
-            // Unknown option
             break;
         }
     }
@@ -138,7 +142,7 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
 
     config->expression = NULL;
     config->type = TEXT;
-    config->version = CURRENT_VERSION;
+    config->version = MESSAGE_CURRENT_VERSION;
 }
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
@@ -379,7 +383,7 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
 
     config->expression = NULL;
     config->type = TEXT;
-    config->version = CURRENT_VERSION;
+    config->version = MESSAGE_CURRENT_VERSION;
 
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
