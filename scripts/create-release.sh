@@ -31,6 +31,9 @@ if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
         echo "Deleting existing tag v$VERSION locally and remotely..."
         git tag -d "v$VERSION"
         git push origin --delete "v$VERSION" || echo "Note: Tag may not have existed on remote"
+        sed -i "s/^#define PIPELAM_CURRENT_VERSION \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define PIPELAM_CURRENT_VERSION \"v0.0.0\"/" "$CONFIG_FILE"
+        git add "$CONFIG_FILE"
+        git commit -m "Release: Reset version to v0.0.0"
         echo "Existing tag v$VERSION has been deleted."
     else
         echo "Operation cancelled. Exiting without creating release."
