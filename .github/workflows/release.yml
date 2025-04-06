@@ -3,7 +3,11 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*' # Will trigger on any tag that starts with 'v', e.g., v1.0, v2.3.1
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
   build:
