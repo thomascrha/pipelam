@@ -4,7 +4,8 @@
 
 void pipelam_create_window(gpointer pipelam_config);
 void pipelam_close_current_window(void);
-
+void pipelam_close_current_window(void);
+void pipelam_cleanup_window(void);
 #endif // WINDOW_H
 
 

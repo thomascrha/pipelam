@@ -31,7 +31,7 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 
     if (message != NULL && length > 0) {
         pipelam_log_info("Received message of length: %lu", length);
-        if (config->runtime_behaviour == (int)REPLACE) {
+        if (config->runtime_behaviour == REPLACE) {
             pipelam_log_debug("Runtime behavior is REPLACE, closing any existing window");
             pipelam_close_current_window();
         }
@@ -72,6 +72,9 @@ int main(int argc, char *argv[]) {
         mkfifo(pipe_path, 0666);
     }
 
+    GApplication *app = g_application_new("com.github.thomascrha.pipelam.main", G_APPLICATION_DEFAULT_FLAGS);
+    g_application_register(app, NULL, NULL);
+
     GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
     int pipe_fd = open(pipe_path, O_RDONLY | O_NONBLOCK);
     if (pipe_fd == -1) {
@@ -96,7 +99,9 @@ int main(int argc, char *argv[]) {
     g_io_channel_unref(io_channel);
     close(pipe_fd);
     g_main_loop_unref(main_loop);
+    pipelam_cleanup_window();
     pipelam_destroy_config(pipelam_config);
+    g_object_unref(app);
 
     return EXIT_SUCCESS;
 }

@@ -5,6 +5,7 @@
 
 static GtkWindow *current_window = NULL;
 static GtkApplication *app = NULL;
+static gboolean app_is_running = FALSE;
 
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -58,6 +59,17 @@ void pipelam_close_current_window(void) {
         current_window = NULL;
     } else {
         pipelam_log_debug("No current window to close");
+    }
+}
+
+void pipelam_cleanup_window(void) {
+    pipelam_log_debug("Cleaning up window resources");
+    if (current_window != NULL) {
+        pipelam_close_current_window();
+    }
+    if (app != NULL) {
+        g_object_unref(app);
+        app = NULL;
     }
 }
 
@@ -273,36 +285,42 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
     current_window = gtk_window;
 }
 
-void pipelam_create_window(gpointer ptr_pipelam_config) {
+
+static void on_app_activate(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
-    pipelam_log_debug("Creating window");
-    app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
-    g_application_register(G_APPLICATION(app), NULL, NULL);
 
     if (pipelam_config->type == IMAGE) {
-        if (pipelam_config->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_image_window), ptr_pipelam_config);
-            g_application_run(G_APPLICATION(app), 0, NULL);
-        } else {
-            pipelam_render_image_window(app, ptr_pipelam_config);
-        }
+        pipelam_render_image_window(app, ptr_pipelam_config);
     } else if (pipelam_config->type == TEXT) {
-        if (pipelam_config->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_text_window), ptr_pipelam_config);
-            g_application_run(G_APPLICATION(app), 0, NULL);
-        } else {
-            pipelam_render_text_window(app, ptr_pipelam_config);
-        }
+        pipelam_render_text_window(app, ptr_pipelam_config);
     } else if (pipelam_config->type == WOB) {
-        if (pipelam_config->runtime_behaviour == QUEUE) {
-            g_signal_connect(app, "activate", G_CALLBACK(pipelam_render_wob_window), ptr_pipelam_config);
-            g_application_run(G_APPLICATION(app), 0, NULL);
-        } else {
-            pipelam_render_wob_window(app, ptr_pipelam_config);
-        }
+        pipelam_render_wob_window(app, ptr_pipelam_config);
     } else {
         pipelam_log_error("Unknown type: %d", pipelam_config->type);
     }
+}
 
-    g_object_unref(app);
+void pipelam_create_window(gpointer ptr_pipelam_config) {
+    struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
+    pipelam_log_debug("Creating window");
+
+    // Create a new application instance every time
+    // This avoids issues with GApplication state between runs
+    if (app != NULL) {
+        g_object_unref(app);
+        app = NULL;
+    }
+
+    app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
+
+    // Connect the activate signal handler
+    g_signal_connect(app, "activate", G_CALLBACK(on_app_activate), ptr_pipelam_config);
+
+    // Run the application, which will emit the startup signal
+    int status = g_application_run(G_APPLICATION(app), 0, NULL);
+    pipelam_log_debug("Application exited with status: %d", status);
+
+    // Disconnect the signal handler to prevent it from being called again
+    g_signal_handlers_disconnect_by_func(app, G_CALLBACK(on_app_activate), ptr_pipelam_config);
+
 }
