@@ -8,7 +8,6 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-# Check for uncommitted changes or untracked files
 if ! git diff --quiet || ! git diff --staged --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
     echo "Error: You have uncommitted changes or untracked files in your working directory."
     echo "Please commit, stash, or remove all changes before creating a release."
@@ -17,15 +16,28 @@ if ! git diff --quiet || ! git diff --staged --quiet || [ -n "$(git ls-files --o
 fi
 
 VERSION="$1"
+CONFIG_FILE="src/config.h"
 
-# Validate version format
 if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Error: Version must be in format X.Y.Z (e.g., 1.0.0)"
     exit 1
 fi
 
-# Update version in src/config.h
-CONFIG_FILE="src/config.h"
+if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
+    echo "Warning: Tag v$VERSION already exists."
+    read -p "Do you want to delete the existing tag locally and remotely? (y/N): " confirm
+
+    if [[ "${confirm:0:1}" == "y" || "${confirm:0:1}" == "Y" ]]; then
+        echo "Deleting existing tag v$VERSION locally and remotely..."
+        git tag -d "v$VERSION"
+        git push origin --delete "v$VERSION" || echo "Note: Tag may not have existed on remote"
+        echo "Existing tag v$VERSION has been deleted."
+    else
+        echo "Operation cancelled. Exiting without creating release."
+        exit 0
+    fi
+fi
+
 echo "Updating version in $CONFIG_FILE to v$VERSION..."
 
 if [ ! -f "$CONFIG_FILE" ]; then
@@ -36,22 +48,13 @@ fi
 # Replace the version string in config.h
 sed -i "s/^#define PIPELAM_CURRENT_VERSION \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define PIPELAM_CURRENT_VERSION \"v$VERSION\"/" "$CONFIG_FILE"
 
-# Check if the version was actually updated
-if ! grep -q "#define PIPELAM_CURRENT_VERSION \"v$VERSION\"" "$CONFIG_FILE"; then
-    echo "Error: Failed to update version in $CONFIG_FILE"
-    exit 1
-fi
-
-# Commit the change
 echo "Committing version change..."
 git add "$CONFIG_FILE"
 git commit -m "Release: Bump version to v$VERSION"
 
-# Create and push the tag
 echo "Creating tag v$VERSION..."
 git tag -a "v$VERSION" -m "Release v$VERSION"
 
-# Push both the commit and the tag
 echo "Pushing changes and tag to remote repository..."
 git push origin main
 git push origin "v$VERSION"
