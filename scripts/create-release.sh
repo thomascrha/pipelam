@@ -1,7 +1,17 @@
 #!/bin/bash
+
+set -eu
+
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <version>"
     echo "Example: $0 1.0.0"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff --quiet || ! git diff --staged --quiet; then
+    echo "Error: You have uncommitted changes in your working directory."
+    echo "Please commit or stash all changes before creating a release."
     exit 1
 fi
 
