@@ -1,15 +1,12 @@
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
 #include "config.h"
 #include "glib.h"
 #include "log.h"
 #include "message.h"
 #include "window.h"
 #include <fcntl.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -47,9 +44,9 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
             pipelam_close_current_window();
         }
 
-        pipelam_reset_default_config(config);
         pipelam_parse_message(message, config);
         pipelam_create_window(config);
+        pipelam_reset_default_config(config);
         g_free(message);
     }
 
@@ -57,10 +54,6 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        pipelam_log_panic("Usage: %s <pipe_path>", argv[0]);
-    };
-
     struct pipelam_config *pipelam_config = pipelam_setup_config(NULL);
     if (pipelam_config == NULL) {
         pipelam_log_panic("Failed to setup pipelam config - exiting");
@@ -68,18 +61,26 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
+    // Process command line arguments - these always override
+    // the config file and environment variables
+    pipelam_process_command_line_args(argc, argv, pipelam_config);
+
+    // Check if pipe path is provided (should be the last argument)
+    if (optind >= argc) {
+        pipelam_log_panic("Usage: %s [OPTIONS] <pipe_path>", argv[0]);
+    }
+
     gtk_init();
 
     pipelam_log_info("Starting pipelam with log level %s", pipelam_config->log_level);
 
-    char *pipe_path = argv[1];
+    char *pipe_path = argv[optind];
 
     if (access(pipe_path, F_OK) == -1) {
         mkfifo(pipe_path, 0666);
     }
 
     GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
-
     int pipe_fd = open(pipe_path, O_RDONLY | O_NONBLOCK);
     if (pipe_fd == -1) {
         perror("open");

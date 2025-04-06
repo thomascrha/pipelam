@@ -1,5 +1,5 @@
-/* For strdup() */
 #define _POSIX_C_SOURCE 200809L
+#include <string.h>
 
 #include "../src/config.h"
 #include "../src/log.h"
@@ -7,30 +7,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
-static char* create_temp_config_file(const char* content) {
-    char* filename = strdup("/tmp/pipelam_test_config_XXXXXX");
-    int fd = mkstemp(filename);
-    if (fd < 0) {
-        perror("Failed to create temp file");
-        free(filename);
-        return NULL;
-    }
-
-    write(fd, content, strlen(content));
-    close(fd);
-
-    return filename;
-}
-
-static void cleanup_temp_file(char* filename) {
-    if (filename) {
-        unlink(filename);
-        free(filename);
-    }
-}
+#include "utils.h"
 
 static void test_default_config(void) {
     pipelam_log_test("Testing default configuration...");
@@ -49,8 +28,8 @@ static void test_default_config(void) {
     struct pipelam_config* config = pipelam_setup_config(NULL);
 
     assert(config != NULL);
-    assert(strcmp(config->log_level, FALLBACK_LOG_LEVEL) == 0);
-    assert(config->runtime_behaviour == FALLBACK_RUNTIME_BEHAVIOUR);
+    assert(strcmp(config->log_level, "INFO") == 0);
+    assert(config->runtime_behaviour == QUEUE);
     assert(config->window_timeout == FALLBACK_WINDOW_TIMEOUT);
     assert(config->anchor == FALLBACK_ANCHOR);
     assert(config->margin_left == FALLBACK_MARGIN_LEFT);
@@ -242,7 +221,7 @@ static void test_invalid_config(void) {
     // Values should be defaults when invalid
     assert(config != NULL);
     // Note: The log level might get set to INVALID_LEVEL because the code just takes the string value
-    assert(config->runtime_behaviour == FALLBACK_RUNTIME_BEHAVIOUR); // Should use default
+    assert(config->runtime_behaviour == QUEUE); // Should use default
     assert(config->anchor == FALLBACK_ANCHOR);                       // Should use default
     // window_timeout might be 0 or default depending on implementation of atoi()
 

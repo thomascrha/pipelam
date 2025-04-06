@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 static void test_parse_plain_text(void) {
@@ -41,7 +40,7 @@ static void test_parse_plain_text(void) {
     assert(config->margin_top == 30);
     assert(config->margin_bottom == 40);
 
-	pipelam_destroy_config(config);
+    pipelam_destroy_config(config);
     pipelam_log_test("Plain text message parsing test: PASSED");
 }
 
@@ -202,7 +201,7 @@ static void test_empty_json_message(void) {
     const char* json_message = "{}";
     pipelam_parse_message(json_message, config);
 
-	pipelam_log_info("expression %s", config->expression);
+    pipelam_log_test("expression %s", config->expression);
     // Verify the result - should fallback to defaults and be treated as text
     assert(config->expression == NULL);
     assert(config->type == TEXT);  // Should default to TEXT

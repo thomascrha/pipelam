@@ -1,6 +1,9 @@
+#define _POSIX_C_SOURCE 200809L /* Or another appropriate feature test macro */
+#include <string.h>
 #include "config.h"
 #include <gtk/gtk.h>
 
+#include <getopt.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +11,7 @@
 
 #include "log.h"
 
-static void pipelam_log_level_set_from_string(const char *log_level) {
+void pipelam_log_level_set_from_string(const char *log_level) {
     if (strcmp(log_level, "DEBUG") == 0) {
         pipelam_log_level_set(LOG_DEBUG);
     } else if (strcmp(log_level, "INFO") == 0) {
@@ -28,8 +31,108 @@ static void pipelam_log_level_set_from_string(const char *log_level) {
 
 void pipelam_destroy_config(struct pipelam_config *config) { free(config); }
 
+void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_config *config) {
+    int opt;
+    int option_index = 0;
+
+    // Define the long options
+    static struct option long_options[] = {{"log-level", required_argument, 0, 'l'},
+                                           {"runtime-behaviour", required_argument, 0, 'r'},
+                                           {"window-timeout", required_argument, 0, 't'},
+                                           {"anchor", required_argument, 0, 'a'},
+                                           {"margin-left", required_argument, 0, 'L'},
+                                           {"margin-right", required_argument, 0, 'R'},
+                                           {"margin-top", required_argument, 0, 'T'},
+                                           {"margin-bottom", required_argument, 0, 'B'},
+                                           {"help", no_argument, 0, 'h'},
+                                           {0, 0, 0, 0}};
+
+    // Reset getopt
+    optind = 1;
+
+    while ((opt = getopt_long(argc, argv, "l:r:t:a:L:R:T:B:h", long_options, &option_index)) != -1) {
+        switch (opt) {
+        case 'l': // log-level
+            config->log_level = strdup(optarg);
+            break;
+
+        case 'r': // runtime-behaviour
+            if (strcmp(optarg, "queue") == 0) {
+                config->runtime_behaviour = QUEUE;
+            } else if (strcmp(optarg, "replace") == 0) {
+                config->runtime_behaviour = REPLACE;
+            } else if (strcmp(optarg, "overlay") == 0) {
+                config->runtime_behaviour = OVERLAY;
+            } else {
+                pipelam_log_warning("Unknown runtime behaviour: %s", optarg);
+            }
+            break;
+
+        case 't': // window-timeout
+            config->window_timeout = atoi(optarg);
+            config->default_window_timeout = config->window_timeout;
+            break;
+
+        case 'a': // anchor
+            if (strcmp(optarg, "bottom-left") == 0) {
+                config->anchor = BOTTOM_LEFT;
+            } else if (strcmp(optarg, "bottom-right") == 0) {
+                config->anchor = BOTTOM_RIGHT;
+            } else if (strcmp(optarg, "top-left") == 0) {
+                config->anchor = TOP_LEFT;
+            } else if (strcmp(optarg, "top-right") == 0) {
+                config->anchor = TOP_RIGHT;
+            } else if (strcmp(optarg, "center") == 0) {
+                config->anchor = CENTER;
+            } else {
+                pipelam_log_warning("Unknown anchor: %s", optarg);
+            }
+            config->default_anchor = config->anchor;
+            break;
+
+        case 'L': // margin-left
+            config->margin_left = atoi(optarg);
+            config->default_margin_left = config->margin_left;
+            break;
+
+        case 'R': // margin-right
+            config->margin_right = atoi(optarg);
+            config->default_margin_right = config->margin_right;
+            break;
+
+        case 'T': // margin-top
+            config->margin_top = atoi(optarg);
+            config->default_margin_top = config->margin_top;
+            break;
+
+        case 'B': // margin-bottom
+            config->margin_bottom = atoi(optarg);
+            config->default_margin_bottom = config->margin_bottom;
+            break;
+
+        case 'h': // help
+            printf("Usage: %s [OPTIONS] <pipe_path>\n", argv[0]);
+            printf("Options:\n");
+            printf("  -l, --log-level=LEVEL        Set log level (DEBUG, INFO, WARNING, ERROR, PANIC)\n");
+            printf("  -r, --runtime-behaviour=TYPE Set runtime behaviour (queue, replace, overlay)\n");
+            printf("  -t, --window-timeout=MS      Set window timeout in milliseconds\n");
+            printf("  -a, --anchor=POS             Set window anchor position (bottom-left, bottom-right, top-left, top-right, center)\n");
+            printf("  -L, --margin-left=PIXELS     Set left margin in pixels\n");
+            printf("  -R, --margin-right=PIXELS    Set right margin in pixels\n");
+            printf("  -T, --margin-top=PIXELS      Set top margin in pixels\n");
+            printf("  -B, --margin-bottom=PIXELS   Set bottom margin in pixels\n");
+            printf("  -h, --help                   Display this help message\n");
+            exit(EXIT_SUCCESS);
+            break;
+
+        default:
+            // Unknown option
+            break;
+        }
+    }
+}
+
 void pipelam_reset_default_config(struct pipelam_config *config) {
-    // Reset all runtime configurable options to their custom default values before parsing new message
     config->window_timeout = config->default_window_timeout;
     config->anchor = config->default_anchor;
     config->margin_left = config->default_margin_left;
@@ -37,7 +140,6 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
     config->margin_top = config->default_margin_top;
     config->margin_bottom = config->default_margin_bottom;
 
-    // reset the message
     config->expression = NULL;
     config->type = TEXT;
     config->version = CURRENT_VERSION;
@@ -275,25 +377,26 @@ static char *pipelam_get_config_file(const char *config_file_path) {
 struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     struct pipelam_config *config = g_new(struct pipelam_config, 1);
 
-    // Only set at startup
-    config->runtime_behaviour = FALLBACK_RUNTIME_BEHAVIOUR;
-    config->log_level = FALLBACK_LOG_LEVEL;
+    config->runtime_behaviour = QUEUE;
+    config->log_level = "INFO";
 
-    // can be set at runtime
-    config->window_timeout = FALLBACK_WINDOW_TIMEOUT;
-    config->anchor = FALLBACK_ANCHOR;
-    config->margin_left = FALLBACK_MARGIN_LEFT;
-    config->margin_right = FALLBACK_MARGIN_RIGHT;
-    config->margin_top = FALLBACK_MARGIN_TOP;
-    config->margin_bottom = FALLBACK_MARGIN_BOTTOM;
-
-    // Save these initial values as our default values
     config->default_window_timeout = FALLBACK_WINDOW_TIMEOUT;
     config->default_anchor = FALLBACK_ANCHOR;
     config->default_margin_left = FALLBACK_MARGIN_LEFT;
     config->default_margin_right = FALLBACK_MARGIN_RIGHT;
     config->default_margin_top = FALLBACK_MARGIN_TOP;
     config->default_margin_bottom = FALLBACK_MARGIN_BOTTOM;
+
+    config->window_timeout = config->default_window_timeout;
+    config->anchor = config->default_anchor;
+    config->margin_left = config->default_margin_left;
+    config->margin_right = config->default_margin_right;
+    config->margin_top = config->default_margin_top;
+    config->margin_bottom = config->default_margin_bottom;
+
+    config->expression = NULL;
+    config->type = TEXT;
+    config->version = CURRENT_VERSION;
 
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
@@ -302,6 +405,7 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     } else {
         pipelam_log_warning("No config file found, using default values");
     }
+
     pipelam_override_from_environment(config);
 
     return config;

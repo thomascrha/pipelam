@@ -11,15 +11,12 @@
 #define RESET "\033[0m"
 #define PURPLE "\033[0;35m"
 
-// These are fallback defaults if no config is provided
 #define FALLBACK_WINDOW_TIMEOUT 600
 #define FALLBACK_ANCHOR CENTER
 #define FALLBACK_MARGIN_LEFT 100
 #define FALLBACK_MARGIN_RIGHT 0
 #define FALLBACK_MARGIN_TOP 100
 #define FALLBACK_MARGIN_BOTTOM 0
-#define FALLBACK_LOG_LEVEL "INFO"
-#define FALLBACK_RUNTIME_BEHAVIOUR OVERLAY
 
 #define CURRENT_VERSION 0
 
@@ -47,12 +44,13 @@ struct pipelam_config {
     char *log_level;
     enum pipelam_runtime_behaviour runtime_behaviour;
 
-    // Message behaviour
+    // Runtime behaviour
+    // Message
     char *expression;
     enum pipelam_message_type type;
     int version;
 
-    // Runtime behaviour
+    // Settings
     int window_timeout;
     enum pipelam_window_anchor anchor;
     int margin_left;
@@ -72,6 +70,8 @@ struct pipelam_config {
 struct pipelam_config *pipelam_setup_config(const char *config_file_path);
 void pipelam_destroy_config(struct pipelam_config *config);
 void pipelam_reset_default_config(struct pipelam_config *config);
+void pipelam_log_level_set_from_string(const char *log_level);
+void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_config *config);
 
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
 #define CONFIG_ARG_MAX_BYTES 128
