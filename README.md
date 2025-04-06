@@ -12,16 +12,21 @@ This tool differs from wob in several different ways:
     - You can set the position, size, colour, font, text, image, etc. of the overlay.
     - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
 
-## Installation
+## Dependencies
 
 At this stage you will need to build the project from source. You will need the following dependencies:
 
  - gtk4
  - gtk4-layer-shell
  - wlroots (for the protocol headers)
- - clang
- - bear (optional, for generating compile_commands.json)
+
+### Development dependencies
+
  - [make](https://www.gnu.org/software/make/)
+ - bear (optional, for generating compile_commands.json)
+ - clang-format
+
+## Installation
 
 To build and install the project, run the following commands:
 
@@ -133,10 +138,19 @@ pipelam has two configuration files that can be used to customise the appearance
 
 The configuration file `config/pipelam.toml` with the following options:
 ```toml
-log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the application will log all messages including debug messages; WARNING means the application will log all messages including warning messages; ERROR means the application will log all messages including error messages; PANIC means the application will log all messages including panic messages. (Default: "INFO")
-runtime_behaviour = queue # The runtime behaviour of gtk windows; queue means the windows are queued and displayed one after the other; replace means the windows are replaced; overlay means the windows are overlayed on top of each other. (Default: "queue")
+log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
+                 # application will log all messages including debug messages; WARNING means the application will log all
+                 # messages including warning messages; ERROR means the application will log all messages including error
+                 # messages; PANIC means the application will log all messages including panic messages. (Default: "INFO")
+runtime_behaviour = queue # The runtime behaviour of gtk windows; queue means the windows are queued and displayed one
+                          # after the other; replace means the windows are replaced; overlay means the windows are overlayed
+                          # on top of each other. (Default: "queue")
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
-anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the top right corner of the screen; bottom-left means the overlay is anchored to the bottom left corner of the screen; bottom-right means the overlay is anchored to the bottom right corner of the screen. (Default: "center") (Can be overridden by the JSON payload)
+anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
+                # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
+                # top right corner of the screen; bottom-left means the overlay is anchored to the bottom left corner of
+                # the screen; bottom-right means the overlay is anchored to the bottom right corner of the screen.
+                # (Default: "center") (Can be overridden by the JSON payload)
 margin_left = 100 # The margin from the left edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
@@ -162,5 +176,4 @@ Targets:
   run             Run the project
   test            Rebuild the project and run tests
   uninstall       Uninstall pipelam from the system
-
 ```

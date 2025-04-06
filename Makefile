@@ -81,9 +81,27 @@ run: build ## Run the project
 install: ## Install pipelam to the system
 	@install -d $(BINDIR)
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
-	@install -m 755 config/pipelam.toml /etc/pipelam/pipelam.toml
+	@install -d /etc/pipelam
+	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
+	@install -m 644 man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
+	@install -m 644 man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
+	@if command -v makewhatis >/dev/null 2>&1; then \
+		makewhatis $(PREFIX)/share/man; \
+	elif command -v mandb >/dev/null 2>&1; then \
+		mandb; \
+	else \
+		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+	fi
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam
 	@rm -rf /etc/pipelam
-
+	@rm -f $(PREFIX)/share/man/man1/pipelam.1
+	@rm -f $(PREFIX)/share/man/man5/pipelam.toml.5
+	@if command -v makewhatis >/dev/null 2>&1; then \
+		makewhatis $(PREFIX)/share/man; \
+	elif command -v mandb >/dev/null 2>&1; then \
+		mandb; \
+	else \
+		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+	fi
