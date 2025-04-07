@@ -306,3 +306,42 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
 
     g_object_unref(app);
 }
+
+// static void on_app_activate(GtkApplication *app, gpointer ptr_pipelam_config) {
+//     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
+//
+//     if (pipelam_config->type == IMAGE) {
+//         pipelam_render_image_window(app, ptr_pipelam_config);
+//     } else if (pipelam_config->type == TEXT) {
+//         pipelam_render_text_window(app, ptr_pipelam_config);
+//     } else if (pipelam_config->type == WOB) {
+//         pipelam_render_wob_window(app, ptr_pipelam_config);
+//     } else {
+//         pipelam_log_error("Unknown type: %d", pipelam_config->type);
+//     }
+// }
+//
+// void pipelam_create_window(gpointer ptr_pipelam_config) {
+//     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
+//     pipelam_log_debug("Creating window");
+//
+//     // Create a new application instance every time
+//     // This avoids issues with GApplication state between runs
+//     if (app != NULL) {
+//         g_object_unref(app);
+//         app = NULL;
+//     }
+//
+//     app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
+//
+//     // Connect the activate signal handler
+//     g_signal_connect(app, "activate", G_CALLBACK(on_app_activate), ptr_pipelam_config);
+//
+//     // Run the application, which will emit the startup signal
+//     int status = g_application_run(G_APPLICATION(app), 0, NULL);
+//     pipelam_log_debug("Application exited with status: %d", status);
+//
+//     // Disconnect the signal handler to prevent it from being called again
+//     g_signal_handlers_disconnect_by_func(app, G_CALLBACK(on_app_activate), ptr_pipelam_config);
+//
+// }
