@@ -1,5 +1,5 @@
 # Variables
-CFLAGS          := -g -Wall -Wextra -Wpedantic -std=c17
+CFLAGS          := -g -O2 -Wall -Wextra -Wpedantic -std=c17
 CC              := clang
 
 # Installation paths
@@ -8,34 +8,34 @@ BINDIR          := $(PREFIX)/bin
 
 # Default target
 .DEFAULT_GOAL   := help
-FILES           := src/main.c src/window.c src/log.c src/config.c src/message.c
-OUTPUT          := build/pipelam
-ARGS            := /tmp/pipelam.fifo
 
-# Test file s
-TEST_FILES      := tests/utils.c tests/test_main.c tests/test_config.c tests/test_message.c tests/test_cmdline_options.c src/config.c src/log.c src/message.c
-TEST_OUTPUT     := build/test_runner
+# Build directory
+BUILD_DIR       := build
 
-# json.h lib
-JSON_H_LIB_URL  := https://raw.githubusercontent.com/sheredom/json.h/cfdee7c025081ce722644f3ac286e1e27ad16f82/json.h
+# Source files
+SRC_DIR         := src
+SRC_FILES       := $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES       := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRC_FILES))
 
-# Get pkg-config flags
+# External dependencies
 GTK4_CFLAGS             := $(shell pkg-config --cflags gtk4)
 GTK4_LIBS               := $(shell pkg-config --libs gtk4)
 GTK4_LAYER_SHELL_CFLAGS := $(shell pkg-config --cflags gtk4-layer-shell-0)
 GTK4_LAYER_SHELL_LIBS   := $(shell pkg-config --libs gtk4-layer-shell-0)
 
+# json.h lib
+JSON_H_LIB_URL  := https://raw.githubusercontent.com/sheredom/json.h/cfdee7c025081ce722644f3ac286e1e27ad16f82/json.h
 
-# Targets
-.PHONY: all build build_dir build_test clean download_json_h format help install rebuild run test uninstall release
+# Test files
+TEST_DIR        := tests
+TEST_SRC        := $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJ        := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/%.o,$(TEST_SRC))
+TEST_OUTPUT     := $(BUILD_DIR)/test_runner
 
-release: ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
-	@echo "Creating release..."
-	@if [ -z "$(VERSION)" ]; then \
-		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \
-		exit 1; \
-	fi
-	@./scripts/create-release.sh $(VERSION)
+# Output binary
+OUTPUT          := $(BUILD_DIR)/pipelam
+
+all: build_dir download_json_h $(OUTPUT) ## Build the project
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
@@ -43,36 +43,47 @@ help: ## Display this help message
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-all: build_dir download_json_h $(OUTPUT) ## Build the project
+build_dir: ## Create build directory if it doesn't exist
+	@mkdir -p $(BUILD_DIR)
 
 download_json_h: ## Download the json.h external single header lib
-	@if [ ! -f src/json.h ]; then \
+	@if [ ! -f $(SRC_DIR)/json.h ]; then \
 		echo "Downloading json.h..."; \
-		curl -L $(JSON_H_LIB_URL) -o src/json.h; \
+		curl -L $(JSON_H_LIB_URL) -o $(SRC_DIR)/json.h; \
 	fi
 
-build_dir: ## Create build directory if it doesn't exist
-	@if [ ! -d build ]; then \
-		mkdir build; \
-	fi
+# Create object files from C source files
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
 
-clean: ## Remove built executables
-	rm -f $(OUTPUT) $(TEST_OUTPUT)
+# Create object files from test C source files
+$(BUILD_DIR)/%.o: $(TEST_DIR)/%.c
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
 
-build_test: build_dir $(TEST_OUTPUT) ## Build the test suite
+# Build the pipelam executable
+$(OUTPUT): $(OBJ_FILES)
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
+
+# Dependencies for object files
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h
+$(BUILD_DIR)/log.o: $(SRC_DIR)/log.c $(SRC_DIR)/log.h $(SRC_DIR)/config.h
+$(BUILD_DIR)/window.o: $(SRC_DIR)/window.c $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+
+# Build test runner
+$(TEST_OUTPUT): build_dir $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
+	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
+
+clean: ## Remove built executables and object files
+	rm -rf $(BUILD_DIR)
+
+build_test: $(TEST_OUTPUT) ## Build the test suite
 
 rebuild: clean all ## Clean and build the project
 
-build: all ## Build the project without cleaning
-
 format: ## Format the code using clang-format
-	clang-format -i $(FILES) $(TEST_FILES)
-
-$(TEST_OUTPUT): $(TEST_FILES)
-	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o $(TEST_OUTPUT) $(TEST_FILES) $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
-
-$(OUTPUT): $(FILES)
-	$(CC) $(CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) $(GTK4_CFLAGS) -o $(OUTPUT) $(FILES) $(GTK4_LAYER_SHELL_LIBS) $(GTK4_LIBS)
+	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
 
 test: rebuild build_test ## Rebuild the project and run tests
 	./$(TEST_OUTPUT)
@@ -83,10 +94,18 @@ test: rebuild build_test ## Rebuild the project and run tests
 		exit 1; \
 	fi
 
-run: build ## Run the project
-	./$(OUTPUT) $(ARGS)
+run: all ## Run the project
+	./$(OUTPUT) /tmp/pipelam.fifo
 
-install: ## Install pipelam to the system
+release: ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
+	@echo "Creating release..."
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \
+		exit 1; \
+	fi
+	@./scripts/create-release.sh $(VERSION)
+
+install: all ## Install pipelam to the system
 	@install -d $(BINDIR)
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
 	@install -d /etc/pipelam

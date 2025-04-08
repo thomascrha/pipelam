@@ -25,6 +25,21 @@ void pipelam_log_level_set_from_string(const char *log_level) {
     }
 }
 
+void pipelam_help(void) {
+    printf("Usage: pipelam [OPTIONS] <pipe_path>\n");
+    printf("Options:\n");
+    printf("  -l, --log-level=LEVEL        Set log level (DEBUG, INFO, WARNING, ERROR, PANIC)\n");
+    printf("  -r, --runtime-behaviour=TYPE Set runtime behaviour (queue, replace, overlay)\n");
+    printf("  -t, --window-timeout=MS      Set window timeout in milliseconds\n");
+    printf("  -a, --anchor=POS             Set window anchor position (bottom-left, bottom-right, top-left, top-right, center)\n");
+    printf("  -L, --margin-left=PIXELS     Set left margin in pixels\n");
+    printf("  -R, --margin-right=PIXELS    Set right margin in pixels\n");
+    printf("  -T, --margin-top=PIXELS      Set top margin in pixels\n");
+    printf("  -B, --margin-bottom=PIXELS   Set bottom margin in pixels\n");
+    printf("  -v, --version                Show version information\n");
+    printf("  -h, --help                   Display this help message\n");
+}
+
 void pipelam_destroy_config(struct pipelam_config *config) { free(config); }
 
 void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_config *config) {
@@ -112,18 +127,7 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
             exit(EXIT_SUCCESS);
 
         case 'h': // help
-            printf("Usage: %s [OPTIONS] <pipe_path>\n", argv[0]);
-            printf("Options:\n");
-            printf("  -l, --log-level=LEVEL        Set log level (DEBUG, INFO, WARNING, ERROR, PANIC)\n");
-            printf("  -r, --runtime-behaviour=TYPE Set runtime behaviour (queue, replace, overlay)\n");
-            printf("  -t, --window-timeout=MS      Set window timeout in milliseconds\n");
-            printf("  -a, --anchor=POS             Set window anchor position (bottom-left, bottom-right, top-left, top-right, center)\n");
-            printf("  -L, --margin-left=PIXELS     Set left margin in pixels\n");
-            printf("  -R, --margin-right=PIXELS    Set right margin in pixels\n");
-            printf("  -T, --margin-top=PIXELS      Set top margin in pixels\n");
-            printf("  -B, --margin-bottom=PIXELS   Set bottom margin in pixels\n");
-            printf("  -v, --version                Show version information\n");
-            printf("  -h, --help                   Display this help message\n");
+            pipelam_help();
             exit(EXIT_SUCCESS);
             break;
 

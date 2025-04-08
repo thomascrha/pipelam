@@ -3,6 +3,7 @@
 #include "window.h"
 #include <fcntl.h>
 #include <gtk/gtk.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer user_data) {
@@ -59,7 +60,9 @@ int main(int argc, char *argv[]) {
 
     // Check if pipe path is provided (should be the last argument)
     if (optind >= argc) {
-        pipelam_log_panic("Usage: %s [OPTIONS] <pipe_path>", argv[0]);
+        pipelam_log_error("Please provide a FIFO pipe");
+        pipelam_help();
+        return EXIT_FAILURE;
     }
 
     gtk_init();
