@@ -344,8 +344,9 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // the precedence of the config file is as follows:
     // 1. Set by providing it explicitly to the function
     // 2. PIPELAM_CONFIG_FILE_PATH environment variable
-    // 3. $HOME/.config/pipelam/pipelam.ini
-    // 4. /etc/pipelam/pipelam.ini
+    // 3. Check PIPELAM_SKIP_DEFAULT_CONFIG - if set, skip default locations - used for testing
+    // 4. $HOME/.config/pipelam/pipelam.ini
+    // 5. /etc/pipelam/pipelam.toml
 
     if (config_file_path != NULL) {
         return (char *)config_file_path;
@@ -355,6 +356,14 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     if (config_file_path_env != NULL) {
         return (char *)config_file_path_env;
     }
+
+    // Check if we should skip default config files (used for testing)
+    const char *skip_default_config = getenv("PIPELAM_SKIP_DEFAULT_CONFIG");
+    if (skip_default_config != NULL) {
+        pipelam_log_debug("Skipping default config files due to PIPELAM_SKIP_DEFAULT_CONFIG");
+        return NULL;
+    }
+
     // ordered by priority
     char *paths[2] = {"$HOME/.config/pipelam/pipelam.toml", "/etc/pipelam/pipelam.toml"};
     for (int i = 0; i < 2; i++) {

@@ -8,14 +8,93 @@
 
 static GtkApplication *pipelam_app = NULL;
 
+#define MAX_QUEUE_SIZE 50
+static gchar *message_queue[MAX_QUEUE_SIZE] = {NULL};
+static int queue_head = 0;
+static int queue_tail = 0;
+static int queue_count = 0;
+static guint message_process_timer_id = 0;
+static gboolean processing_message = FALSE;
+
 static void on_app_activate(GtkApplication *app, gpointer user_data) {
     // This is a minimal handler for the activate signal
     // We don't need to do anything here since we manage windows separately
     pipelam_log_debug("Application activated");
 }
 
-static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer user_data) {
-    struct pipelam_config *config = (struct pipelam_config *)user_data;
+static gboolean pipelam_process_message_from_queue(gpointer ptr_pipelam_config) {
+    if (processing_message || queue_count == 0) {
+        return G_SOURCE_CONTINUE;
+    }
+
+    processing_message = TRUE;
+
+    struct pipelam_config *config = (struct pipelam_config *)ptr_pipelam_config;
+    gchar *message = message_queue[queue_head];
+
+    if (message != NULL) {
+        // Get a copy of the message for processing
+        gchar *msg_copy = g_strdup(message);
+
+        // Special handling for WOB messages (just numbers) - only process the latest one
+        gboolean is_wob = FALSE;
+        int current_value = 0;
+
+        // Check if this is a numeric (WOB) message
+        if (message[0] != '{' && message[0] != '<' && g_ascii_isdigit(message[0])) {
+            is_wob = TRUE;
+            current_value = atoi(message);
+
+            // If we have multiple WOB values queued, skip to the latest one
+            if (is_wob && queue_count > 1) {
+                int next = (queue_head + 1) % MAX_QUEUE_SIZE;
+                while (next != queue_tail) {
+                    if (message_queue[next] &&
+                        message_queue[next][0] != '{' &&
+                        message_queue[next][0] != '<' &&
+                        g_ascii_isdigit(message_queue[next][0])) {
+
+                        // Free the current message since we're skipping it
+                        g_free(message_queue[queue_head]);
+                        message_queue[queue_head] = NULL;
+
+                        // Move to next message
+                        queue_head = next;
+                        queue_count--;
+
+                        // Get the next message
+                        g_free(msg_copy);
+                        msg_copy = g_strdup(message_queue[queue_head]);
+                        current_value = atoi(msg_copy);
+                    }
+                    next = (next + 1) % MAX_QUEUE_SIZE;
+                }
+            }
+        }
+
+        pipelam_log_debug("Processing message from queue: %s", msg_copy);
+
+        // Process the message
+        pipelam_parse_message(msg_copy, config);
+        pipelam_set_application(pipelam_app);
+        pipelam_create_window(config);
+        pipelam_reset_default_config(config);
+
+        // Free resources
+        g_free(msg_copy);
+        g_free(message_queue[queue_head]);
+        message_queue[queue_head] = NULL;
+
+        // Update queue pointers
+        queue_head = (queue_head + 1) % MAX_QUEUE_SIZE;
+        queue_count--;
+    }
+
+    processing_message = FALSE;
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean pipelam_handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer ptr_pipelam_config) {
     gchar *message = NULL;
     gsize length;
     GError *error = NULL;
@@ -40,18 +119,22 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 
     if (message != NULL && length > 0) {
         pipelam_log_info("Received message of length: %lu", length);
-        // For REPLACE behavior, we'll handle the window closing in the window.c functions
-        // to avoid the flash effect when replacing windows
-        if (config->runtime_behaviour == (int)REPLACE) {
-            pipelam_log_debug("Runtime behavior is REPLACE, window will be replaced in create_window");
-            // Don't close the current window here to avoid flashing
+
+        if (queue_count >= MAX_QUEUE_SIZE) {
+            pipelam_log_warning("Message queue full, dropping message");
+            g_free(message);
+            return TRUE;
         }
 
-        pipelam_parse_message(message, config);
-        pipelam_set_application(pipelam_app);
-        pipelam_create_window(config);
-        pipelam_reset_default_config(config);
-        g_free(message);
+        // Add message to queue
+        message_queue[queue_tail] = message; // Transfer ownership of message
+        queue_tail = (queue_tail + 1) % MAX_QUEUE_SIZE;
+        queue_count++;
+
+        // Start the message processing timer if not already running
+        if (message_process_timer_id == 0) {
+            message_process_timer_id = g_timeout_add(100, pipelam_process_message_from_queue, ptr_pipelam_config);
+        }
     }
 
     return TRUE;
@@ -104,7 +187,7 @@ int main(int argc, char *argv[]) {
     g_io_channel_set_encoding(io_channel, NULL, NULL); // Binary mode
     g_io_channel_set_flags(io_channel, G_IO_FLAG_NONBLOCK, NULL);
 
-    guint watch_id = g_io_add_watch(io_channel, G_IO_IN, handle_pipe_input, pipelam_config);
+    guint watch_id = g_io_add_watch(io_channel, G_IO_IN, pipelam_handle_pipe_input, pipelam_config);
 
     pipelam_log_info("Pipe set up in non-blocking mode, waiting for messages on: %s", pipe_path);
 
@@ -112,6 +195,18 @@ int main(int argc, char *argv[]) {
 
     // Clean up (this code is reached only if the main loop is quit)
     g_source_remove(watch_id);
+    if (message_process_timer_id > 0) {
+        g_source_remove(message_process_timer_id);
+    }
+
+    // Free any messages left in queue
+    for (int i = 0; i < MAX_QUEUE_SIZE; i++) {
+        if (message_queue[i] != NULL) {
+            g_free(message_queue[i]);
+            message_queue[i] = NULL;
+        }
+    }
+
     g_io_channel_unref(io_channel);
     close(pipe_fd);
     g_main_loop_unref(main_loop);

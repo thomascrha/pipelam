@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200809L
+#include <stdlib.h>
 #include "../src/log.h"
 
 extern int test_config_main(void);
@@ -6,6 +8,9 @@ extern int test_window_main(void);
 extern int test_cmdline_options_main(void);
 
 int main(void) {
+    // Set environment variable to skip default config files
+    setenv("PIPELAM_SKIP_DEFAULT_CONFIG", "1", 1);
+
     // Set log level to debug for detailed test output
     pipelam_log_level_set(LOG_DEBUG);
 

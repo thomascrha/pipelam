@@ -8,6 +8,7 @@ static GtkApplication *app = NULL;
 static guint current_timeout_id = 0;
 static enum pipelam_message_type current_window_type = -1;  // Track the current window type
 static GtkWidget *bar_fg = NULL;  // Keep reference to the WOB foreground bar
+static gboolean is_updating_window = FALSE;  // Flag to prevent concurrent window updates
 
 void pipelam_set_application(GtkApplication *application) {
     app = application;
@@ -69,8 +70,12 @@ void pipelam_close_current_window(void) {
             current_timeout_id = 0;
         }
 
+        // Make sure we null out all widget references before closing
+        bar_fg = NULL;
+
         gtk_window_close(current_window);
         current_window = NULL;
+        current_window_type = -1;
     } else {
         pipelam_log_debug("No current window to close");
     }
@@ -125,6 +130,15 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer ptr_pi
 static gboolean close_window_callback(gpointer window) {
     if (GTK_IS_WINDOW(window)) {
         pipelam_log_debug("Closing window via timeout");
+
+        // If this is the current window, clean up our references
+        if (window == current_window) {
+            bar_fg = NULL;
+            current_window = NULL;
+            current_window_type = -1;
+            current_timeout_id = 0;
+        }
+
         gtk_window_close(GTK_WINDOW(window));
     }
     return G_SOURCE_REMOVE; // Return FALSE to remove the source
@@ -146,7 +160,7 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     pipelam_log_debug("WOB value: %d%%", percentage);
 
     // Check if we can reuse the existing window
-    if (current_window != NULL && current_window_type == WOB && bar_fg != NULL) {
+    if (current_window != NULL && current_window_type == WOB && GTK_IS_WIDGET(bar_fg)) {
         pipelam_log_debug("Updating existing WOB window");
 
         // Just update the bar size
@@ -340,9 +354,19 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
     pipelam_log_debug("Creating window");
 
+    // Prevent concurrent window updates
+    if (is_updating_window) {
+        pipelam_log_debug("Window update already in progress, queueing");
+        g_timeout_add(50, (GSourceFunc)pipelam_create_window, ptr_pipelam_config);
+        return;
+    }
+
+    is_updating_window = TRUE;
+
     // Make sure we have an application
     if (app == NULL) {
         pipelam_log_error("No GTK application available");
+        is_updating_window = FALSE;
         return;
     }
 
@@ -350,6 +374,7 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
     if (pipelam_config->runtime_behaviour == QUEUE && current_window != NULL) {
         // Set up a timer to check if the window is closed, then try again
         g_timeout_add(100, (GSourceFunc)pipelam_create_window, ptr_pipelam_config);
+        is_updating_window = FALSE;
         return;
     }
 
@@ -377,4 +402,6 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
 
     // Update the current window type
     current_window_type = pipelam_config->type;
+
+    is_updating_window = FALSE;
 }
