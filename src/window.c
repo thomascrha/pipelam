@@ -160,7 +160,7 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     pipelam_log_debug("WOB value: %d%%", percentage);
 
     // Check if we can reuse the existing window
-    if (current_window != NULL && current_window_type == WOB && GTK_IS_WIDGET(bar_fg)) {
+    if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
         pipelam_log_debug("Updating existing WOB window");
 
         // Just update the bar size
@@ -240,9 +240,65 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
 }
 
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
-    pipelam_log_debug("Creating image window");
+    pipelam_log_debug("Handling image window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
+    // Check if we can reuse the existing window
+    if (current_window != NULL && current_window_type == IMAGE) {
+        pipelam_log_debug("Updating existing IMAGE window");
+
+        // Update the image
+        GtkWidget *box = gtk_window_get_child(current_window);
+        if (GTK_IS_BOX(box)) {
+            // Remove old image
+            GtkWidget *old_image = gtk_widget_get_first_child(box);
+            if (old_image != NULL) {
+                gtk_box_remove(GTK_BOX(box), old_image);
+            }
+
+            // Load and add new image
+            const char *image_path = pipelam_config->expression;
+            pipelam_log_debug("Loading image from path: %s", image_path);
+
+            GError *error = NULL;
+            GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path, &error);
+            if (pixbuf == NULL) {
+                pipelam_log_error("Failed to load image: %s", error ? error->message : "Unknown error");
+                if (error)
+                    g_error_free(error);
+                return;
+            }
+
+            gint width = gdk_pixbuf_get_width(pixbuf);
+            gint height = gdk_pixbuf_get_height(pixbuf);
+
+            GdkPaintable *paintable = GDK_PAINTABLE(gdk_texture_new_for_pixbuf(pixbuf));
+            GtkWidget *image = gtk_image_new_from_paintable(paintable);
+
+            gtk_widget_set_size_request(image, width, height);
+            gtk_image_set_pixel_size(GTK_IMAGE(image), -1);
+
+            gtk_box_append(GTK_BOX(box), image);
+            gtk_window_set_default_size(current_window, width, height);
+
+            g_object_unref(paintable);
+            g_object_unref(pixbuf);
+        }
+
+        // Reset the timeout
+        if (current_timeout_id > 0) {
+            g_source_remove(current_timeout_id);
+        }
+        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
+        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
+
+        // Ensure the window is shown and on top
+        gtk_window_present(current_window);
+        return;
+    }
+
+    // Create a new window if we can't reuse
+    pipelam_log_debug("Creating new image window");
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
@@ -313,9 +369,36 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 }
 
 static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam_config) {
-    pipelam_log_debug("Creating text window");
+    pipelam_log_debug("Handling text window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
+    // Check if we can reuse the existing window
+    if (current_window != NULL && current_window_type == TEXT) {
+        pipelam_log_debug("Updating existing TEXT window");
+
+        // Update the label content
+        GtkWidget *old_label = gtk_window_get_child(current_window);
+        if (GTK_IS_LABEL(old_label)) {
+            pipelam_log_debug("len of expression: %lu", strlen(pipelam_config->expression));
+            pipelam_log_debug("expression: %s", pipelam_config->expression);
+
+            gtk_label_set_markup(GTK_LABEL(old_label), pipelam_config->expression);
+        }
+
+        // Reset the timeout
+        if (current_timeout_id > 0) {
+            g_source_remove(current_timeout_id);
+        }
+        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
+        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
+
+        // Ensure the window is shown and on top
+        gtk_window_present(current_window);
+        return;
+    }
+
+    // Create a new window if we can't reuse
+    pipelam_log_debug("Creating new text window");
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
