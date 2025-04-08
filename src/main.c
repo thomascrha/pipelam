@@ -6,6 +6,14 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+static GtkApplication *pipelam_app = NULL;
+
+static void on_app_activate(GtkApplication *app, gpointer user_data) {
+    // This is a minimal handler for the activate signal
+    // We don't need to do anything here since we manage windows separately
+    pipelam_log_debug("Application activated");
+}
+
 static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer user_data) {
     struct pipelam_config *config = (struct pipelam_config *)user_data;
     gchar *message = NULL;
@@ -32,12 +40,15 @@ static gboolean handle_pipe_input(GIOChannel *source, GIOCondition condition G_G
 
     if (message != NULL && length > 0) {
         pipelam_log_info("Received message of length: %lu", length);
+        // For REPLACE behavior, we'll handle the window closing in the window.c functions
+        // to avoid the flash effect when replacing windows
         if (config->runtime_behaviour == (int)REPLACE) {
-            pipelam_log_debug("Runtime behavior is REPLACE, closing any existing window");
-            pipelam_close_current_window();
+            pipelam_log_debug("Runtime behavior is REPLACE, window will be replaced in create_window");
+            // Don't close the current window here to avoid flashing
         }
 
         pipelam_parse_message(message, config);
+        pipelam_set_application(pipelam_app);
         pipelam_create_window(config);
         pipelam_reset_default_config(config);
         g_free(message);
@@ -65,7 +76,11 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    gtk_init();
+    // Initialize GTK and create the application
+    pipelam_app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
+    g_signal_connect(pipelam_app, "activate", G_CALLBACK(on_app_activate), NULL);
+    g_application_register(G_APPLICATION(pipelam_app), NULL, NULL);
+    g_application_activate(G_APPLICATION(pipelam_app));
 
     pipelam_log_info("Starting pipelam with log level %s", pipelam_config->log_level);
 
@@ -81,6 +96,7 @@ int main(int argc, char *argv[]) {
         perror("open");
         pipelam_log_panic("Failed to open pipe in non-blocking mode - exiting");
         pipelam_destroy_config(pipelam_config);
+        g_object_unref(pipelam_app);
         return EXIT_FAILURE;
     }
 
@@ -99,6 +115,7 @@ int main(int argc, char *argv[]) {
     g_io_channel_unref(io_channel);
     close(pipe_fd);
     g_main_loop_unref(main_loop);
+    g_object_unref(pipelam_app);
     pipelam_destroy_config(pipelam_config);
 
     return EXIT_SUCCESS;
