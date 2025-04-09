@@ -72,13 +72,13 @@ $(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/con
 $(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 
 # Build test runner
-$(TEST_OUTPUT): build_dir $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
+$(TEST_OUTPUT): $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
 	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
 
 clean: ## Remove built executables and object files
 	rm -rf $(BUILD_DIR)
 
-build_test: $(TEST_OUTPUT) ## Build the test suite
+build_test: build_dir $(TEST_OUTPUT) ## Build the test suite
 
 rebuild: clean all ## Clean and build the project
 

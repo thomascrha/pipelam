@@ -218,7 +218,7 @@ static void test_invalid_config(void) {
     assert(config != NULL);
     // Note: The log level might get set to INVALID_LEVEL because the code just takes the string value
     assert(config->runtime_behaviour == REPLACE); // Should use default
-    assert(config->anchor == FALLBACK_ANCHOR);  // Should use default
+    assert(config->anchor == FALLBACK_ANCHOR);    // Should use default
     // window_timeout might be 0 or default depending on implementation of atoi()
 
     pipelam_destroy_config(config);
