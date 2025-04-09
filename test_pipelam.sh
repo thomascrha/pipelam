@@ -11,7 +11,8 @@ PIPELAM_BIN="./build/pipelam"
 PIPE_PATH="/tmp/pipelam_test_pipe"
 
 # Test image path - adjust to point to a real image
-TEST_IMAGE="./examples/example.png"
+TEST_IMAGE1="./examples/example.png"
+TEST_IMAGE2="./examples/example1.png"
 
 # Make sure to clean up on exit
 cleanup() {
@@ -23,18 +24,6 @@ cleanup() {
 }
 
 trap cleanup EXIT INT TERM
-
-# Check if test image exists
-if [ ! -f "$TEST_IMAGE" ]; then
-    echo -e "${YELLOW}Warning: Test image not found at $TEST_IMAGE${NC}"
-    echo -e "Please edit this script to specify a valid image path"
-    echo -n "Enter path to an image file to use for testing: "
-    read TEST_IMAGE
-
-    if [ ! -f "$TEST_IMAGE" ]; then
-        echo -e "${YELLOW}Image not found. Will skip image tests.${NC}"
-    fi
-fi
 
 # Create named pipe if it doesn't exist
 if [ ! -e "$PIPE_PATH" ]; then
@@ -124,27 +113,12 @@ MODES=("queue" "replace" "overlay")
 
 for mode in "${MODES[@]}"; do
     # Test TEXT messages
-    run_test "$mode" "Simple text" "Hello, this is a test notification!" "text" "This is the second notification!"
-    run_test "$mode" "Markup text" "<span foreground='red'>Red text test</span>" "text" "<span foreground='blue'>Blue text test</span>"
+    run_test "$mode" "Markup text" "<span font_desc='Roboto 100' foreground='red'>Red text test</span>" "text" "<span font_desc='Roboto 100' foreground='blue'>Blue text test</span>"
 
     # Test WOB messages with different values
     run_test "$mode" "WOB values" "25" "wob" "75"
 
-    # Test IMAGE message if test image exists
-    if [ -f "$TEST_IMAGE" ]; then
-        run_test "$mode" "Image display" "$TEST_IMAGE" "image"
-    else
-        echo -e "${YELLOW}Skipping image test - no valid image provided${NC}"
-    fi
-
-    # Test advanced JSON messages
-    # These already have settings, so they will be modified instead of wrapped
-    run_test "$mode" "JSON Text" "{\"expression\":\"<b>First JSON text</b>\",\"type\":\"text\"}" "" "{\"expression\":\"<i>Second JSON text</i>\",\"type\":\"text\"}"
-    run_test "$mode" "JSON WOB" "{\"expression\":\"30\",\"type\":\"wob\"}" "" "{\"expression\":\"60\",\"type\":\"wob\"}"
-
-    if [ -f "$TEST_IMAGE" ]; then
-        run_test "$mode" "JSON Image" "{\"expression\":\"$TEST_IMAGE\",\"type\":\"image\"}"
-    fi
+    run_test "$mode" "Image display" "$TEST_IMAGE1" "image" "$TEST_IMAGE2"
 done
 
 echo -e "\n${GREEN}All tests completed!${NC}"

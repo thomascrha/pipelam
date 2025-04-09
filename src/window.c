@@ -167,6 +167,22 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
         int bar_width = (350 * percentage) / 100;
         gtk_widget_set_size_request(bar_fg, bar_width, 25);
 
+        // Update window settings (margins, anchor)
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_LEFT, pipelam_config->margin_left);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, pipelam_config->margin_right);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_TOP, pipelam_config->margin_top);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, pipelam_config->margin_bottom);
+
+        // Update anchors
+        gboolean *anchors = pipelam_get_anchor(pipelam_config->anchor);
+        if (anchors != NULL) {
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_LEFT, anchors[GTK_LAYER_SHELL_EDGE_LEFT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, anchors[GTK_LAYER_SHELL_EDGE_RIGHT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_TOP, anchors[GTK_LAYER_SHELL_EDGE_TOP]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, anchors[GTK_LAYER_SHELL_EDGE_BOTTOM]);
+            free(anchors);
+        }
+
         // Reset the timeout
         if (current_timeout_id > 0) {
             g_source_remove(current_timeout_id);
@@ -285,6 +301,22 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
             g_object_unref(pixbuf);
         }
 
+        // Update window settings (margins, anchor)
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_LEFT, pipelam_config->margin_left);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, pipelam_config->margin_right);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_TOP, pipelam_config->margin_top);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, pipelam_config->margin_bottom);
+
+        // Update anchors
+        gboolean *anchors = pipelam_get_anchor(pipelam_config->anchor);
+        if (anchors != NULL) {
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_LEFT, anchors[GTK_LAYER_SHELL_EDGE_LEFT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, anchors[GTK_LAYER_SHELL_EDGE_RIGHT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_TOP, anchors[GTK_LAYER_SHELL_EDGE_TOP]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, anchors[GTK_LAYER_SHELL_EDGE_BOTTOM]);
+            free(anchors);
+        }
+
         // Reset the timeout
         if (current_timeout_id > 0) {
             g_source_remove(current_timeout_id);
@@ -385,6 +417,22 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
             gtk_label_set_markup(GTK_LABEL(old_label), pipelam_config->expression);
         }
 
+        // Update window settings (margins, anchor)
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_LEFT, pipelam_config->margin_left);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, pipelam_config->margin_right);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_TOP, pipelam_config->margin_top);
+        gtk_layer_set_margin(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, pipelam_config->margin_bottom);
+
+        // Update anchors
+        gboolean *anchors = pipelam_get_anchor(pipelam_config->anchor);
+        if (anchors != NULL) {
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_LEFT, anchors[GTK_LAYER_SHELL_EDGE_LEFT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_RIGHT, anchors[GTK_LAYER_SHELL_EDGE_RIGHT]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_TOP, anchors[GTK_LAYER_SHELL_EDGE_TOP]);
+            gtk_layer_set_anchor(current_window, GTK_LAYER_SHELL_EDGE_BOTTOM, anchors[GTK_LAYER_SHELL_EDGE_BOTTOM]);
+            free(anchors);
+        }
+
         // Reset the timeout
         if (current_timeout_id > 0) {
             g_source_remove(current_timeout_id);
@@ -437,6 +485,19 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
     pipelam_log_debug("Creating window");
 
+    // Make a persistent copy of the config to avoid the expression being nulled
+    static struct pipelam_config saved_config;
+    memcpy(&saved_config, pipelam_config, sizeof(struct pipelam_config));
+
+    // Make a copy of the expression if it exists
+    if (pipelam_config->expression != NULL) {
+        saved_config.expression = g_strdup(pipelam_config->expression);
+    }
+
+    // Use our saved copy for window creation
+    ptr_pipelam_config = &saved_config;
+    pipelam_config = &saved_config;
+
     // Prevent concurrent window updates
     if (is_updating_window) {
         pipelam_log_debug("Window update already in progress, queueing");
@@ -487,5 +548,13 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
     current_window_type = pipelam_config->type;
 
     is_updating_window = FALSE;
+
+    // Clean up the saved expression after window creation is complete
+    // This happens after the window is created, not when this function returns
+    if (saved_config.expression != NULL && saved_config.expression != pipelam_config->expression) {
+        g_free(saved_config.expression);
+        saved_config.expression = NULL;
+    }
+
     return G_SOURCE_REMOVE; // Return FALSE to indicate source should be removed
 }
