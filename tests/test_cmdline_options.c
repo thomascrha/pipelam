@@ -1,8 +1,8 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -323,7 +323,8 @@ static void test_cmdline_version_option(void) {
 
     // Read output
     memset(output_buffer, 0, sizeof(output_buffer));
-    while (fgets(output_buffer + strlen(output_buffer), sizeof(output_buffer) - strlen(output_buffer) - 1, fp) != NULL);
+    while (fgets(output_buffer + strlen(output_buffer), sizeof(output_buffer) - strlen(output_buffer) - 1, fp) != NULL)
+        ;
 
     result = pclose(fp);
     assert(WIFEXITED(result) && WEXITSTATUS(result) == 0);
@@ -341,7 +342,8 @@ static void test_cmdline_version_option(void) {
 
     // Read output
     memset(output_buffer, 0, sizeof(output_buffer));
-    while (fgets(output_buffer + strlen(output_buffer), sizeof(output_buffer) - strlen(output_buffer) - 1, fp) != NULL);
+    while (fgets(output_buffer + strlen(output_buffer), sizeof(output_buffer) - strlen(output_buffer) - 1, fp) != NULL)
+        ;
 
     result = pclose(fp);
     assert(WIFEXITED(result) && WEXITSTATUS(result) == 0);

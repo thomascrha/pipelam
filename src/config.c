@@ -240,6 +240,7 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
 }
 
 static pipelam_config_option_t pipelam_read_config_file(char *path) {
+    // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
     FILE *fp;
 
     if ((fp = fopen(path, "r")) == NULL) {
@@ -267,6 +268,8 @@ static pipelam_config_option_t pipelam_read_config_file(char *path) {
                 free(co);
                 continue;
             }
+            // If we reach here, it means there was an error reading the file.
+            pipelam_log_error("Unable to parse the config file %s", path);
             perror("fscanf()");
             free(co);
             continue;
@@ -276,11 +279,11 @@ static pipelam_config_option_t pipelam_read_config_file(char *path) {
     return last_co_addr;
 }
 
-static void pipelam_parse_config_file(char *path, struct pipelam_config *config) {
+static bool pipelam_parse_config_file(char *path, struct pipelam_config *config) {
     pipelam_config_option_t co = pipelam_read_config_file(path);
     if (co == NULL) {
         perror("pipelam_read_config_file()");
-        return;
+        return FALSE;
     }
 
     while (co != NULL) {
@@ -338,6 +341,8 @@ static void pipelam_parse_config_file(char *path, struct pipelam_config *config)
         }
         co = co->prev;
     }
+
+    return TRUE;
 }
 
 static char *pipelam_get_config_file(const char *config_file_path) {
@@ -402,7 +407,10 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
-        pipelam_parse_config_file(config_fp, config);
+        bool config_parsed = pipelam_parse_config_file(config_fp, config);
+        if (config_parsed == FALSE) {
+            pipelam_log_warning("Unable to parse config file %s, using default values", config_fp);
+        }
     } else {
         pipelam_log_warning("No config file found, using default values");
     }

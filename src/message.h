@@ -11,4 +11,3 @@
 void pipelam_parse_message(const char *expression, struct pipelam_config *config);
 
 #endif // MESSAGE_H
-

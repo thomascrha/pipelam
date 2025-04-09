@@ -433,15 +433,15 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
     current_window = gtk_window;
 }
 
-void pipelam_create_window(gpointer ptr_pipelam_config) {
+gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
     pipelam_log_debug("Creating window");
 
     // Prevent concurrent window updates
     if (is_updating_window) {
         pipelam_log_debug("Window update already in progress, queueing");
-        g_timeout_add(50, (GSourceFunc)pipelam_create_window, ptr_pipelam_config);
-        return;
+        g_timeout_add(50, pipelam_create_window, ptr_pipelam_config);
+        return FALSE;
     }
 
     is_updating_window = TRUE;
@@ -450,15 +450,15 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
     if (app == NULL) {
         pipelam_log_error("No GTK application available");
         is_updating_window = FALSE;
-        return;
+        return FALSE;
     }
 
     // For QUEUE behavior, we need to wait for existing windows to close
     if (pipelam_config->runtime_behaviour == QUEUE && current_window != NULL) {
         // Set up a timer to check if the window is closed, then try again
-        g_timeout_add(100, (GSourceFunc)pipelam_create_window, ptr_pipelam_config);
+        g_timeout_add(100, pipelam_create_window, ptr_pipelam_config);
         is_updating_window = FALSE;
-        return;
+        return FALSE;
     }
 
     // For REPLACE, we handle the replacement in the render functions
@@ -487,4 +487,5 @@ void pipelam_create_window(gpointer ptr_pipelam_config) {
     current_window_type = pipelam_config->type;
 
     is_updating_window = FALSE;
+    return G_SOURCE_REMOVE; // Return FALSE to indicate source should be removed
 }

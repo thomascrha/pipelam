@@ -19,25 +19,11 @@
 #define MESSAGE_CURRENT_VERSION 0
 #define PIPELAM_CURRENT_VERSION "v0.0.1"
 
-enum pipelam_window_anchor {
-    BOTTOM_LEFT,
-    BOTTOM_RIGHT,
-    TOP_LEFT,
-    TOP_RIGHT,
-    CENTER
-};
+enum pipelam_window_anchor { BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT, CENTER };
 
-enum pipelam_message_type {
-    TEXT,
-    IMAGE,
-    WOB
-};
+enum pipelam_message_type { TEXT, IMAGE, WOB };
 
-enum pipelam_runtime_behaviour {
-    QUEUE,
-    REPLACE,
-    OVERLAY
-};
+enum pipelam_runtime_behaviour { QUEUE, REPLACE, OVERLAY };
 
 struct pipelam_config {
     // Startrup behaviour
@@ -78,7 +64,7 @@ void pipelam_help(void);
 #define CONFIG_ARG_MAX_BYTES 128
 
 typedef struct pipelam_config_option pipelam_config_option;
-typedef pipelam_config_option* pipelam_config_option_t;
+typedef pipelam_config_option *pipelam_config_option_t;
 
 struct pipelam_config_option {
     pipelam_config_option_t prev;

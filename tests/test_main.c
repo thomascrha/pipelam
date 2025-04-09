@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
 #include "../src/log.h"
+#include <stdlib.h>
 
 extern int test_config_main(void);
 extern int test_message_main(void);
