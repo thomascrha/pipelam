@@ -53,20 +53,8 @@ run_test() {
     local type=$4
     local message2=${5:-$message1}  # Default to first message if second not provided
 
-    # Create JSON messages with different anchor points
-    local json_message1=""
-    local json_message2=""
-
-    # If message already starts with {, assume it's already JSON
-    if [[ $message1 == {* ]]; then
-        # For existing JSON, we need to insert the anchor before the closing }
-        json_message1=$(echo "$message1" | sed 's/}$/,"settings":{"anchor":"top-left","window_timeout":3000}}/')
-        json_message2=$(echo "$message2" | sed 's/}$/,"settings":{"anchor":"bottom-right","window_timeout":3000}}/')
-    else
-        # Create JSON with proper anchors
-        json_message1=$(wrap_message "$message1" "$type" "top-left")
-        json_message2=$(wrap_message "$message2" "$type" "bottom-right")
-    fi
+    json_message1=$(wrap_message "$message1" "$type" "top-left")
+    json_message2=$(wrap_message "$message2" "$type" "bottom-right")
 
     echo -e "\n${GREEN}==========================================${NC}"
     echo -e "${GREEN}Testing: ${YELLOW}$test_name${NC} in ${YELLOW}$mode${NC} mode"
@@ -89,10 +77,6 @@ run_test() {
     echo -e "${BLUE}Sending message 2 (bottom-right):${NC}"
     send_message "$json_message2"
 
-    echo -e "${YELLOW}Observe both notifications display:${NC}"
-    echo -e "${YELLOW}- In queue mode: Both should appear in sequence${NC}"
-    echo -e "${YELLOW}- In replace mode: Second should replace first${NC}"
-    echo -e "${YELLOW}- In overlay mode: Both should appear at different locations${NC}"
     echo -n "Press Enter to continue to the next test..."
     read
 
@@ -103,8 +87,6 @@ run_test() {
 
 # Start testing each mode with each message type
 echo -e "${GREEN}Pipelam Test Suite${NC}"
-echo -e "${BLUE}This script will test all combinations of runtime modes and message types${NC}"
-echo -e "${BLUE}Please observe each notification and confirm it works as expected${NC}"
 echo -e "${YELLOW}Press Enter to start testing...${NC}"
 read
 
@@ -122,5 +104,5 @@ for mode in "${MODES[@]}"; do
 done
 
 echo -e "\n${GREEN}All tests completed!${NC}"
-cleanup
+# cleanup
 
