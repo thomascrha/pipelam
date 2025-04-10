@@ -21,6 +21,8 @@ static enum pipelam_message_type current_window_type = -1; // Track the current 
 static GtkWidget *bar_fg = NULL;                           // Keep reference to the WOB foreground bar for non-overlay mode
 static gboolean is_updating_window = FALSE;                // Flag to prevent concurrent window updates
 
+#define WOB_BAR_WIDTH 350
+
 // Internal functions
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -286,6 +288,17 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
 
     gtk_window_present(window);
 }
+
+static int pipelam_get_bar_width(int percentage) {
+    int bar_width;
+    if (percentage == 100) {
+        bar_width = 342;
+    } else {
+        bar_width = (WOB_BAR_WIDTH * percentage) / 100;
+    }
+    return bar_width;
+}
+
 // Main render functions for each type
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
@@ -300,27 +313,25 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     }
     pipelam_log_debug("WOB value: %d%%", percentage);
 
-    if (pipelam_config->runtime_behaviour != OVERLAY) {
-        if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-            pipelam_log_debug("Updating existing WOB window");
+    if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
+        pipelam_log_debug("Overlaying existing WOB window");
 
-            int bar_width = (350 * percentage) / 100;
-            gtk_widget_set_size_request(bar_fg, bar_width, 25);
+        int bar_width = pipelam_get_bar_width(percentage);
+        gtk_widget_set_size_request(bar_fg, bar_width, 25);
 
-            pipelam_update_window_settings(current_window, pipelam_config);
-            if (current_timeout_id > 0) {
-                g_source_remove(current_timeout_id);
-            }
-            current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
-            pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
-
-            gtk_window_present(current_window);
-            return;
+        pipelam_update_window_settings(current_window, pipelam_config);
+        if (current_timeout_id > 0) {
+            g_source_remove(current_timeout_id);
         }
+        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
+        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
+
+        gtk_window_present(current_window);
+        return;
     } else if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
         pipelam_log_debug("Updating existing WOB window");
 
-        int bar_width = (350 * percentage) / 100;
+        int bar_width = pipelam_get_bar_width(percentage);
         gtk_widget_set_size_request(bar_fg, bar_width, 25);
 
         pipelam_update_window_settings(current_window, pipelam_config);
@@ -347,10 +358,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
 
     GtkWidget *bar_bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_hexpand(bar_bg, TRUE);
-    gtk_widget_set_size_request(bar_bg, 350, 25);
+    gtk_widget_set_size_request(bar_bg, WOB_BAR_WIDTH, 25);
 
     GtkWidget *new_bar_fg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    int bar_width = (350 * percentage) / 100;
+    int bar_width = pipelam_get_bar_width(percentage);
     gtk_widget_set_size_request(new_bar_fg, bar_width, 25);
 
     GtkWidget *border_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -359,7 +370,7 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     gtk_widget_add_css_class(bar_bg, "wob-background");
     gtk_widget_add_css_class(new_bar_fg, "wob-foreground");
     GtkCssProvider *provider = gtk_css_provider_new();
-    const char *css_data = ".wob-border { background-color: white; padding: 4px; margin: 4px; border: 4px solid black; }"
+    const char *css_data = ".wob-border { background-color: white; padding: 4px; margin: 4px; }"
                            ".wob-background { background-color: black; padding: 4px; }"
                            ".wob-foreground { background-color: white; padding: 4px; }";
 
