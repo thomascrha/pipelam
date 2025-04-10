@@ -21,7 +21,6 @@ static enum pipelam_message_type current_window_type = -1; // Track the current 
 static GtkWidget *bar_fg = NULL;                           // Keep reference to the WOB foreground bar for non-overlay mode
 static gboolean is_updating_window = FALSE;                // Flag to prevent concurrent window updates
 
-
 // Internal functions
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -399,7 +398,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     g_object_unref(provider);
 }
 
-
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Handling image window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
@@ -456,7 +454,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 
     gtk_window_present(gtk_window);
 }
-
 
 static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Handling text window");

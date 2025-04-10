@@ -97,7 +97,7 @@ test: rebuild build_test ## Rebuild the project and run tests
 run: all ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
 
-release: ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
+release: format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
 	@echo "Creating release..."
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \
