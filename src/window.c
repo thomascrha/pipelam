@@ -199,6 +199,95 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer ptr_pi
     return gtk_window;
 }
 
+static GtkWidget *pipelam_load_and_create_image(const char *image_path, gint *width, gint *height) {
+    pipelam_log_debug("Loading image from path: %s", image_path);
+
+    GError *error = NULL;
+    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path, &error);
+    if (pixbuf == NULL) {
+        pipelam_log_error("Failed to load image: %s", error ? error->message : "Unknown error");
+        if (error)
+            g_error_free(error);
+        return NULL;
+    }
+
+    *width = gdk_pixbuf_get_width(pixbuf);
+    *height = gdk_pixbuf_get_height(pixbuf);
+
+    GdkPaintable *paintable = GDK_PAINTABLE(gdk_texture_new_for_pixbuf(pixbuf));
+    GtkWidget *image = gtk_image_new_from_paintable(paintable);
+
+    gtk_widget_set_size_request(image, *width, *height);
+    gtk_image_set_pixel_size(GTK_IMAGE(image), -1); // Use natural size
+
+    g_object_unref(paintable);
+    g_object_unref(pixbuf);
+
+    return image;
+}
+
+static void pipelam_update_image_window(GtkWindow *window, const char *image_path, struct pipelam_config *config) {
+    if (!GTK_IS_WINDOW(window) || image_path == NULL)
+        return;
+
+    pipelam_log_debug("Updating existing IMAGE window");
+
+    GtkWidget *box = gtk_window_get_child(window);
+    if (GTK_IS_BOX(box)) {
+        GtkWidget *old_image = gtk_widget_get_first_child(box);
+        if (old_image != NULL) {
+            gtk_box_remove(GTK_BOX(box), old_image);
+        }
+
+        gint width = 0, height = 0;
+        GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
+        if (image != NULL) {
+            gtk_box_append(GTK_BOX(box), image);
+            gtk_window_set_default_size(window, width, height);
+        }
+    }
+
+    pipelam_update_window_settings(window, config);
+
+    if (window == current_window) {
+        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
+    } else {
+        int index = pipelam_find_window_index(window);
+        if (index >= 0) {
+            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
+        }
+    }
+
+    gtk_window_present(window);
+}
+
+static void pipelam_update_text_window(GtkWindow *window, const char *text, struct pipelam_config *config) {
+    if (!GTK_IS_WINDOW(window) || text == NULL)
+        return;
+
+    pipelam_log_debug("Updating existing TEXT window");
+    GtkWidget *old_label = gtk_window_get_child(window);
+    if (GTK_IS_LABEL(old_label)) {
+        pipelam_log_debug("len of expression: %lu", strlen(text));
+        pipelam_log_debug("expression: %s", text);
+
+        gtk_label_set_markup(GTK_LABEL(old_label), text);
+    }
+
+    pipelam_update_window_settings(window, config);
+
+    if (window == current_window) {
+        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
+    } else {
+        int index = pipelam_find_window_index(window);
+        if (index >= 0) {
+            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
+        }
+    }
+
+    gtk_window_present(window);
+}
+// Main render functions for each type
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
@@ -310,67 +399,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     g_object_unref(provider);
 }
 
-static GtkWidget *pipelam_load_and_create_image(const char *image_path, gint *width, gint *height) {
-    pipelam_log_debug("Loading image from path: %s", image_path);
-
-    GError *error = NULL;
-    GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(image_path, &error);
-    if (pixbuf == NULL) {
-        pipelam_log_error("Failed to load image: %s", error ? error->message : "Unknown error");
-        if (error)
-            g_error_free(error);
-        return NULL;
-    }
-
-    *width = gdk_pixbuf_get_width(pixbuf);
-    *height = gdk_pixbuf_get_height(pixbuf);
-
-    GdkPaintable *paintable = GDK_PAINTABLE(gdk_texture_new_for_pixbuf(pixbuf));
-    GtkWidget *image = gtk_image_new_from_paintable(paintable);
-
-    gtk_widget_set_size_request(image, *width, *height);
-    gtk_image_set_pixel_size(GTK_IMAGE(image), -1); // Use natural size
-
-    g_object_unref(paintable);
-    g_object_unref(pixbuf);
-
-    return image;
-}
-
-static void pipelam_update_image_window(GtkWindow *window, const char *image_path, struct pipelam_config *config) {
-    if (!GTK_IS_WINDOW(window) || image_path == NULL)
-        return;
-
-    pipelam_log_debug("Updating existing IMAGE window");
-
-    GtkWidget *box = gtk_window_get_child(window);
-    if (GTK_IS_BOX(box)) {
-        GtkWidget *old_image = gtk_widget_get_first_child(box);
-        if (old_image != NULL) {
-            gtk_box_remove(GTK_BOX(box), old_image);
-        }
-
-        gint width = 0, height = 0;
-        GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
-        if (image != NULL) {
-            gtk_box_append(GTK_BOX(box), image);
-            gtk_window_set_default_size(window, width, height);
-        }
-    }
-
-    pipelam_update_window_settings(window, config);
-
-    if (window == current_window) {
-        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
-    } else {
-        int index = pipelam_find_window_index(window);
-        if (index >= 0) {
-            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
-        }
-    }
-
-    gtk_window_present(window);
-}
 
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Handling image window");
@@ -429,32 +457,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
     gtk_window_present(gtk_window);
 }
 
-static void pipelam_update_text_window(GtkWindow *window, const char *text, struct pipelam_config *config) {
-    if (!GTK_IS_WINDOW(window) || text == NULL)
-        return;
-
-    pipelam_log_debug("Updating existing TEXT window");
-    GtkWidget *old_label = gtk_window_get_child(window);
-    if (GTK_IS_LABEL(old_label)) {
-        pipelam_log_debug("len of expression: %lu", strlen(text));
-        pipelam_log_debug("expression: %s", text);
-
-        gtk_label_set_markup(GTK_LABEL(old_label), text);
-    }
-
-    pipelam_update_window_settings(window, config);
-
-    if (window == current_window) {
-        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
-    } else {
-        int index = pipelam_find_window_index(window);
-        if (index >= 0) {
-            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
-        }
-    }
-
-    gtk_window_present(window);
-}
 
 static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     pipelam_log_debug("Handling text window");
