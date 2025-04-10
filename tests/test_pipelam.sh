@@ -7,12 +7,12 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Path to the pipelam binary - adjust if needed
-PIPELAM_BIN="./build/pipelam"
+PIPELAM_BIN="../build/pipelam"
 PIPE_PATH="/tmp/pipelam_test_pipe"
 
 # Test image path - adjust to point to a real image
-TEST_IMAGE1="./examples/example.png"
-TEST_IMAGE2="./examples/example1.png"
+TEST_IMAGE1="../examples/example.png"
+TEST_IMAGE2="../examples/example1.png"
 
 # Make sure to clean up on exit
 cleanup() {

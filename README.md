@@ -8,7 +8,7 @@ This tool differs from wob in several different ways:
 
  - It uses gkt4 and gtk4-layer-shell for displaying the overlay.
  - This overlay is customisable using the JSON payload you write into the FIFO file pipelam is listening to.
-    - It as two different types of overlays: `text` and `image`.
+    - It as three different types of overlays: `text`, `image` and `wob` (an homage to the that project).
     - You can set the position, size, colour, font, text, image, etc. of the overlay.
     - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
 
@@ -165,3 +165,12 @@ Targets:
   test            Rebuild the project and run tests
   uninstall       Uninstall pipelam from the system
 ```
+
+# TODO's
+
+- [ ] Add to Arch user repositories
+- [ ] Clean up the examples and make more permutations of them
+- [ ] Using the examples make a demo video for the readme
+- [ ] Add customisation of the wob type
+
+
