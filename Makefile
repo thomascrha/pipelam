@@ -1,5 +1,5 @@
 # Variables
-CFLAGS          := -g -O2 -Wall -Wextra -Wpedantic -std=c17
+CFLAGS          := -O2 -Wall -Wextra -Wpedantic -std=c17
 CC              := clang
 
 # Installation paths
@@ -96,6 +96,9 @@ test: rebuild build_test ## Rebuild the project and run tests
 
 run: all ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
+
+debug: ## Build with enhanced debugging symbols for GDB
+	$(MAKE) CFLAGS="-ggdb -Wall -Wextra -Wpedantic -std=c17" all
 
 release: format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
 	@echo "Creating release..."

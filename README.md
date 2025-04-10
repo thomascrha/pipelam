@@ -172,5 +172,6 @@ Targets:
 - [ ] Clean up the examples and make more permutations of them
 - [ ] Using the examples make a demo video for the readme
 - [ ] Add customisation of the wob type
+- [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 
 
