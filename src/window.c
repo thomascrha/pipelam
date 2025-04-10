@@ -1,3 +1,4 @@
+#include "gtk/gtk.h"
 #include "gtk4-layer-shell.h"
 
 #include "config.h"
@@ -356,6 +357,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     GtkWidget *bar_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
+    // Add emoji label to the left of the progress bar volume
+    GtkWidget *wob_label = gtk_label_new("🔊");
+    gtk_widget_set_margin_end(wob_label, 0); // Add some spacing between emoji and progress bar
+
     GtkWidget *bar_bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_hexpand(bar_bg, TRUE);
     gtk_widget_set_size_request(bar_bg, WOB_BAR_WIDTH, 25);
@@ -369,16 +374,19 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     gtk_widget_add_css_class(border_container, "wob-border");
     gtk_widget_add_css_class(bar_bg, "wob-background");
     gtk_widget_add_css_class(new_bar_fg, "wob-foreground");
+    gtk_widget_add_css_class(wob_label, "wob-label");
     GtkCssProvider *provider = gtk_css_provider_new();
     const char *css_data = ".wob-border { background-color: white; padding: 4px; margin: 4px; }"
                            ".wob-background { background-color: black; padding: 4px; }"
-                           ".wob-foreground { background-color: white; padding: 4px; }";
+                           ".wob-foreground { background-color: white; padding: 4px; }"
+                           ".wob-label { background-color: transparent; padding: 4px; }";
 
     gtk_css_provider_load_from_string(provider, css_data);
 
     GdkDisplay *display = gdk_display_get_default();
     gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
+    gtk_box_append(GTK_BOX(bar_container), wob_label);
     gtk_box_append(GTK_BOX(bar_bg), new_bar_fg);
     gtk_box_append(GTK_BOX(border_container), bar_bg);
     gtk_box_append(GTK_BOX(bar_container), border_container);
