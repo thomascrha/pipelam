@@ -1,6 +1,6 @@
 # pipelam
 
-A lightweight overlay volume/backlight/progress/anything hugely inspired and based on [wob](https://github.com/francma/wob) for wlroots based compositors.
+A lightweight GTK4-based notification system for displaying text, images, and progress bars in wlroots compositors. Featuring queue, replace, and overlay display modes, pipelam is inspired by [wob](https://github.com/francma/wob).
 
 ## Features
 
@@ -85,19 +85,6 @@ Then you can write a JSON payload to the FIFO file to display the overlay. Here 
 
 ```shell
 jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pipelam.fifo
-```
-
-### Examples
-
-There are several example scripts in the `examples` directory that you can use to test the overlay. You can run these scripts by running the following command:
-
-#### Text Overlay
-```shell
-./examples/volume-bar-expression.sh > /tmp/pipelam.fifo
-```
-
-```shell
-./examples/volume-text-expression.sh > /tmp/pipelam.fifo
 ```
 
 ## Json Payload
