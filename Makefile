@@ -105,13 +105,18 @@ release: ## Create a release NOTE: VERSION is required. Usage: make release VERS
 	fi
 	@./scripts/create-release.sh $(VERSION)
 
-install: all ## Install pipelam to the system
+generate_man: ## Generate man pages from scdoc
+	mkdir -p build/man
+	scdoc < man/pipelam.1.scd > build/man/pipelam.1
+	scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
+
+install: all generate_man ## Install pipelam to the system
 	@install -d $(BINDIR)
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
 	@install -d /etc/pipelam
 	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
-	@install -m 644 man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
-	@install -m 644 man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
+	@install -m 644 build/man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
+	@install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
 	@if command -v makewhatis >/dev/null 2>&1; then \
 		makewhatis $(PREFIX)/share/man; \
 	elif command -v mandb >/dev/null 2>&1; then \
