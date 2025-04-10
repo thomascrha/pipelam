@@ -85,6 +85,17 @@ run_test() {
     sleep 1
 }
 
+# check the current working directory ends in tests
+if [[ ! $PWD =~ tests$ ]]; then
+    echo -e "${YELLOW}Please run this script from the tests directory.${NC}"
+    exit 1
+fi
+
+# rebuild pipelam to make sure we are testing the latest version
+cd ../
+make rebuild
+cd tests
+
 # Start testing each mode with each message type
 echo -e "${GREEN}Pipelam Test Suite${NC}"
 echo -e "${YELLOW}Press Enter to start testing...${NC}"

@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+// I don't like this but GTK complains if i don't do this
 static void on_app_activate(void) {
     // This is a minimal handler for the activate signal
     // We don't need to do anything here since we manage windows separately
