@@ -49,12 +49,38 @@ jobs:
           cp -r README.md pipelam-${VERSION}
           tar -czf pipelam-${VERSION}.tar.gz pipelam-${VERSION}
 
+      - name: Generate Release Notes
+        id: generate_notes
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          echo "Generating release notes..."
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "Collecting changes since $PREVIOUS_TAG..."
+            RELEASE_NOTES=$(git log --pretty=format:"* %s" ${PREVIOUS_TAG}..HEAD)
+          else
+            echo "No previous tag found. Including recent commit messages."
+            RELEASE_NOTES=$(git log -n 20 --pretty=format:"* %s")
+          fi
+
+          # Save notes to a file
+          echo "$RELEASE_NOTES" > release_notes.md
+
+          # Set the notes for later use with multiline string handling
+          RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
+          RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
+          echo "notes=$RELEASE_NOTES" >> $GITHUB_OUTPUT
+
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
           name: pipelam ${{ github.ref_name }}
+          body_path: release_notes.md
           draft: false
           prerelease: false
           files: |
             pipelam-*.tar.gz
+            release_notes.md

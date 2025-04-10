@@ -33,12 +33,43 @@ fi
 # Replace the version string in config.h
 sed -i "s/^#define PIPELAM_CURRENT_VERSION \"v[0-9]\+\.[0-9]\+\.[0-9]\+\"/#define PIPELAM_CURRENT_VERSION \"v$VERSION\"/" "$CONFIG_FILE"
 
+# Get the previous tag to generate release notes
+PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
+# Generate release notes from commit messages
+RELEASE_NOTES=""
+if [ -n "$PREVIOUS_TAG" ]; then
+    echo "Generating release notes from commits since $PREVIOUS_TAG..."
+    RELEASE_NOTES=$(git log --pretty=format:"* %s" ${PREVIOUS_TAG}..HEAD)
+    echo "Release notes:"
+    echo "$RELEASE_NOTES"
+else
+    echo "No previous tag found. Including all commit messages in release notes."
+    RELEASE_NOTES=$(git log --pretty=format:"* %s")
+fi
+
+# Create a temporary file for the commit message
+COMMIT_MSG_FILE=$(mktemp)
+echo "Release: Bump version to v$VERSION" > "$COMMIT_MSG_FILE"
+echo "" >> "$COMMIT_MSG_FILE"
+echo "Changes since previous release:" >> "$COMMIT_MSG_FILE"
+echo "$RELEASE_NOTES" >> "$COMMIT_MSG_FILE"
+
 echo "Committing version change..."
 git add "$CONFIG_FILE"
-git commit -m "Release: Bump version to v$VERSION"
+git commit -F "$COMMIT_MSG_FILE"
+rm "$COMMIT_MSG_FILE"
+
+# Use the same release notes for the tag message
+TAG_MSG_FILE=$(mktemp)
+echo "Release v$VERSION" > "$TAG_MSG_FILE"
+echo "" >> "$TAG_MSG_FILE"
+echo "Changes since previous release:" >> "$TAG_MSG_FILE"
+echo "$RELEASE_NOTES" >> "$TAG_MSG_FILE"
 
 echo "Creating tag v$VERSION..."
-git tag -a "v$VERSION" -m "Release v$VERSION"
+git tag -a "v$VERSION" -F "$TAG_MSG_FILE"
+rm "$TAG_MSG_FILE"
 
 echo "Pushing changes and tag to remote repository..."
 git push origin main
