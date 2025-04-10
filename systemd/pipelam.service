@@ -1,0 +1,18 @@
+[Unit]
+Description=A lightweight GTK4-based notification system for displaying text, images, and progress bars in wlroots compositors.
+Documentation=man:pipelam(1)
+PartOf=graphical-session.target
+After=graphical-session.target
+After=pipelam.socket
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+StandardInput=socket
+StandardOutput=journal
+StandardError=journal
+Restart=always
+RestartSec=5s
+ExecStart=/usr/local/bin/pipelam %t/pipelam.fifo
+
+[Install]
+WantedBy=graphical-session.target

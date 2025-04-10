@@ -106,9 +106,9 @@ release: ## Create a release NOTE: VERSION is required. Usage: make release VERS
 	@./scripts/create-release.sh $(VERSION)
 
 generate_man: ## Generate man pages from scdoc
-	mkdir -p build/man
-	scdoc < man/pipelam.1.scd > build/man/pipelam.1
-	scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
+	@mkdir -p build/man
+	@scdoc < man/pipelam.1.scd > build/man/pipelam.1
+	@scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
 
 install: all generate_man ## Install pipelam to the system
 	@install -d $(BINDIR)
@@ -124,6 +124,14 @@ install: all generate_man ## Install pipelam to the system
 	else \
 		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
 	fi
+
+install_systemd: ## Install systemd (user) service and timer
+	@install -d $(HOME)/.config/systemd/user
+	@install -m 644 systemd/pipelam.service $(HOME)/.config/systemd/user/pipelam.service
+	@install -m 644 systemd/pipelam.socket $(HOME)/.config/systemd/user/pipelam.socket
+	@systemctl --user daemon-reload
+	@systemctl --user enable --now pipelam.socket
+	@systemctl --user enable --now pipelam.service
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam
