@@ -6,7 +6,11 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-static GtkApplication *pipelam_app = NULL;
+static void on_app_activate(void) {
+    // This is a minimal handler for the activate signal
+    // We don't need to do anything here since we manage windows separately
+    pipelam_log_debug("Application activated");
+}
 
 static gboolean pipelam_handle_pipe_input(GIOChannel *source, GIOCondition condition G_GNUC_UNUSED, gpointer ptr_pipelam_config) {
     gchar *message = NULL;
@@ -35,7 +39,6 @@ static gboolean pipelam_handle_pipe_input(GIOChannel *source, GIOCondition condi
         pipelam_log_info("Received message of length: %lu", length);
 
         pipelam_parse_message(message, ptr_pipelam_config);
-        pipelam_set_application(pipelam_app);
         pipelam_create_window(ptr_pipelam_config);
         pipelam_reset_default_config(ptr_pipelam_config);
 
@@ -62,11 +65,6 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    pipelam_app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
-    g_signal_connect(pipelam_app, "activate", NULL, NULL);
-    g_application_register(G_APPLICATION(pipelam_app), NULL, NULL);
-    g_application_activate(G_APPLICATION(pipelam_app));
-
     char *pipe_path = argv[optind];
 
     if (access(pipe_path, F_OK) == -1) {
@@ -78,11 +76,14 @@ int main(int argc, char *argv[]) {
         perror("open");
         pipelam_log_panic("Failed to open pipe in non-blocking mode - exiting");
         pipelam_destroy_config(pipelam_config);
-        g_object_unref(pipelam_app);
         return EXIT_FAILURE;
     }
 
-    pipelam_log_info("Starting pipelam with log level %s", pipelam_config->log_level);
+    GtkApplication *pipelam_app = gtk_application_new("com.github.thomascrha.pipelam", G_APPLICATION_NON_UNIQUE);
+    g_signal_connect(pipelam_app, "activate", G_CALLBACK(on_app_activate), NULL);
+    g_application_register(G_APPLICATION(pipelam_app), NULL, NULL);
+    g_application_activate(G_APPLICATION(pipelam_app));
+    pipelam_set_application(pipelam_app);
 
     GMainLoop *main_loop = g_main_loop_new(NULL, FALSE);
     GIOChannel *io_channel = g_io_channel_unix_new(pipe_fd);
@@ -91,6 +92,7 @@ int main(int argc, char *argv[]) {
 
     g_io_add_watch(io_channel, G_IO_IN, pipelam_handle_pipe_input, pipelam_config);
 
+    pipelam_log_info("Starting pipelam with log level %s", pipelam_config->log_level);
     pipelam_log_info("Pipe set up in non-blocking mode, waiting for messages on: %s", pipe_path);
     g_main_loop_run(main_loop);
 

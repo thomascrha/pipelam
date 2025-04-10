@@ -161,7 +161,7 @@ void pipelam_parse_message(const char *expression, struct pipelam_config *config
     // keep it simple
     pipelam_log_debug("pipelam parse string");
     if (expression[0] != '{') {
-        pipelam_log_warning("Treating as string");
+        pipelam_log_debug("Treating as string");
         if (is_valid_integer(expression)) {
             pipelam_log_debug("Detected integer value: %s, treating as WOB", expression);
             config->expression = (char *)expression;
