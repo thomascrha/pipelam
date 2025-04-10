@@ -1,4 +1,4 @@
-pipelam.toml(5) "April 2025" "File Formats Manual"
+pipelam.toml(5)
 
 # NAME
 

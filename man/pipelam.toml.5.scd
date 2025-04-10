@@ -1,4 +1,4 @@
-pipelam(1) "April 2025" "User Commands"
+pipelam(1)
 
 # NAME
 
