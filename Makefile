@@ -35,7 +35,7 @@ TEST_OUTPUT     := $(BUILD_DIR)/test_runner
 # Output binary
 OUTPUT          := $(BUILD_DIR)/pipelam
 
-all: build_dir download_json_h $(OUTPUT) generate_man ## Build the project
+build: build_dir download_json_h $(OUTPUT) ## Build and download all deps for the project
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
@@ -80,7 +80,7 @@ clean: ## Remove built executables and object files
 
 build_test: build_dir $(TEST_OUTPUT) ## Build the test suite
 
-rebuild: clean all ## Clean and build the project
+rebuild: clean build ## Clean and build the project
 
 format: ## Format the code using clang-format
 	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
@@ -94,7 +94,7 @@ test: rebuild build_test ## Rebuild the project and run tests
 		exit 1; \
 	fi
 
-run: rebuild ## Run the project
+run: build ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
 
 debug: ## Build with enhanced debugging symbols for GDB
