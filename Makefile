@@ -35,7 +35,7 @@ TEST_OUTPUT     := $(BUILD_DIR)/test_runner
 # Output binary
 OUTPUT          := $(BUILD_DIR)/pipelam
 
-all: build_dir download_json_h $(OUTPUT) ## Build the project
+all: build_dir download_json_h $(OUTPUT) generate_man ## Build the project
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
@@ -94,7 +94,7 @@ test: rebuild build_test ## Rebuild the project and run tests
 		exit 1; \
 	fi
 
-run: all ## Run the project
+run: rebuild ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
 
 debug: ## Build with enhanced debugging symbols for GDB
@@ -113,7 +113,7 @@ generate_man: ## Generate man pages from scdoc
 	@scdoc < man/pipelam.1.scd > build/man/pipelam.1
 	@scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
 
-install: all generate_man ## Install pipelam to the system
+install: ## Install pipelam to the system
 	@install -d $(BINDIR)
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
 	@install -d /etc/pipelam
