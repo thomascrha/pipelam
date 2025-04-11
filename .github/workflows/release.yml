@@ -59,12 +59,7 @@ jobs:
 
           # Get all the commit messages between the two tags
           RELEASE_NOTES=$(git log --pretty=format:"* %s" ${PREVIOUS_TAG}..${CURRUNT_TAG})
-
-          # Set the notes for later use with multiline string handling
-          RELEASE_NOTES="${RELEASE_NOTES//'%'/'%25'}"
-          RELEASE_NOTES="${RELEASE_NOTES//$'\n'/'%0A'}"
-          RELEASE_NOTES="${RELEASE_NOTES//$'\r'/'%0D'}"
-          echo "notes=$RELEASE_NOTES"
+          echo "$RELEASE_NOTES" > release_notes.md
 
       - name: Create Release
         id: create_release
