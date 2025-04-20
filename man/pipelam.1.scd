@@ -87,6 +87,8 @@ Similar to wob (Wayland Overlay Bar), but built using GTK4 and gtk4-layer-shell 
 *--wob-foreground-overflow-padding*=_PIXELS_
 	Set WOB foreground overflow padding in pixels. Default is 4.
 
+See the visual layout of the WOB bar components in the *pipelam.toml(5)* man page.
+
 # EXAMPLES
 
 Basic usage:

@@ -105,7 +105,7 @@ Additionally, environment variables that start with *PIPELAM_* followed by the u
 
 A full configuration file example:
 
-```toml
+```
 # pipelam configuration file
 
 # Basic Settings
@@ -218,7 +218,7 @@ The following environment variables can be used to override settings in the conf
 
 When sending JSON-formatted messages to pipelam, you can include a `settings` object to override configuration for a specific notification:
 
-```json
+```
 {
   "type": "text",
   "expression": "Hello, World!",
@@ -237,7 +237,7 @@ echo 75 > /tmp/pipelam.fifo
 
 Or with full customization:
 
-```json
+```
 {
   "type": "wob",
   "expression": "75",
@@ -249,6 +249,56 @@ Or with full customization:
 ```
 
 Values from 0-100 show normal progress, while 101-200 show overflow progress with the overflow color.
+
+# WOB BAR STYLING
+
+The WOB progress bar consists of nested components, each with its own color and padding settings. The visual structure is illustrated below:
+
+```
++---------------------------------------------------------+
+|                      wob_box_color                      | ← wob_box_padding
+|   +---------------------------------------------------+ |
+|   |                 wob_border_color                  | | ← wob_border_margin
+|   |   +---------------------------------------------+ | |
+|   |   |            wob_background_color             | | | ← wob_border_padding
+|   |   |   +---------------------------------------+ | | |
+|   |   |   |          wob_foreground_color         | | | | ← wob_background_padding
+|   |   |   |    ( over 100% wob_overflow_color)    | | | |
+|   |   |   |                                       | | | | ← wob_foreground_padding
+|   |   |   +---------------------------------------+ | | |
+|   |   |                                             | | |
+|   |   +---------------------------------------------+ | |
+|   |                                                   | |
+|   +---------------------------------------------------+ |
+|                                                         |
++---------------------------------------------------------+
+    ←------------------ wob_bar_width ------------------→
+    ↑
+    |
+    wob_bar_height
+```
+
+## Component Descriptions
+
+1. **Box Layer**: The outermost container with *wob_box_color* background
+	- Controlled by *wob_box_padding*
+
+2. **Border Layer**: The border container with *wob_border_color* background
+	- Controlled by *wob_border_padding* (internal padding)
+	- Controlled by *wob_border_margin* (external margin)
+
+3. **Background Layer**: The background of the progress bar with *wob_background_color*
+	- Controlled by *wob_background_padding*
+
+4. **Foreground Layer**: The filled portion of the progress bar
+	- Normal range (0-100%): Uses *wob_foreground_color*
+	- Overflow range (101-200%): Uses *wob_overflow_color*
+	- Controlled by *wob_foreground_padding* (normal range)
+	- Controlled by *wob_foreground_overflow_padding* (overflow range)
+
+The overall dimensions are controlled by:
+	- *wob_bar_width*: Total width of the progress bar
+	- *wob_bar_height*: Total height of the progress bar
 
 # NOTES
 
