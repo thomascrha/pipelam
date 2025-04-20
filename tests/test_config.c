@@ -29,6 +29,8 @@ static void test_default_config(void) {
     assert(config != NULL);
     assert(strcmp(config->log_level, "INFO") == 0);
     assert(config->runtime_behaviour == REPLACE);
+    pipelam_log_test("Window timeout: %d", config->window_timeout);
+    pipelam_log_test("FALLBACK_WINDOW_TIMEOUT: %d", FALLBACK_WINDOW_TIMEOUT);
     assert(config->window_timeout == FALLBACK_WINDOW_TIMEOUT);
     assert(config->anchor == FALLBACK_ANCHOR);
     assert(config->margin_left == FALLBACK_MARGIN_LEFT);

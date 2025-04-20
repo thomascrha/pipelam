@@ -1,6 +1,8 @@
 # If you are editing this file inside /etc/pipelam/pipelam.toml please refain from doing that - you can override the
 # default config by creating a file in ~/.config/pipelam/pipelam.toml. The file /etc/pipelam/pipelam.toml will be
 # deleted during the unintall process
+# This is also not a valid toml file - It's been called .toml for formatting reasons - all this file is a key value list
+# please see this for the implementation https://github.com/welljsjs/Config-Parser-C
 log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
@@ -8,6 +10,8 @@ log_level = INFO # The log level for the application; INFO means the application
 runtime_behaviour = replace # The runtime behaviour of gtk windows; replace means the windows are replaced; queue means
                             # the windows are queued and displayed one after the other;  overlay means the windows are
                             # overlayed on top of each other. (Default: replace)
+
+# Window behaviour
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
 anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
                 # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
@@ -18,3 +22,21 @@ margin_left = 100 # The margin from the left edge of the screen. (Default: 100) 
 margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
+
+# WOB bar behaviour
+# Note: Any color can use css color strings or hexvalues with a # before the number - see wob_foreground_color
+wob_bar_height = 40 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
+wob_bar_width = 500 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
+wob_border_color = white # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
+wob_background_color = black # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
+wob_foreground_color = #FFFFFF # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
+wob_overflow_color = red # The color of the foreground of the wob bar for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
+wob_box_color = black # The color of the box containing the wob bar. (Default: black) (Can be overridden by the JSON payload)
+
+# WOB component-specific padding/margin
+wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
+wob_border_padding = 8 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_border_margin = 8 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_background_padding = 8 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_padding = 8 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)

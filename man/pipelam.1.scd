@@ -1,125 +1,264 @@
-pipelam.toml(5)
+pipelam(1)
 
 # NAME
 
-pipelam.toml - configuration file for pipelam
+pipelam - lightweight overlay notification system for Wayland compositors
 
 # SYNOPSIS
 
-*/etc/pipelam/pipelam.toml*
-*$HOME/.config/pipelam/pipelam.toml*
+*pipelam* [_OPTIONS_] _<pipe_path>_
 
 # DESCRIPTION
 
-*pipelam.toml* is the configuration file for *pipelam*(1), a lightweight overlay notification system for Wayland compositors.
+*pipelam* is a lightweight overlay notification system for wlroots-based Wayland compositors, designed to display text and image overlays. It is typically used to show volume levels, brightness indicators, and other status information through a named pipe.
 
-The configuration file uses TOML format. Options specified in the user configuration file ($HOME/.config/pipelam/pipelam.toml) override those in the system configuration file (/etc/pipelam/pipelam.toml). Both configuration files are optional; if they do not exist, default values will be used.
+Similar to wob (Wayland Overlay Bar), but built using GTK4 and gtk4-layer-shell instead of raw Wayland protocols.
 
-Additionally, environment variables that start with *PIPELAM_* followed by the uppercase setting name will override settings from any configuration file.
+# OPTIONS
 
-# CONFIG OPTIONS
+*-l, --log-level*=_LEVEL_
+	Set log level (DEBUG, INFO, WARNING, ERROR, PANIC). Default is INFO.
 
-*log_level = INFO*
-	The logging verbosity level of the application. Valid values include:
-	*DEBUG* - Log all messages including detailed debug information
-	*INFO* - Log informational messages, warnings, and errors (default)
-	*WARNING* - Log warnings and errors only
-	*ERROR* - Log errors only
-	*PANIC* - Log only critical errors that cause program termination
+*-r, --runtime-behaviour*=_TYPE_
+	Set runtime behaviour (queue, replace, overlay). Default is replace.
 
-*runtime_behaviour = replace*
-	Controls how multiple notifications are handled:
-	*queue* - Windows are queued and displayed one after another
-	*replace* - New windows replace existing ones
-	*overlay* - Windows are displayed simultaneously, overlaid on top of each other (default)
+*-t, --window-timeout*=_MS_
+	Set window timeout in milliseconds. Default is 600.
 
-*window_timeout = 600*
-	The time in milliseconds before the overlay is automatically hidden (default: 600).
+*-a, --anchor*=_POS_
+	Set window anchor position (bottom-left, bottom-right, top-left, top-right, center). Default is center.
 
-*anchor = center*
-	The anchor point of the overlay on the screen. Valid values include:
-	*center* - Center of the screen (default)
-	*top-left* - Top left corner
-	*top-right* - Top right corner
-	*bottom-left* - Bottom left corner
-	*bottom-right* - Bottom right corner
+*-L, --margin-left*=_PIXELS_
+	Set left margin in pixels. Default is 100.
 
-*margin_left = 100*
-	The margin in pixels from the left edge of the screen (default: 100).
+*-R, --margin-right*=_PIXELS_
+	Set right margin in pixels. Default is 0.
 
-*margin_right = 0*
-	The margin in pixels from the right edge of the screen (default: 0).
+*-T, --margin-top*=_PIXELS_
+	Set top margin in pixels. Default is 100.
 
-*margin_top = 100*
-	The margin in pixels from the top edge of the screen (default: 100).
+*-B, --margin-bottom*=_PIXELS_
+	Set bottom margin in pixels. Default is 0.
 
-*margin_bottom = 0*
-	The margin in pixels from the bottom edge of the screen (default: 0).
+*-v, --version*
+	Display version information.
 
-# EXAMPLE
+*-h, --help*
+	Display help message.
 
-A full configuration file example:
+## WOB Bar Options
+
+*--wob-bar-height*=_PIXELS_
+	Set WOB bar height in pixels. Default is 40.
+
+*--wob-bar-width*=_PIXELS_
+	Set WOB bar width in pixels. Default is 500.
+
+*--wob-border-color*=_COLOR_
+	Set WOB border color (CSS color string or hex value). Default is "white".
+
+*--wob-background-color*=_COLOR_
+	Set WOB background color (CSS color string or hex value). Default is "black".
+
+*--wob-foreground-color*=_COLOR_
+	Set WOB foreground color for normal range (0-100%). Default is "white".
+
+*--wob-overflow-color*=_COLOR_
+	Set WOB foreground color for overflow range (101-200%). Default is "red".
+
+*--wob-box-color*=_COLOR_
+	Set WOB box color (CSS color string or hex value). Default is "black".
+
+*--wob-box-padding*=_PIXELS_
+	Set WOB box padding in pixels. Default is 0.
+
+*--wob-border-padding*=_PIXELS_
+	Set WOB border padding in pixels. Default is 4.
+
+*--wob-border-margin*=_PIXELS_
+	Set WOB border margin in pixels. Default is 4.
+
+*--wob-background-padding*=_PIXELS_
+	Set WOB background padding in pixels. Default is 4.
+
+*--wob-foreground-padding*=_PIXELS_
+	Set WOB foreground padding in pixels. Default is 4.
+
+*--wob-foreground-overflow-padding*=_PIXELS_
+	Set WOB foreground overflow padding in pixels. Default is 4.
+
+# EXAMPLES
+
+Basic usage:
 
 ```
-# pipelam configuration file
-
-# Logging level: DEBUG, INFO, WARNING, ERROR, PANIC
-log_level = INFO
-
-# Runtime behavior: queue, replace, overlay
-runtime_behaviour = replace
-
-# Window display duration in milliseconds
-window_timeout = 800
-
-# Positioning
-anchor = bottom-right
-margin_left = 0
-margin_right = 20
-margin_top = 0
-margin_bottom = 20
+mkfifo /tmp/pipelam.fifo
+pipelam /tmp/pipelam.fifo &
+echo "Hello, World!" > /tmp/pipelam.fifo
 ```
+
+Display a notification at the top-right of the screen:
+
+```
+pipelam --anchor=top-right --margin-top=50 --margin-right=50 /tmp/pipelam.fifo &
+```
+
+Send a JSON-formatted message:
+
+```
+jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pipelam.fifo
+```
+
+Send a WOB progress bar showing 75%:
+
+```
+echo 75 > /tmp/pipelam.fifo
+```
+
+Or with JSON format:
+
+```
+jq -n '{type: "wob", expression: "75"}' -c > /tmp/pipelam.fifo
+```
+
+Customizing WOB bar appearance:
+
+```
+pipelam --wob-bar-width=400 --wob-foreground-color="green" --wob-overflow-color="orange" /tmp/pipelam.fifo &
+```
+
+# JSON PAYLOAD FORMAT
+
+Messages sent to pipelam can be formatted as JSON for advanced control. The basic format is:
+
+```
+{
+    "type": "text|image|wob",
+    "expression": "content",
+    "settings": {
+        "window_timeout": 800,
+        "anchor": "center|top-left|top-right|bottom-left|bottom-right",
+        "margin_left": 100,
+        "margin_right": 0,
+        "margin_top": 100,
+        "margin_bottom": 0
+    }
+}
+```
+
+For WOB type, the expression should be a numeric value between 0-200 representing percentage.
+
+Additional WOB-specific settings can be included in the settings object:
+
+```
+{
+    "type": "wob",
+    "expression": "75",
+    "settings": {
+        "wob_bar_width": 350,
+        "wob_bar_height": 25,
+        "wob_border_color": "white",
+        "wob_background_color": "black",
+        "wob_foreground_color": "white",
+        "wob_overflow_color": "red",
+        "wob_box_color": "black",
+        "wob_box_padding": 0,
+        "wob_border_padding": 4,
+        "wob_border_margin": 4,
+        "wob_background_padding": 4,
+        "wob_foreground_padding": 4,
+        "wob_foreground_overflow_padding": 4
+    }
+}
+```
+
+The "text" type supports Pango markup for rich text formatting.
 
 # ENVIRONMENT VARIABLES
 
-The following environment variables can be used to override settings in the configuration files:
+The following environment variables can be used to override settings:
 
 *PIPELAM_LOG_LEVEL*
-	Override the *log_level* setting
+	Override the log level setting
 
 *PIPELAM_RUNTIME_BEHAVIOUR*
-	Override the *runtime_behaviour* setting
+	Override the runtime behaviour setting
 
 *PIPELAM_WINDOW_TIMEOUT*
-	Override the *window_timeout* setting
+	Override the window timeout setting
 
 *PIPELAM_ANCHOR*
-	Override the *anchor* setting
+	Override the anchor setting
 
 *PIPELAM_MARGIN_LEFT*
-	Override the *margin_left* setting
+	Override the margin_left setting
 
 *PIPELAM_MARGIN_RIGHT*
-	Override the *margin_right* setting
+	Override the margin_right setting
 
 *PIPELAM_MARGIN_TOP*
-	Override the *margin_top* setting
+	Override the margin_top setting
 
 *PIPELAM_MARGIN_BOTTOM*
-	Override the *margin_bottom* setting
+	Override the margin_bottom setting
+
+*PIPELAM_WOB_BAR_HEIGHT*
+	Override the wob_bar_height setting
+
+*PIPELAM_WOB_BAR_WIDTH*
+	Override the wob_bar_width setting
+
+*PIPELAM_WOB_BORDER_COLOR*
+	Override the wob_border_color setting
+
+*PIPELAM_WOB_BACKGROUND_COLOR*
+	Override the wob_background_color setting
+
+*PIPELAM_WOB_FOREGROUND_COLOR*
+	Override the wob_foreground_color setting
+
+*PIPELAM_WOB_OVERFLOW_COLOR*
+	Override the wob_overflow_color setting
+
+*PIPELAM_WOB_BOX_COLOR*
+	Override the wob_box_color setting
+
+*PIPELAM_WOB_BOX_PADDING*
+	Override the wob_box_padding setting
+
+*PIPELAM_WOB_BORDER_PADDING*
+	Override the wob_border_padding setting
+
+*PIPELAM_WOB_BORDER_MARGIN*
+	Override the wob_border_margin setting
+
+*PIPELAM_WOB_BACKGROUND_PADDING*
+	Override the wob_background_padding setting
+
+*PIPELAM_WOB_FOREGROUND_PADDING*
+	Override the wob_foreground_padding setting
+
+*PIPELAM_WOB_FOREGROUND_OVERFLOW_PADDING*
+	Override the wob_foreground_overflow_padding setting
 
 *PIPELAM_CONFIG_FILE_PATH*
 	Use a configuration file at a custom location
 
-# NOTES
+# FILES
 
-Configuration options can also be overridden by command-line options specified when running *pipelam*(1). Command-line options have the highest precedence, followed by environment variables, user configuration file, and system configuration file.
+_/etc/pipelam/pipelam.toml_
+	System-wide configuration file
 
-When sending JSON-formatted messages to pipelam, per-notification settings can be specified that override all configuration file and command-line settings for that specific notification.
+_$HOME/.config/pipelam/pipelam.toml_
+	User configuration file
 
 # SEE ALSO
 
-pipelam(1)
+pipelam.toml(5)
+
+# BUGS
+
+Report bugs to: https://github.com/thomascrha/pipelam/issues
 
 # AUTHOR
 

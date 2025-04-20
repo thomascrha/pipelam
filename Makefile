@@ -97,8 +97,12 @@ test: rebuild build_test ## Rebuild the project and run tests
 run: build ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
 
+
 debug: ## Build with enhanced debugging symbols for GDB
-	$(MAKE) CFLAGS="-ggdb -Wall -Wextra -Wpedantic -std=c17" all
+	$(MAKE) CFLAGS="-ggdb -Wall -Wextra -Wpedantic -std=c17" build
+
+derun: debug ## Run the project
+	./$(OUTPUT) /tmp/pipelam.fifo
 
 release: format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
 	@echo "Creating release..."

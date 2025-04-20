@@ -50,6 +50,22 @@ Options:
   -R, --margin-right=PIXELS    Set right margin in pixels
   -T, --margin-top=PIXELS      Set top margin in pixels
   -B, --margin-bottom=PIXELS   Set bottom margin in pixels
+
+WOB bar options:
+  --wob-bar-height=PIXELS      Set WOB bar height in pixels
+  --wob-bar-width=PIXELS       Set WOB bar width in pixels
+  --wob-border-color=COLOR     Set WOB border color
+  --wob-background-color=COLOR Set WOB background color
+  --wob-foreground-color=COLOR Set WOB foreground color
+  --wob-overflow-color=COLOR   Set WOB overflow color
+  --wob-box-color=COLOR        Set WOB box color
+  --wob-box-padding=PIXELS     Set WOB box padding in pixels
+  --wob-border-padding=PIXELS  Set WOB border padding in pixels
+  --wob-border-margin=PIXELS   Set WOB border margin in pixels
+  --wob-background-padding=PIXELS Set WOB background padding in pixels
+  --wob-foreground-padding=PIXELS Set WOB foreground padding in pixels
+  --wob-foreground-overflow-padding=PIXELS Set WOB foreground overflow padding in pixels
+
   -v, --version                Display version information
   -h, --help                   Display this help message
 ```
@@ -90,8 +106,11 @@ jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pi
 ## Json Payload
 
 1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `text` and the text is just displayed.
-2. The object must contain a `type` key with a value of either `text` or `image`.
-3. The object must contain an `expression` key with a value of the text you want to display or the path to the image you want to show.
+2. The object must contain a `type` key with a value of either `text`, `image`, or `wob`.
+3. The object must contain an `expression` key with a value:
+   - For `text`: The text you want to display (supports Pango markup)
+   - For `image`: The path to the image you want to show
+   - For `wob`: A numeric value between 0-200 representing the progress bar percentage
 4. The object also supports an `version` key, at this point this doesn't do anything - but it is there for future compatibility. The default value is 0.
 5. For all optional keys these must be contained in an inner object with the key `settings`. This object can contain the following keys:
     - `window_timeout`: The time in milliseconds before the overlay is hidden.
@@ -105,6 +124,21 @@ jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pi
     - `margin_right`: The margin from the right edge of the screen.
     - `margin_top`: The margin from the top edge of the screen.
     - `margin_bottom`: The margin from the bottom edge of the screen.
+
+    For WOB progress bars, these additional settings are available:
+    - `wob_bar_width`: Width of the progress bar in pixels.
+    - `wob_bar_height`: Height of the progress bar in pixels.
+    - `wob_border_color`: Color of the border (CSS color string or hex value).
+    - `wob_background_color`: Background color of the bar.
+    - `wob_foreground_color`: Foreground color for normal range (0-100%).
+    - `wob_overflow_color`: Foreground color for overflow range (101-200%).
+    - `wob_box_color`: Color of the box containing the bar.
+    - `wob_box_padding`: Padding of the box in pixels.
+    - `wob_border_padding`: Padding of the border in pixels.
+    - `wob_border_margin`: Margin of the border in pixels.
+    - `wob_background_padding`: Background padding in pixels.
+    - `wob_foreground_padding`: Foreground padding in pixels.
+    - `wob_foreground_overflow_padding`: Overflow padding in pixels.
 6. If the keys in the `settings` object are not provided, the default values will be used. If the `settings` object contains keys it doesn't recognise or can't interpret the value it simply uses the default.
 
 ### Text Expression
@@ -126,6 +160,7 @@ pipelam has two configuration files that can be used to customise the appearance
 
 The configuration file `config/pipelam.toml` with the following options:
 ```toml
+# Basic Settings
 log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
@@ -133,6 +168,8 @@ log_level = INFO # The log level for the application; INFO means the application
 runtime_behaviour = replace # The runtime behaviour of gtk windows; replace means the windows are replaced; queue means
                             # the windows are queued and displayed one after the other;  overlay means the windows are
                             # overlayed on top of each other. (Default: replace)
+
+# Window behavior
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
 anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
                 # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
@@ -143,7 +180,74 @@ margin_left = 100 # The margin from the left edge of the screen. (Default: 100) 
 margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
+
+# WOB bar behaviour
+# Note: Any color can use css color strings or hexvalues with a # before the number
+wob_bar_height = 40 # The height of the wob bar in pixels. (Default: 40) (Can be overridden by the JSON payload)
+wob_bar_width = 500 # The width of the wob bar in pixels. (Default: 500) (Can be overridden by the JSON payload)
+wob_border_color = white # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
+wob_background_color = black # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
+wob_foreground_color = #FFFFFF # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
+wob_overflow_color = red # The color of the foreground of the wob bar for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
+wob_box_color = black # The color of the box containing the wob bar. (Default: black) (Can be overridden by the JSON payload)
+
+# WOB component-specific padding/margin
+wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
+wob_border_padding = 8 # The padding of the border of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
+wob_border_margin = 8 # The margin of the border of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
+wob_background_padding = 8 # The padding of the background of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
+wob_foreground_padding = 8 # The padding of the foreground of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
+wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
 ```
+
+### Wob mode styling
+
+```console
++---------------------------------------------------------+
+|                      wob_box_color                      | ← wob_box_padding
+|   +---------------------------------------------------+ |
+|   |                 wob_border_color                  | | ← wob_border_margin
+|   |   +---------------------------------------------+ | |
+|   |   |            wob_background_color             | | | ← wob_border_padding
+|   |   |   +---------------------------------------+ | | |
+|   |   |   |          wob_foreground_color         | | | | ← wob_background_padding
+|   |   |   |    ( over 100% wob_overflow_color)    | | | |
+|   |   |   |                                       | | | | ← wob_foreground_padding
+|   |   |   +---------------------------------------+ | | |
+|   |   |                                             | | |
+|   |   +---------------------------------------------+ | |
+|   |                                                   | |
+|   +---------------------------------------------------+ |
+|                                                         |
++---------------------------------------------------------+
+    ←------------------ wob_bar_width ------------------→
+    ↑
+    |
+    wob_bar_height
+```
+#### Component descriptions:
+
+1. **wob_box**: The outermost container with `wob_box_color` background
+   - Controlled by `wob_box_padding`
+
+2. **wob_border**: The border container with `wob_border_color` background
+   - Controlled by `wob_border_padding` (internal padding)
+   - Controlled by `wob_border_margin` (external margin)
+
+3. **wob_background**: The background of the progress bar with `wob_background_color`
+   - Controlled by `wob_background_padding`
+
+4. **wob_foreground**: The filled portion of the progress bar
+   - Normal range (0-100%): Uses `wob_foreground_color`
+   - Overflow range (101-200%): Uses `wob_overflow_color`
+   - Controlled by `wob_foreground_padding` (normal range)
+   - Controlled by `wob_foreground_overflow_padding` (overflow range)
+
+The overall dimensions are controlled by:
+- `wob_bar_width`: Total width of the progress bar
+- `wob_bar_height`: Total height of the progress bar
+
+Each component can be independently styled through the configuration file, environment variables, or per-notification JSON settings.
 
 ## Makefile
 
@@ -171,8 +275,8 @@ Targets:
 - [ ] Add to Arch user repositories
 - [ ] Clean up the examples and make more permutations of them
 - [ ] Using the examples make a demo video for the readme
-- [ ] Add customisation of the wob type
-- [ ] Add overflow behaviour that turns red for wob mode
+- [x] Add customisation of the wob type
+- [x] Add overflow behaviour that turns red for wob mode
 - [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 
 

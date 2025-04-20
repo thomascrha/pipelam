@@ -19,6 +19,24 @@
 #define MESSAGE_CURRENT_VERSION 0
 #define PIPELAM_CURRENT_VERSION "v0.1.4"
 
+#define FALLBACK_WOB_BAR_WIDTH 350
+#define FALLBACK_WOB_BAR_HEIGHT 25
+// Default colors for WOB bar
+#define FALLBACK_WOB_BORDER_COLOR "white"
+#define FALLBACK_WOB_BACKGROUND_COLOR "black"
+#define FALLBACK_WOB_FOREGROUND_COLOR "white"
+#define FALLBACK_WOB_OVERFLOW_COLOR "red"
+
+#define FALLBACK_WOB_BOX_COLOR "black"
+#define FALLBACK_WOB_BOX_PADDING 0
+
+// Default padding/margin settings for each component
+#define FALLBACK_WOB_BORDER_PADDING 4
+#define FALLBACK_WOB_BORDER_MARGIN 4
+#define FALLBACK_WOB_BACKGROUND_PADDING 4
+#define FALLBACK_WOB_FOREGROUND_PADDING 4
+#define FALLBACK_WOB_FOREGROUND_OVERFLOW_PADDING 4
+
 enum pipelam_window_anchor { BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT, CENTER };
 
 enum pipelam_message_type { TEXT, IMAGE, WOB };
@@ -44,6 +62,23 @@ struct pipelam_config {
     int margin_top;
     int margin_bottom;
 
+    // wob specific settings
+    int wob_bar_width;
+
+    int wob_bar_height;
+    char *wob_border_color;
+    char *wob_background_color;
+    char *wob_foreground_color;
+    char *wob_overflow_color;
+    char *wob_box_color;
+
+    int wob_box_padding;
+    int wob_border_padding;
+    int wob_border_margin;
+    int wob_background_padding;
+    int wob_foreground_padding;
+    int wob_foreground_overflow_padding;
+
     // Default values (set at startup from config/env)
     int default_window_timeout;
     enum pipelam_window_anchor default_anchor;
@@ -51,6 +86,21 @@ struct pipelam_config {
     int default_margin_right;
     int default_margin_top;
     int default_margin_bottom;
+    int default_wob_bar_width;
+
+    int default_wob_bar_height;
+    char *default_wob_border_color;
+    char *default_wob_background_color;
+    char *default_wob_foreground_color;
+    char *default_wob_overflow_color;
+    char *default_wob_box_color;
+
+    int default_wob_box_padding;
+    int default_wob_border_padding;
+    int default_wob_border_margin;
+    int default_wob_background_padding;
+    int default_wob_foreground_padding;
+    int default_wob_foreground_overflow_padding;
 };
 
 struct pipelam_config *pipelam_setup_config(const char *config_file_path);

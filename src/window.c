@@ -21,8 +21,6 @@ static enum pipelam_message_type current_window_type = -1; // Track the current 
 static GtkWidget *bar_fg = NULL;                           // Keep reference to the WOB foreground bar for non-overlay mode
 static gboolean is_updating_window = FALSE;                // Flag to prevent concurrent window updates
 
-#define WOB_BAR_WIDTH 350
-
 // Internal functions
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     gboolean *anchors = (gboolean *)malloc(4 * sizeof(gboolean));
@@ -289,12 +287,27 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
     gtk_window_present(window);
 }
 
-static int pipelam_get_bar_width(int percentage) {
+static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) {
     int bar_width;
-    if (percentage == 100) {
-        bar_width = 342;
+    int wob_bar_width = config->wob_bar_width;
+    // Calculate effective margin from padding values
+    int box_padding = config->wob_box_padding;
+    int border_padding = config->wob_border_padding;
+    int effective_margin = box_padding + border_padding;
+
+    // Handle full bar for 200%
+    if (percentage >= 200) {
+        return wob_bar_width - (2 * effective_margin); // Full bar width - minus margins
+    }
+
+    // For values over 100%, wrap around (e.g., 150% displays as 50%)
+    int display_percentage = percentage > 100 ? percentage % 100 : percentage;
+
+    if (display_percentage == 100 || display_percentage == 0) {
+        // Edge case: 100% or 0% (from 200%)
+        bar_width = display_percentage == 100 ? wob_bar_width - (2 * effective_margin) : 0;
     } else {
-        bar_width = (WOB_BAR_WIDTH * percentage) / 100;
+        bar_width = (wob_bar_width * display_percentage) / 100;
     }
     return bar_width;
 }
@@ -303,21 +316,53 @@ static int pipelam_get_bar_width(int percentage) {
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
+    // debug print all the wob settings
+    pipelam_log_debug("WOB settings:");
+    pipelam_log_debug("wob_bar_width: %d", pipelam_config->wob_bar_width);
+    pipelam_log_debug("wob_bar_height: %d", pipelam_config->wob_bar_height);
+    pipelam_log_debug("wob_border_color: %s", pipelam_config->wob_border_color);
+    pipelam_log_debug("wob_background_color: %s", pipelam_config->wob_background_color);
+    pipelam_log_debug("wob_foreground_color: %s", pipelam_config->wob_foreground_color);
+    pipelam_log_debug("wob_box_color: %s", pipelam_config->wob_box_color);
+    pipelam_log_debug("wob_border_padding: %d", pipelam_config->wob_border_padding);
+    pipelam_log_debug("wob_border_margin: %d", pipelam_config->wob_border_margin);
+    pipelam_log_debug("wob_background_padding: %d", pipelam_config->wob_background_padding);
+    pipelam_log_debug("wob_foreground_padding: %d", pipelam_config->wob_foreground_padding);
+    pipelam_log_debug("wob_foreground_overflow_padding: %d", pipelam_config->wob_foreground_overflow_padding);
+
     int percentage = 0;
     if (pipelam_config->expression != NULL) {
         percentage = atoi(pipelam_config->expression);
         if (percentage < 0)
             percentage = 0;
-        if (percentage > 100)
-            percentage = 100;
+        if (percentage > 200)
+            percentage = 200;
     }
     pipelam_log_debug("WOB value: %d%%", percentage);
 
     if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
         pipelam_log_debug("Overlaying existing WOB window");
 
-        int bar_width = pipelam_get_bar_width(percentage);
-        gtk_widget_set_size_request(bar_fg, bar_width, 25);
+        int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
+        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
+
+        // Change CSS class based on percentage value
+        if (percentage > 100) {
+            gtk_widget_remove_css_class(bar_fg, "wob-foreground");
+            gtk_widget_add_css_class(bar_fg, "wob-foreground-overflow");
+
+            // If it's 200%, make it a full red bar
+            if (percentage >= 200) {
+                // Calculate effective margin from padding values
+                int box_padding = pipelam_config->wob_box_padding;
+                int border_padding = pipelam_config->wob_border_padding;
+                int effective_margin = box_padding + border_padding;
+                gtk_widget_set_size_request(bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
+            }
+        } else {
+            gtk_widget_remove_css_class(bar_fg, "wob-foreground-overflow");
+            gtk_widget_add_css_class(bar_fg, "wob-foreground");
+        }
 
         pipelam_update_window_settings(current_window, pipelam_config);
         if (current_timeout_id > 0) {
@@ -331,8 +376,8 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     } else if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
         pipelam_log_debug("Updating existing WOB window");
 
-        int bar_width = pipelam_get_bar_width(percentage);
-        gtk_widget_set_size_request(bar_fg, bar_width, 25);
+        int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
+        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
 
         pipelam_update_window_settings(current_window, pipelam_config);
 
@@ -355,24 +400,48 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     GtkWidget *bar_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_add_css_class(box, "wob-box");
 
     GtkWidget *bar_bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_hexpand(bar_bg, TRUE);
-    gtk_widget_set_size_request(bar_bg, WOB_BAR_WIDTH, 25);
+    gtk_widget_set_size_request(bar_bg, pipelam_config->wob_bar_width, pipelam_config->wob_bar_height);
 
     GtkWidget *new_bar_fg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    int bar_width = pipelam_get_bar_width(percentage);
-    gtk_widget_set_size_request(new_bar_fg, bar_width, 25);
+    int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
+    gtk_widget_set_size_request(new_bar_fg, bar_width, pipelam_config->wob_bar_height);
+
+    if (percentage > 100) {
+        gtk_widget_add_css_class(new_bar_fg, "wob-foreground-overflow");
+            // If it's 200%, make it a full red bar
+            if (percentage >= 200) {
+                // Calculate effective margin from padding values
+                int box_padding = pipelam_config->wob_box_padding;
+                int border_padding = pipelam_config->wob_border_padding;
+                int effective_margin = box_padding + border_padding;
+                gtk_widget_set_size_request(new_bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
+            }
+    } else {
+        gtk_widget_add_css_class(new_bar_fg, "wob-foreground");
+    }
 
     GtkWidget *border_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     gtk_widget_add_css_class(border_container, "wob-border");
     gtk_widget_add_css_class(bar_bg, "wob-background");
-    gtk_widget_add_css_class(new_bar_fg, "wob-foreground");
+
     GtkCssProvider *provider = gtk_css_provider_new();
-    const char *css_data = ".wob-border { background-color: white; padding: 4px; margin: 4px; }"
-                           ".wob-background { background-color: black; padding: 4px; }"
-                           ".wob-foreground { background-color: white; padding: 4px; }";
+    char css_data[512];
+    snprintf(css_data, sizeof(css_data),
+             ".wob-box { background-color: %s; padding: %dpx; }"
+             ".wob-border { background-color: %s; padding: %dpx; margin: %dpx; }"
+             ".wob-background { background-color: %s; padding: %dpx; }"
+             ".wob-foreground { background-color: %s; padding: %dpx; }"
+             ".wob-foreground-overflow { background-color: %s; padding: %dpx; }",
+             pipelam_config->wob_box_color, pipelam_config->wob_box_padding,
+             pipelam_config->wob_border_color, pipelam_config->wob_border_padding, pipelam_config->wob_border_margin,
+             pipelam_config->wob_background_color, pipelam_config->wob_background_padding,
+             pipelam_config->wob_foreground_color, pipelam_config->wob_foreground_padding,
+             pipelam_config->wob_overflow_color, pipelam_config->wob_foreground_overflow_padding);
 
     gtk_css_provider_load_from_string(provider, css_data);
 
