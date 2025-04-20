@@ -1,11 +1,12 @@
 #define _POSIX_C_SOURCE 200809L
-#include <getopt.h>
-#include <gtk/gtk.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "config.h"
 #include "log.h"
+#include <ctype.h>
+#include <getopt.h>
+#include <gtk/gtk.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void pipelam_log_level_set_from_string(const char *log_level) {
     if (strcmp(log_level, "DEBUG") == 0) {
@@ -456,31 +457,111 @@ static pipelam_config_option_t pipelam_read_config_file(char *path) {
     }
 
     pipelam_config_option_t last_co_addr = NULL;
+    char line[1024]; // Buffer for reading each line
 
-    while (1) {
+    while (fgets(line, sizeof(line), fp) != NULL) {
         pipelam_config_option_t co = NULL;
         if ((co = calloc(1, sizeof(pipelam_config_option))) == NULL)
             continue;
         memset(co, 0, sizeof(pipelam_config_option));
         co->prev = last_co_addr;
 
-        if (fscanf(fp, "%s = %s", &co->key[0], &co->value[0]) != 2) {
-            if (feof(fp)) {
-                break;
-            }
-            if (co->key[0] == '#') {
-                while (fgetc(fp) != '\n') {
-                    // Do nothing (to move the cursor to the end of the line).
-                }
-                free(co);
-                continue;
-            }
-            // If we reach here, it means there was an error reading the file.
-            pipelam_log_error("Unable to parse the config file %s", path);
-            perror("fscanf()");
+        // Skip comments and empty lines
+        if (line[0] == '#' || line[0] == '\n' || strspn(line, " \t\r\n") == strlen(line)) {
             free(co);
             continue;
         }
+
+        // Also skip lines that are indented and start with a #, which are likely comment continuations
+        if (isspace(line[0]) && strchr(line, '#') != NULL) {
+            free(co);
+            continue;
+        }
+
+        // Parse key
+        char *key_start = line;
+        char *key_end = strchr(line, '=');
+        if (key_end == NULL) {
+            // Check if this might be a continuation of a comment
+            if (strstr(line, "#") != NULL) {
+                free(co);
+                continue;
+            }
+            pipelam_log_error("Malformed line in config file (missing '='): %s", line);
+            free(co);
+            continue;
+        }
+
+        // Check if there's a comment on this line
+        char *comment = strchr(line, '#');
+        if (comment != NULL && comment < key_end) {
+            // This is a comment line that happens to have an equals sign in it
+            free(co);
+            continue;
+        }
+
+        // Trim trailing whitespace from key
+        char *key_trim = key_end - 1;
+        while (key_trim >= key_start && isspace(*key_trim)) {
+            key_trim--;
+        }
+
+        // Copy key
+        int key_len = key_trim - key_start + 1;
+        if (key_len > CONFIG_ARG_MAX_BYTES - 1) {
+            key_len = CONFIG_ARG_MAX_BYTES - 1;
+        }
+        strncpy(co->key, key_start, key_len);
+        co->key[key_len] = '\0';
+
+        // Parse value
+        char *value_start = key_end + 1;
+        // Skip leading whitespace
+        while (*value_start && isspace(*value_start)) {
+            value_start++;
+        }
+
+        // Check for quoted value
+        if (*value_start == '"') {
+            value_start++; // Skip opening quote
+            char *value_end = strchr(value_start, '"');
+            if (value_end == NULL) {
+                pipelam_log_error("Malformed line in config file (unclosed quote): %s", line);
+                free(co);
+                continue;
+            }
+
+            int value_len = value_end - value_start;
+            if (value_len > CONFIG_ARG_MAX_BYTES - 1) {
+                value_len = CONFIG_ARG_MAX_BYTES - 1;
+            }
+            strncpy(co->value, value_start, value_len);
+            co->value[value_len] = '\0';
+        } else {
+            // Unquoted value - trim trailing whitespace and remove comments
+            char *comment = strchr(value_start, '#');
+            char *value_end;
+
+            if (comment != NULL) {
+                // There's a comment in the value part - trim before it
+                value_end = comment - 1;
+            } else {
+                value_end = value_start + strlen(value_start) - 1;
+            }
+
+            // Trim trailing whitespace
+            while (value_end >= value_start && (isspace(*value_end) || *value_end == '\n')) {
+                value_end--;
+            }
+
+            int value_len = value_end - value_start + 1;
+            if (value_len > CONFIG_ARG_MAX_BYTES - 1) {
+                value_len = CONFIG_ARG_MAX_BYTES - 1;
+            }
+            strncpy(co->value, value_start, value_len);
+            co->value[value_len] = '\0';
+        }
+
         last_co_addr = co;
     }
     return last_co_addr;
