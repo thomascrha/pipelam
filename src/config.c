@@ -56,22 +56,17 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
 }
 
 static void pipelam_set_log_level_from_env(struct pipelam_config *config) {
-    pipelam_log_debug("Overridng Log Level from Environment");
     const char *log_level_env = getenv("PIPELAM_LOG_LEVEL");
     if (log_level_env != NULL) {
         config->log_level = (char *)log_level_env;
     }
 
-    // anything other than info logs befor this point will only print log info as the level isn't set until this point
-    // and the log level is set to info by default
     pipelam_log_level_set_from_string(config->log_level);
     pipelam_log_debug("log_level: %s", config->log_level);
-    pipelam_log_debug("backgorund_color: %s", config->background_color);
-    pipelam_log_debug("forground_color: %s", config->foreground_color);
 }
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
-
+    pipelam_set_log_level_from_env(config);
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
         pipelam_log_debug("runtime_behaviour: %d", config->runtime_behaviour);
@@ -492,7 +487,6 @@ static char *pipelam_get_config_file(const char *config_file_path) {
     // 3. Check PIPELAM_SKIP_DEFAULT_CONFIG - if set, skip default locations - used for testing
     // 4. $HOME/.config/pipelam/pipelam.ini
     // 5. /etc/pipelam/pipelam.toml
-
     if (config_file_path != NULL) {
         return (char *)config_file_path;
     }
@@ -502,14 +496,11 @@ static char *pipelam_get_config_file(const char *config_file_path) {
         return (char *)config_file_path_env;
     }
 
-    // Check if we should skip default config files (used for testing)
     const char *skip_default_config = getenv("PIPELAM_SKIP_DEFAULT_CONFIG");
     if (skip_default_config != NULL) {
-        pipelam_log_debug("Skipping default config files due to PIPELAM_SKIP_DEFAULT_CONFIG");
         return NULL;
     }
 
-    // ordered by priority
     char *paths[2] = {"$HOME/.config/pipelam/pipelam.toml", "/etc/pipelam/pipelam.toml"};
     for (int i = 0; i < 2; i++) {
         if (access(paths[i], F_OK) != -1) {

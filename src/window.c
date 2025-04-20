@@ -363,24 +363,12 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
 }
 
 static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) {
-    int box_width_val = config->box_width;
-    int box_padding = config->box_padding;
-    int border_padding = config->border_padding;
-    int border_margin = config->border_margin;
-    int background_padding = config->background_padding;
-    int foreground_padding = config->foreground_padding;
+    int total_padding = (config->box_padding * 2) + (config->border_padding * 2) +
+                        (config->border_margin * 2) + (config->background_padding * 2) +
+                        (config->foreground_padding * 2);
 
-    // Calculate total padding from all sources (both sides)
-    int total_padding = (box_padding * 2) + (border_padding * 2) +
-                        (border_margin * 2) + (background_padding * 2) +
-                        (foreground_padding * 2);
-
-    // Calculate the actual available width for the progress bar
-    int available_width = box_width_val - total_padding;
+    int available_width = config->box_width - total_padding;
     if (available_width < 0) available_width = 0;
-
-    pipelam_log_debug("Box width: %d, Total padding: %d, Available width: %d",
-                     box_width_val, total_padding, available_width);
 
     if (percentage >= 200) {
         return available_width;
@@ -393,9 +381,7 @@ static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) 
     } else if (display_percentage == 0) {
         return 0;
     } else {
-        int calculated_width = (available_width * display_percentage) / 100;
-        pipelam_log_debug("Percentage: %d%%, Width: %d", display_percentage, calculated_width);
-        return calculated_width;
+        return (available_width * display_percentage) / 100;
     }
 }
 
@@ -409,14 +395,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     if (percentage > 200)
         percentage = 200;
 
-
     if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-        pipelam_log_debug("Updating existing WOB window");
-
         int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
         gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->box_height);
 
-        // Change CSS class based on percentage value
         if (percentage > 100) {
             gtk_widget_remove_css_class(bar_fg, "foreground");
             gtk_widget_add_css_class(bar_fg, "foreground-overflow");
@@ -430,13 +412,11 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
             g_source_remove(current_timeout_id);
         }
         current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
-        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
 
         gtk_window_present(current_window);
         return;
     }
 
-    pipelam_log_debug("Creating new WOB window");
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
@@ -447,25 +427,18 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
     gtk_widget_set_size_request(new_bar_fg, bar_width, pipelam_config->box_height);
 
-    // Use the foreground-overflow class for over 100% values
     const char *custom_class = (percentage > 100) ? "foreground-overflow" : NULL;
-
     GtkWidget *box = pipelam_create_styled_box(new_bar_fg, pipelam_config, custom_class);
 
-    // Set the actual window size to the configured box width, not dependent on percentage
     gtk_window_set_default_size(gtk_window, pipelam_config->box_width, pipelam_config->box_height);
     gtk_window_set_child(gtk_window, box);
 
-    pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
     guint timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, gtk_window);
-    pipelam_log_debug("Set new timeout (ID: %u)", timeout_id);
 
     if (pipelam_config->runtime_behaviour == OVERLAY) {
         pipelam_add_window_to_list(gtk_window, WOB, timeout_id, new_bar_fg);
-        pipelam_log_debug("Added WOB window to overlay list");
     } else {
         if (current_window != NULL) {
-            pipelam_log_debug("Closing previous window of different type");
             gtk_window_close(current_window);
         }
 
@@ -476,13 +449,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     }
 
     gtk_window_present(gtk_window);
-
 }
 
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
-    pipelam_log_debug("Handling image window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
-
     const char *image_path = pipelam_config->expression;
 
     if (pipelam_config->runtime_behaviour != OVERLAY) {
@@ -495,7 +465,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
         return;
     }
 
-    pipelam_log_debug("Creating new image window");
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
@@ -510,9 +479,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
         return;
     }
 
-    pipelam_log_debug("Image dimensions - width: %d, height: %d", width, height);
-
-    // Create a styled box with the image as content
     GtkWidget *box = pipelam_create_styled_box(image, pipelam_config, NULL);
     gtk_window_set_child(gtk_window, box);
     gtk_window_set_default_size(gtk_window, width, height);
@@ -521,10 +487,8 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 
     if (pipelam_config->runtime_behaviour == OVERLAY) {
         pipelam_add_window_to_list(gtk_window, IMAGE, timeout_id, NULL);
-        pipelam_log_debug("Added IMAGE window to overlay list");
     } else {
         if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL && current_window_type != IMAGE) {
-            pipelam_log_debug("Closing previous window of different type");
             gtk_window_close(current_window);
         }
 
@@ -537,7 +501,6 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 }
 
 static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam_config) {
-    pipelam_log_debug("Handling text window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
     if (pipelam_config->runtime_behaviour != OVERLAY) {
@@ -547,7 +510,6 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
         }
     }
 
-    pipelam_log_debug("Creating new text window");
     GtkWindow *gtk_window = pipelam_render_gtk_window(app, pipelam_config);
     if (gtk_window == NULL) {
         pipelam_log_error("gtk_render_gtk_window() returned NULL");
@@ -560,12 +522,8 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
         return;
     }
 
-    pipelam_log_debug("len of expression: %lu", strlen(pipelam_config->expression));
-    pipelam_log_debug("expression: %s", pipelam_config->expression);
-
     gtk_label_set_markup(GTK_LABEL(label), pipelam_config->expression);
 
-    // Create a styled box with the label as content
     GtkWidget *box = pipelam_create_styled_box(label, pipelam_config, NULL);
     gtk_window_set_child(gtk_window, box);
 
@@ -573,11 +531,8 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
 
     if (pipelam_config->runtime_behaviour == OVERLAY) {
         pipelam_add_window_to_list(gtk_window, TEXT, timeout_id, NULL);
-        pipelam_log_debug("Added TEXT window to overlay list");
     } else {
-        // If we're replacing a window and it's a different type, close the old one
         if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL && current_window_type != TEXT) {
-            pipelam_log_debug("Closing previous window of different type");
             gtk_window_close(current_window);
         }
 

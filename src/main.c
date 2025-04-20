@@ -28,18 +28,11 @@ static gboolean pipelam_handle_pipe_input(GIOChannel *source, GIOCondition condi
         return TRUE;
     }
 
-    if (status == G_IO_STATUS_EOF) {
-        pipelam_log_debug("End of file reached, reopening pipe");
-        return TRUE;
-    }
-
-    if (status == G_IO_STATUS_AGAIN) {
+    if (status == G_IO_STATUS_EOF || status == G_IO_STATUS_AGAIN) {
         return TRUE;
     }
 
     if (message != NULL && length > 0) {
-        pipelam_log_info("Received message of length: %lu", length);
-
         pipelam_parse_message(message, ptr_pipelam_config);
         pipelam_create_window(ptr_pipelam_config);
         pipelam_reset_default_config(ptr_pipelam_config);
