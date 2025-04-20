@@ -65,11 +65,12 @@ $(OUTPUT): $(OBJ_FILES)
 	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
 
 # Dependencies for object files
-$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/cli.h
 $(BUILD_DIR)/log.o: $(SRC_DIR)/log.c $(SRC_DIR)/log.h $(SRC_DIR)/config.h
 $(BUILD_DIR)/window.o: $(SRC_DIR)/window.c $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 $(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h $(SRC_DIR)/json.h
-$(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h $(SRC_DIR)/cli.h
+$(BUILD_DIR)/cli.o: $(SRC_DIR)/cli.c $(SRC_DIR)/cli.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 
 # Build test runner
 $(TEST_OUTPUT): $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
@@ -134,8 +135,8 @@ install: ## Install pipelam to the system
 		fi; \
 	fi
 	@if [ -f build/man/pipelam.toml.5 ]; then \
-		@install -d $(PREFIX)/share/man/man5; \
-		@install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5 \
+		install -d $(PREFIX)/share/man/man5; \
+		install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5; \
 		if command -v makewhatis >/dev/null 2>&1; then \
 			makewhatis $(PREFIX)/share/man; \
 		elif command -v mandb >/dev/null 2>&1; then \

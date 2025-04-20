@@ -1,6 +1,7 @@
 #include "log.h"
 #include "message.h"
 #include "window.h"
+#include "cli.h"
 #include <fcntl.h>
 #include <gtk/gtk.h>
 #include <stdlib.h>

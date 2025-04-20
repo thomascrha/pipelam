@@ -57,6 +57,7 @@ struct pipelam_config {
     // Settings
     int window_timeout;
     enum pipelam_window_anchor anchor;
+
     int margin_left;
     int margin_right;
     int margin_top;
@@ -64,8 +65,8 @@ struct pipelam_config {
 
     // wob specific settings
     int wob_bar_width;
-
     int wob_bar_height;
+
     char *wob_border_color;
     char *wob_background_color;
     char *wob_foreground_color;
@@ -82,13 +83,15 @@ struct pipelam_config {
     // Default values (set at startup from config/env)
     int default_window_timeout;
     enum pipelam_window_anchor default_anchor;
+
     int default_margin_left;
     int default_margin_right;
     int default_margin_top;
     int default_margin_bottom;
-    int default_wob_bar_width;
 
+    int default_wob_bar_width;
     int default_wob_bar_height;
+
     char *default_wob_border_color;
     char *default_wob_background_color;
     char *default_wob_foreground_color;
@@ -107,8 +110,7 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path);
 void pipelam_destroy_config(struct pipelam_config *config);
 void pipelam_reset_default_config(struct pipelam_config *config);
 void pipelam_log_level_set_from_string(const char *log_level);
-void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_config *config);
-void pipelam_help(void);
+
 
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
 #define CONFIG_ARG_MAX_BYTES 128
