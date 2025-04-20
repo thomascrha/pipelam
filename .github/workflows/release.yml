@@ -35,7 +35,7 @@ jobs:
 
       - name: Build man pages
         run: |
-          make generate_man
+          make docs
 
       - name: Create tarball
         run: |

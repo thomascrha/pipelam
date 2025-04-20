@@ -112,7 +112,7 @@ release: format ## Create a release NOTE: VERSION is required. Usage: make relea
 	fi
 	@./scripts/create-release.sh $(VERSION)
 
-generate_man: ## Generate man pages from scdoc
+docs: ## Generate man pages from scdoc
 	@mkdir -p build/man
 	@scdoc < man/pipelam.1.scd > build/man/pipelam.1
 	@scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
@@ -122,16 +122,27 @@ install: ## Install pipelam to the system
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
 	@install -d /etc/pipelam
 	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
-	@install -d $(PREFIX)/share/man/man1
-	@install -m 644 build/man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
-	@install -d $(PREFIX)/share/man/man5
-	@install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
-	@if command -v makewhatis >/dev/null 2>&1; then \
-		makewhatis $(PREFIX)/share/man; \
-	elif command -v mandb >/dev/null 2>&1; then \
-		mandb; \
-	else \
-		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+	@if [ -f build/man/pipelam.1 ]; then \
+		install -d $(PREFIX)/share/man/man1; \
+		install -m 644 build/man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1; \
+		if command -v makewhatis >/dev/null 2>&1; then \
+			makewhatis $(PREFIX)/share/man; \
+		elif command -v mandb >/dev/null 2>&1; then \
+			mandb; \
+		else \
+			echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+		fi; \
+	fi
+	@if [ -f build/man/pipelam.toml.5 ]; then \
+		@install -d $(PREFIX)/share/man/man5; \
+		@install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5 \
+		if command -v makewhatis >/dev/null 2>&1; then \
+			makewhatis $(PREFIX)/share/man; \
+		elif command -v mandb >/dev/null 2>&1; then \
+			mandb; \
+		else \
+			echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+		fi; \
 	fi
 
 install_systemd: ## Install systemd (user) service and timer
@@ -139,8 +150,6 @@ install_systemd: ## Install systemd (user) service and timer
 	@install -m 644 systemd/pipelam.service $(HOME)/.config/systemd/user/pipelam.service
 	@install -m 644 systemd/pipelam.socket $(HOME)/.config/systemd/user/pipelam.socket
 	@systemctl --user daemon-reload
-	@systemctl --user enable --now pipelam.socket
-	@systemctl --user enable --now pipelam.service
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam

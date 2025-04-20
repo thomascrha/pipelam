@@ -217,9 +217,9 @@ Targets:
   clean           Remove built executables and object files
   debug           Build with enhanced debugging symbols for GDB
   derun           Run the project
+  docs            Generate man pages from scdoc
   download_json_h Download the json.h external single header lib
   format          Format the code using clang-format
-  generate_man    Generate man pages from scdoc
   help            Display this help message
   install         Install pipelam to the system
   install_systemd Install systemd (user) service and timer

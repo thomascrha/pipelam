@@ -31,7 +31,7 @@ jobs:
         run: make test
 
       - name: Build man pages
-        run: make generate_man
+        run: make docs
 
       - name: Report test status
         if: success()
