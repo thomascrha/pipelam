@@ -111,7 +111,6 @@ void pipelam_destroy_config(struct pipelam_config *config);
 void pipelam_reset_default_config(struct pipelam_config *config);
 void pipelam_log_level_set_from_string(const char *log_level);
 
-
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
 #define CONFIG_ARG_MAX_BYTES 128
 

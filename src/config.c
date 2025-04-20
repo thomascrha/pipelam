@@ -72,7 +72,6 @@ static void pipelam_set_log_level_from_env(struct pipelam_config *config) {
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
 
-
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
         pipelam_log_debug("runtime_behaviour: %d", config->runtime_behaviour);
@@ -522,7 +521,7 @@ static char *pipelam_get_config_file(const char *config_file_path) {
 }
 
 struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
-    struct pipelam_config *config = g_new0(struct pipelam_config, 1);  // Use g_new0 to zero-initialize
+    struct pipelam_config *config = g_new0(struct pipelam_config, 1); // Use g_new0 to zero-initialize
 
     // Initialise everything from code then override with config file then environment
     config->runtime_behaviour = REPLACE;
@@ -575,10 +574,9 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     config->type = TEXT;
     config->version = MESSAGE_CURRENT_VERSION;
 
-
     pipelam_set_log_level_from_env(config);
 
-     // order of precedence: config file, environment variables
+    // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
         bool config_parsed = pipelam_parse_config_file(config_fp, config);
