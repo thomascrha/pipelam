@@ -21,3 +21,5 @@ indent_style = tab
 [*.scd]
 indent_style = tab
 
+[*.md]
+indent_size = 2

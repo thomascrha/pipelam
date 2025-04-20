@@ -122,7 +122,9 @@ install: ## Install pipelam to the system
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
 	@install -d /etc/pipelam
 	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
+	@install -d $(PREFIX)/share/man/man1
 	@install -m 644 build/man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1
+	@install -d $(PREFIX)/share/man/man5
 	@install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5
 	@if command -v makewhatis >/dev/null 2>&1; then \
 		makewhatis $(PREFIX)/share/man; \

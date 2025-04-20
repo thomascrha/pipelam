@@ -25,8 +25,8 @@ margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) 
 
 # WOB bar behaviour
 # Note: Any color can use css color strings or hexvalues with a # before the number - see wob_foreground_color
-wob_bar_height = 40 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
-wob_bar_width = 500 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
+wob_bar_height = 25 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
+wob_bar_width = 350 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
 wob_border_color = white # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
 wob_background_color = black # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
 wob_foreground_color = #FFFFFF # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
@@ -35,8 +35,8 @@ wob_box_color = black # The color of the box containing the wob bar. (Default: b
 
 # WOB component-specific padding/margin
 wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
-wob_border_padding = 8 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_border_margin = 8 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_background_padding = 8 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_padding = 8 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_border_padding = 4 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_border_margin = 4 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)

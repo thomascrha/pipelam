@@ -6,25 +6,25 @@ A lightweight GTK4-based notification system for displaying text, images, and pr
 
 This tool differs from wob in several different ways:
 
- - It uses gkt4 and gtk4-layer-shell for displaying the overlay.
- - This overlay is customisable using the JSON payload you write into the FIFO file pipelam is listening to.
-    - It as three different types of overlays: `text`, `image` and `wob` (an homage to the that project).
-    - You can set the position, size, colour, font, text, image, etc. of the overlay.
-    - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
+- It uses gkt4 and gtk4-layer-shell for displaying the overlay.
+- This overlay is customisable using the JSON payload you write into the FIFO file pipelam is listening to.
+  - It as three different types of overlays: `text`, `image` and `wob` (an homage to the that project).
+  - You can set the position, size, colour, font, text, image, etc. of the overlay.
+  - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
 
 ## Dependencies
 
 At this stage you will need to build the project from source. You will need the following dependencies:
 
- - gtk4
- - gtk4-layer-shell
- - wlroots (for the protocol headers)
+- gtk4
+- gtk4-layer-shell
+- wlroots (for the protocol headers)
 
 ### Development dependencies
 
- - [make](https://www.gnu.org/software/make/)
- - bear (optional, for generating compile_commands.json)
- - clang-format
+- [make](https://www.gnu.org/software/make/)
+- bear (optional, for generating compile_commands.json)
+- clang-format
 
 ## Installation
 
@@ -108,37 +108,37 @@ jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pi
 1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `text` and the text is just displayed.
 2. The object must contain a `type` key with a value of either `text`, `image`, or `wob`.
 3. The object must contain an `expression` key with a value:
-   - For `text`: The text you want to display (supports Pango markup)
-   - For `image`: The path to the image you want to show
-   - For `wob`: A numeric value between 0-200 representing the progress bar percentage
+  - For `text`: The text you want to display (supports Pango markup)
+  - For `image`: The path to the image you want to show
+  - For `wob`: A numeric value between 0-200 representing the progress bar percentage
 4. The object also supports an `version` key, at this point this doesn't do anything - but it is there for future compatibility. The default value is 0.
 5. For all optional keys these must be contained in an inner object with the key `settings`. This object can contain the following keys:
-    - `window_timeout`: The time in milliseconds before the overlay is hidden.
-    - `anchor`: The anchor point of the overlay. This can be one of the following values:
-        - `top-left`
-        - `top-right`
-        - `bottom-left`
-        - `bottom-right`
-        - `center`
-    - `margin_left`: The margin from the left edge of the screen.
-    - `margin_right`: The margin from the right edge of the screen.
-    - `margin_top`: The margin from the top edge of the screen.
-    - `margin_bottom`: The margin from the bottom edge of the screen.
+  - `window_timeout`: The time in milliseconds before the overlay is hidden.
+  - `anchor`: The anchor point of the overlay. This can be one of the following values:
+    - `top-left`
+    - `top-right`
+    - `bottom-left`
+    - `bottom-right`
+    - `center`
+  - `margin_left`: The margin from the left edge of the screen.
+  - `margin_right`: The margin from the right edge of the screen.
+  - `margin_top`: The margin from the top edge of the screen.
+  - `margin_bottom`: The margin from the bottom edge of the screen.
 
-    For WOB progress bars, these additional settings are available:
-    - `wob_bar_width`: Width of the progress bar in pixels.
-    - `wob_bar_height`: Height of the progress bar in pixels.
-    - `wob_border_color`: Color of the border (CSS color string or hex value).
-    - `wob_background_color`: Background color of the bar.
-    - `wob_foreground_color`: Foreground color for normal range (0-100%).
-    - `wob_overflow_color`: Foreground color for overflow range (101-200%).
-    - `wob_box_color`: Color of the box containing the bar.
-    - `wob_box_padding`: Padding of the box in pixels.
-    - `wob_border_padding`: Padding of the border in pixels.
-    - `wob_border_margin`: Margin of the border in pixels.
-    - `wob_background_padding`: Background padding in pixels.
-    - `wob_foreground_padding`: Foreground padding in pixels.
-    - `wob_foreground_overflow_padding`: Overflow padding in pixels.
+  For WOB progress bars, these additional settings are available:
+  - `wob_bar_width`: Width of the progress bar in pixels.
+  - `wob_bar_height`: Height of the progress bar in pixels.
+  - `wob_border_color`: Color of the border (CSS color string or hex value).
+  - `wob_background_color`: Background color of the bar.
+  - `wob_foreground_color`: Foreground color for normal range (0-100%).
+  - `wob_overflow_color`: Foreground color for overflow range (101-200%).
+  - `wob_box_color`: Color of the box containing the bar.
+  - `wob_box_padding`: Padding of the box in pixels.
+  - `wob_border_padding`: Padding of the border in pixels.
+  - `wob_border_margin`: Margin of the border in pixels.
+  - `wob_background_padding`: Background padding in pixels.
+  - `wob_foreground_padding`: Foreground padding in pixels.
+  - `wob_foreground_overflow_padding`: Overflow padding in pixels.
 6. If the keys in the `settings` object are not provided, the default values will be used. If the `settings` object contains keys it doesn't recognise or can't interpret the value it simply uses the default.
 
 ### Text Expression
@@ -151,16 +151,20 @@ pipelam has two configuration files that can be used to customise the appearance
 
 1. If no configuration file is found, the default values will be used.
 2. If a configuration file is found, they will be loaded in this order (with the last one taking precedence):
-    - The default configuration file is loaded first. (`/etc/pipelam/pipelam.toml`)
-    - The user configuration file is loaded second. (`$HOME/.config/pipelam/pipelam.toml`)
+  - The default configuration file is loaded first. (`/etc/pipelam/pipelam.toml`)
+  - The user configuration file is loaded second. (`$HOME/.config/pipelam/pipelam.toml`)
 3. Environment variables take precedence over the configuration file. If an environment variable is set, it will override the value in the configuration file. These environment variables are the name of the attribute in the config file prefaced with `PIPELAM_` - for example `log_level` is overwritten by the environment variable `PIPELAM_LOG_LEVEL`.
-    - Note: there is one undocumented environment variable - `PIPELAM_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
+  - Note: there is one undocumented environment variable - `PIPELAM_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
 
 ### Configuration Options
 
 The configuration file `config/pipelam.toml` with the following options:
 ```toml
-# Basic Settings
+# If you are editing this file inside /etc/pipelam/pipelam.toml please refain from doing that - you can override the
+# default config by creating a file in ~/.config/pipelam/pipelam.toml. The file /etc/pipelam/pipelam.toml will be
+# deleted during the unintall process
+# This is also not a valid toml file - It's been called .toml for formatting reasons - all this file is a key value list
+# please see this for the implementation https://github.com/welljsjs/Config-Parser-C
 log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
@@ -169,7 +173,7 @@ runtime_behaviour = replace # The runtime behaviour of gtk windows; replace mean
                             # the windows are queued and displayed one after the other;  overlay means the windows are
                             # overlayed on top of each other. (Default: replace)
 
-# Window behavior
+# Window behaviour
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
 anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
                 # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
@@ -182,9 +186,9 @@ margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (C
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 
 # WOB bar behaviour
-# Note: Any color can use css color strings or hexvalues with a # before the number
-wob_bar_height = 40 # The height of the wob bar in pixels. (Default: 40) (Can be overridden by the JSON payload)
-wob_bar_width = 500 # The width of the wob bar in pixels. (Default: 500) (Can be overridden by the JSON payload)
+# Note: Any color can use css color strings or hexvalues with a # before the number - see wob_foreground_color
+wob_bar_height = 25 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
+wob_bar_width = 350 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
 wob_border_color = white # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
 wob_background_color = black # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
 wob_foreground_color = #FFFFFF # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
@@ -193,12 +197,12 @@ wob_box_color = black # The color of the box containing the wob bar. (Default: b
 
 # WOB component-specific padding/margin
 wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
-wob_border_padding = 8 # The padding of the border of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
-wob_border_margin = 8 # The margin of the border of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
-wob_background_padding = 8 # The padding of the background of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
-wob_foreground_padding = 8 # The padding of the foreground of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
-wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
-```
+wob_border_padding = 4 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_border_margin = 4 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+`
 
 ### WOB mode styling
 
@@ -254,5 +258,4 @@ Targets:
 - [x] Add customisation of the wob type
 - [x] Add overflow behaviour that turns red for wob mode
 - [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
-
 
