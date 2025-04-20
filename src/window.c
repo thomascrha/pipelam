@@ -364,29 +364,38 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
 
 static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) {
     int box_width_val = config->box_width;
-    // Calculate effective margin from padding values
     int box_padding = config->box_padding;
     int border_padding = config->border_padding;
-    int effective_margin = box_padding + border_padding;
+    int border_margin = config->border_margin;
+    int background_padding = config->background_padding;
+    int foreground_padding = config->foreground_padding;
 
-    // Handle full bar for 200%
+    // Calculate total padding from all sources (both sides)
+    int total_padding = (box_padding * 2) + (border_padding * 2) +
+                        (border_margin * 2) + (background_padding * 2) +
+                        (foreground_padding * 2);
+
+    // Calculate the actual available width for the progress bar
+    int available_width = box_width_val - total_padding;
+    if (available_width < 0) available_width = 0;
+
+    pipelam_log_debug("Box width: %d, Total padding: %d, Available width: %d",
+                     box_width_val, total_padding, available_width);
+
     if (percentage >= 200) {
-        return box_width_val - (2 * effective_margin); // Full bar width - minus margins
+        return available_width;
     }
 
-    // For values over 100%, wrap around (e.g., 150% displays as 50%)
     int display_percentage = percentage > 100 ? percentage % 100 : percentage;
 
     if (display_percentage == 100) {
-        // Edge case: 100%
-        return box_width_val - (2 * effective_margin);
+        return available_width;
     } else if (display_percentage == 0) {
-        // Edge case: 0% (from 200%)
         return 0;
     } else {
-        // Calculate width based on percentage of available space
-        int available_width = box_width_val - (2 * effective_margin);
-        return (available_width * display_percentage) / 100;
+        int calculated_width = (available_width * display_percentage) / 100;
+        pipelam_log_debug("Percentage: %d%%, Width: %d", display_percentage, calculated_width);
+        return calculated_width;
     }
 }
 
@@ -411,15 +420,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
         if (percentage > 100) {
             gtk_widget_remove_css_class(bar_fg, "foreground");
             gtk_widget_add_css_class(bar_fg, "foreground-overflow");
-
-            // If it's 200%, make it a full red bar
-            if (percentage >= 200) {
-                // Calculate effective margin from padding values
-                int box_padding = pipelam_config->box_padding;
-                int border_padding = pipelam_config->border_padding;
-                int effective_margin = box_padding + border_padding;
-                gtk_widget_set_size_request(bar_fg, pipelam_config->box_width - (2 * effective_margin), pipelam_config->box_height); // Full width
-            }
         } else {
             gtk_widget_remove_css_class(bar_fg, "foreground-overflow");
             gtk_widget_add_css_class(bar_fg, "foreground");
@@ -454,16 +454,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
 
     // Set the actual window size to the configured box width, not dependent on percentage
     gtk_window_set_default_size(gtk_window, pipelam_config->box_width, pipelam_config->box_height);
-
-    // If it's 200%, make it a full red bar
-    if (percentage >= 200) {
-        // Calculate effective margin from padding values
-        int box_padding = pipelam_config->box_padding;
-        int border_padding = pipelam_config->border_padding;
-        int effective_margin = box_padding + border_padding;
-        gtk_widget_set_size_request(new_bar_fg, pipelam_config->box_width - (2 * effective_margin), pipelam_config->box_height); // Full width
-    }
-
     gtk_window_set_child(gtk_window, box);
 
     pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
