@@ -3,7 +3,7 @@
 # deleted during the unintall process
 # This is also not a valid toml file - It's been called .toml for formatting reasons - all this file is a key value list
 # please see this for the implementation https://github.com/welljsjs/Config-Parser-C
-log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
+log_level = "INFO" # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
                  # messages; PANIC means the application will log all messages including panic messages. (Default: INFO)

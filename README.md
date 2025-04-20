@@ -1,6 +1,6 @@
 # pipelam
 
-A lightweight GTK4-based notification system for displaying text, images, and progress bars in wlroots compositors. Featuring queue, replace, and overlay display modes, pipelam is inspired by [wob](https://github.com/francma/wob).
+A lightweight GTK4-based notification system for displaying text, images, and progress bars in wlroots compositors. Pipelam is inspired by [wob](https://github.com/francma/wob).
 
 ## Features
 
@@ -9,6 +9,10 @@ This tool differs from wob in several different ways:
 - It uses gkt4 and gtk4-layer-shell for displaying the overlay.
 - This overlay is customisable using the JSON payload you write into the FIFO file pipelam is listening to.
   - It as three different types of overlays: `text`, `image` and `wob` (an homage to the that project).
+  - The overlay can be displayed in three different modes:
+    - `queue`: The overlay is queued and displayed one after the other.
+    - `replace`: The overlay replaces the previous overlay.
+    - `overlay`: The overlay is overlayed on top of each other.
   - You can set the position, size, colour, font, text, image, etc. of the overlay.
   - The overlay uses [pango](https://developer.gnome.org/pango/stable/) for text rendering.
 
@@ -16,9 +20,9 @@ This tool differs from wob in several different ways:
 
 At this stage you will need to build the project from source. You will need the following dependencies:
 
-- gtk4
-- gtk4-layer-shell
-- wlroots (for the protocol headers)
+- [gtk4-layer-shell](https://github.com/wmww/gtk4-layer-shell)
+- [json.h](https://raw.githubusercontent.com/sheredom/json.h/cfdee7c025081ce722644f3ac286e1e27ad16f82/json.h)
+  - NOTE: This is downloaded as part of the build process and is not a hard dependency.
 
 ### Development dependencies
 
@@ -32,14 +36,16 @@ To build and install the project, run the following commands:
 
 ```
 make build
+make docs # optional if you want the docs
 sudo make install
+make install_systemd # optional if you want to install the systemd service and socket
 ```
 
 ## Running
 
 To run the project, you will need to create a FIFO file that pipelam will listen to. You can do this by running the following command:
 
-Note: If no FIFO file is provided, pipelam will create one at the path you specify.
+NOTE: When running using systemd the pipe path by default is `/run/user/$UID/pipelam.fifo`
 
 ```shell
 mkfifo /tmp/pipelam.fifo
@@ -48,7 +54,19 @@ mkfifo /tmp/pipelam.fifo
 Then you can run the following command to start pipelam:
 
 ```shell
-./build/pipelam /tmp/pipelam.fifo
+pipelam /tmp/pipelam.fifo
+```
+
+To just use the wob overlay you can just send down an integer
+
+```
+echo 50 > /tmp/pipelam.fifo
+```
+
+You can just send text without any formatting
+
+```shell
+echo "Hello, World!" > /tmp/pipelam.fifo
 ```
 
 Then you can write a JSON payload to the FIFO file to display the overlay. Here is an example payload:
@@ -56,17 +74,31 @@ Then you can write a JSON payload to the FIFO file to display the overlay. Here 
 ```json
 {
     "type": "text",
-    "expression": "Hello, World!",
+    "expression": "<span foreground="blue" size="x-large">Hello World!</span> is <i>cool</i>!"
 }
 ```
 
 ```shell
-jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pipelam.fifo
+cat examples/example.json > /tmp/pipelam.fifo
+```
+
+## sway
+
+Add the following to your sway config to integrate with pipelam
+
+```shell
+set $PIPELAM_SOCK /run/user/1000/pipelam.fifo
+bindsym XF86AudioRaiseVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+ && wpctl get-volume @DEFAULT_AUDIO_SINK@ | sed 's/[^0-9]//g' > $PIPELAM_SOCK
+bindsym XF86AudioLowerVolume exec wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- && wpctl get-volume @DEFAULT_AUDIO_SINK@ | sed 's/[^0-9]//g' > $PIPELAM_SOCK
+bindsym XF86AudioMute exec wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle && (wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep -q MUTED && echo 0 > $WOBSOCK) || wpctl get-volume @DEFAULT_AUDIO_SINK@ | sed 's/[^0-9]//g' > $PIPELAM_SOCK
+
+bindsym XF86MonBrightnessDown exec brightnessctl set 5%- | sed -En 's/.*\(([0-9]+)%\).*/\1/p' > $PIPELAM_SOCK
+bindsym XF86MonBrightnessUp exec brightnessctl set +5% | sed -En 's/.*\(([0-9]+)%\).*/\1/p' > $PIPELAM_SOCK
 ```
 
 ## Json Payload
 
-1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `text` and the text is just displayed.
+1. The JSON payload must be a valid JSON object. It also can't be pretty printed - it must be a single line. If it can't be parsed as JSON the input is treated as type `wob` if the input is an integer, if it can't be parsed as an integer it will lastly default to `text`.
 2. The object must contain a `type` key with a value of either `text`, `image`, or `wob`.
 3. The object must contain an `expression` key with a value:
   - For `text`: The text you want to display (supports Pango markup)
@@ -89,7 +121,7 @@ pipelam has two configuration files that can be used to customise the appearance
   - The default configuration file is loaded first. (`/etc/pipelam/pipelam.toml`)
   - The user configuration file is loaded second. (`$HOME/.config/pipelam/pipelam.toml`)
 3. Environment variables take precedence over the configuration file. If an environment variable is set, it will override the value in the configuration file. These environment variables are the name of the attribute in the config file prefaced with `PIPELAM_` - for example `log_level` is overwritten by the environment variable `PIPELAM_LOG_LEVEL`.
-  - Note: there is one undocumented environment variable - `PIPELAM_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config
+  - Note: there is one undocumented environment variable - `PIPELAM_CONFIG_FILE_PATH` - this allows you to set an arbitrary file path for the config.
 
 ### Configuration Options
 
@@ -100,7 +132,7 @@ The configuration file `config/pipelam.toml` with the following options:
 # deleted during the unintall process
 # This is also not a valid toml file - It's been called .toml for formatting reasons - all this file is a key value list
 # please see this for the implementation https://github.com/welljsjs/Config-Parser-C
-log_level = INFO # The log level for the application; INFO means the application will log all messages; DEBUG means the
+log_level = "INFO" # The log level for the application; INFO means the application will log all messages; DEBUG means the
                  # application will log all messages including debug messages; WARNING means the application will log all
                  # messages including warning messages; ERROR means the application will log all messages including error
                  # messages; PANIC means the application will log all messages including panic messages. (Default: INFO)
@@ -162,7 +194,7 @@ wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of 
 ←------------------ wob_bar_width ------------------→
     ↑
     |
-    wob_bar_height
+    wob_bar_heightrsed as JSON the input is treated as type
 ```
 
 ## Command Line Options
@@ -232,11 +264,11 @@ Targets:
 
 # TODO's
 
-- [ ] Add better installation step including describing the man and systemd installation
 - [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 - [ ] Clean up the examples and make more permutations of them
 - [ ] Using the examples make a demo video for the readme
 - [ ] Add to Arch user repositories
+- [x] Add better installation step including describing the man and systemd installation
 - [x] Add customisation of the wob type
 - [x] Add overflow behaviour that turns red for wob mode
 

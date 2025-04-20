@@ -1,5 +1,5 @@
 # Variables
-CFLAGS          := -O2 -Wall -Wextra -Wpedantic -std=c17
+CFLAGS          := -O3 -Wall -Wextra -Wpedantic -std=c17
 CC              := clang
 
 # Installation paths
@@ -68,7 +68,7 @@ $(OUTPUT): $(OBJ_FILES)
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h
 $(BUILD_DIR)/log.o: $(SRC_DIR)/log.c $(SRC_DIR)/log.h $(SRC_DIR)/config.h
 $(BUILD_DIR)/window.o: $(SRC_DIR)/window.c $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
-$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
+$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h $(SRC_DIR)/json.h
 $(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 
 # Build test runner
