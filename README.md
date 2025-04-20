@@ -126,6 +126,7 @@ pipelam has two configuration files that can be used to customise the appearance
 ### Configuration Options
 
 The configuration file `config/pipelam.toml` with the following options:
+
 ```toml
 # If you are editing this file inside /etc/pipelam/pipelam.toml please refain from doing that - you can override the
 # default config by creating a file in ~/.config/pipelam/pipelam.toml. The file /etc/pipelam/pipelam.toml will be
@@ -142,7 +143,7 @@ runtime_behaviour = "replace" # The runtime behaviour of gtk windows; replace me
 
 # Window behaviour
 window_timeout = 600 # The time in milliseconds before the overlay is hidden. (Default: 600) (Can be overridden by the JSON payload)
-anchor = center # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
+anchor = "center" # The anchor point of the overlay; center means the overlay is centered on the screen; top-left means the
                 # overlay is anchored to the top left corner of the screen; top-right means the overlay is anchored to the
                 # top right corner of the screen; bottom-left means the overlay is anchored to the bottom left corner of
                 # the screen; bottom-right means the overlay is anchored to the bottom right corner of the screen.
