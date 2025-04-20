@@ -19,20 +19,20 @@ void pipelam_help(void) {
     printf("  -T, --margin-top=PIXELS      Set top margin in pixels\n");
     printf("  -B, --margin-bottom=PIXELS   Set bottom margin in pixels\n");
     printf("\n");
-    printf("WOB bar options:\n");
-    printf("  --wob-bar-height=PIXELS      Set WOB bar height in pixels\n");
-    printf("  --wob-bar-width=PIXELS       Set WOB bar width in pixels\n");
-    printf("  --wob-border-color=COLOR     Set WOB border color\n");
-    printf("  --wob-background-color=COLOR Set WOB background color\n");
-    printf("  --wob-foreground-color=COLOR Set WOB foreground color\n");
-    printf("  --wob-overflow-color=COLOR   Set WOB overflow color\n");
-    printf("  --wob-box-color=COLOR        Set WOB box color\n");
-    printf("  --wob-box-padding=PIXELS     Set WOB box padding in pixels\n");
-    printf("  --wob-border-padding=PIXELS  Set WOB border padding in pixels\n");
-    printf("  --wob-border-margin=PIXELS   Set WOB border margin in pixels\n");
-    printf("  --wob-background-padding=PIXELS Set WOB background padding in pixels\n");
-    printf("  --wob-foreground-padding=PIXELS Set WOB foreground padding in pixels\n");
-    printf("  --wob-foreground-overflow-padding=PIXELS Set WOB foreground overflow padding in pixels\n");
+    printf("Bar styling options:\n");
+    printf("  --box-height=PIXELS          Set box height in pixels\n");
+    printf("  --box-width=PIXELS           Set box width in pixels\n");
+    printf("  --border-color=COLOR         Set border color\n");
+    printf("  --background-color=COLOR     Set background color\n");
+    printf("  --foreground-color=COLOR     Set foreground color\n");
+    printf("  --overflow-color=COLOR       Set overflow color\n");
+    printf("  --box-color=COLOR            Set box color\n");
+    printf("  --box-padding=PIXELS         Set box padding in pixels\n");
+    printf("  --border-padding=PIXELS      Set border padding in pixels\n");
+    printf("  --border-margin=PIXELS       Set border margin in pixels\n");
+    printf("  --background-padding=PIXELS  Set background padding in pixels\n");
+    printf("  --foreground-padding=PIXELS  Set foreground padding in pixels\n");
+    printf("  --foreground-overflow-padding=PIXELS Set foreground overflow padding in pixels\n");
     printf("\n");
     printf("  -v, --version                Show version information\n");
     printf("  -h, --help                   Display this help message\n");
@@ -51,19 +51,19 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
                                            {"margin-right", required_argument, 0, 'R'},
                                            {"margin-top", required_argument, 0, 'T'},
                                            {"margin-bottom", required_argument, 0, 'B'},
-                                           {"wob-bar-height", required_argument, 0, 1001},
-                                           {"wob-bar-width", required_argument, 0, 1002},
-                                           {"wob-border-color", required_argument, 0, 1003},
-                                           {"wob-background-color", required_argument, 0, 1004},
-                                           {"wob-foreground-color", required_argument, 0, 1005},
-                                           {"wob-overflow-color", required_argument, 0, 1006},
-                                           {"wob-box-color", required_argument, 0, 1007},
-                                           {"wob-box-padding", required_argument, 0, 1008},
-                                           {"wob-border-padding", required_argument, 0, 1009},
-                                           {"wob-border-margin", required_argument, 0, 1010},
-                                           {"wob-background-padding", required_argument, 0, 1011},
-                                           {"wob-foreground-padding", required_argument, 0, 1012},
-                                           {"wob-foreground-overflow-padding", required_argument, 0, 1013},
+                                           {"box-height", required_argument, 0, 1001},
+                                           {"box-width", required_argument, 0, 1002},
+                                           {"border-color", required_argument, 0, 1003},
+                                           {"background-color", required_argument, 0, 1004},
+                                           {"foreground-color", required_argument, 0, 1005},
+                                           {"overflow-color", required_argument, 0, 1006},
+                                           {"box-color", required_argument, 0, 1007},
+                                           {"box-padding", required_argument, 0, 1008},
+                                           {"border-padding", required_argument, 0, 1009},
+                                           {"border-margin", required_argument, 0, 1010},
+                                           {"background-padding", required_argument, 0, 1011},
+                                           {"foreground-padding", required_argument, 0, 1012},
+                                           {"foreground-overflow-padding", required_argument, 0, 1013},
                                            {"version", no_argument, 0, 'v'},
                                            {"help", no_argument, 0, 'h'},
                                            {0, 0, 0, 0}};
@@ -131,69 +131,69 @@ void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_co
             config->default_margin_bottom = config->margin_bottom;
             break;
 
-        case 1001: // wob-bar-height
-            config->wob_bar_height = atoi(optarg);
-            config->default_wob_bar_height = config->wob_bar_height;
+        case 1001: // box-height
+            config->box_height = atoi(optarg);
+            config->default_box_height = config->box_height;
             break;
 
-        case 1002: // wob-bar-width
-            config->wob_bar_width = atoi(optarg);
-            config->default_wob_bar_width = config->wob_bar_width;
+        case 1002: // box-width
+            config->box_width = atoi(optarg);
+            config->default_box_width = config->box_width;
             break;
 
         case 1003: // wob-border-color
-            config->wob_border_color = optarg;
-            config->default_wob_border_color = optarg;
+            config->border_color = optarg;
+            config->default_border_color = optarg;
             break;
 
         case 1004: // wob-background-color
-            config->wob_background_color = optarg;
-            config->default_wob_background_color = optarg;
+            config->background_color = optarg;
+            config->default_background_color = optarg;
             break;
 
         case 1005: // wob-foreground-color
-            config->wob_foreground_color = optarg;
-            config->default_wob_foreground_color = optarg;
+            config->foreground_color = optarg;
+            config->default_foreground_color = optarg;
             break;
 
         case 1006: // wob-overflow-color
-            config->wob_overflow_color = optarg;
-            config->default_wob_overflow_color = optarg;
+            config->overflow_color = optarg;
+            config->default_overflow_color = optarg;
             break;
 
         case 1007: // wob-box-color
-            config->wob_box_color = optarg;
-            config->default_wob_box_color = optarg;
+            config->box_color = optarg;
+            config->default_box_color = optarg;
             break;
 
         case 1008: // wob-box-padding
-            config->wob_box_padding = atoi(optarg);
-            config->default_wob_box_padding = config->wob_box_padding;
+            config->box_padding = atoi(optarg);
+            config->default_box_padding = config->box_padding;
             break;
 
         case 1009: // wob-border-padding
-            config->wob_border_padding = atoi(optarg);
-            config->default_wob_border_padding = config->wob_border_padding;
+            config->border_padding = atoi(optarg);
+            config->default_border_padding = config->border_padding;
             break;
 
         case 1010: // wob-border-margin
-            config->wob_border_margin = atoi(optarg);
-            config->default_wob_border_margin = config->wob_border_margin;
+            config->border_margin = atoi(optarg);
+            config->default_border_margin = config->border_margin;
             break;
 
         case 1011: // wob-background-padding
-            config->wob_background_padding = atoi(optarg);
-            config->default_wob_background_padding = config->wob_background_padding;
+            config->background_padding = atoi(optarg);
+            config->default_background_padding = config->background_padding;
             break;
 
         case 1012: // wob-foreground-padding
-            config->wob_foreground_padding = atoi(optarg);
-            config->default_wob_foreground_padding = config->wob_foreground_padding;
+            config->foreground_padding = atoi(optarg);
+            config->default_foreground_padding = config->foreground_padding;
             break;
 
         case 1013: // wob-foreground-overflow-padding
-            config->wob_foreground_overflow_padding = atoi(optarg);
-            config->default_wob_foreground_overflow_padding = config->wob_foreground_overflow_padding;
+            config->foreground_overflow_padding = atoi(optarg);
+            config->default_foreground_overflow_padding = config->foreground_overflow_padding;
             break;
 
         case 'v': // version

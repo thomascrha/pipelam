@@ -60,46 +60,46 @@ Additionally, environment variables that start with *PIPELAM_* followed by the u
 *margin_bottom = 0*
 	The margin in pixels from the bottom edge of the screen (default: 0).
 
-## WOB Bar Settings
+## Bar Styling Settings
 
-*wob_bar_width = 500*
-	The width of the WOB progress bar in pixels (default: 500).
+*box_width = 350*
+	The width of the progress box in pixels (default: 350).
 
-*wob_bar_height = 40*
-	The height of the WOB progress bar in pixels (default: 40).
+*box_height = 25*
+	The height of the progress box in pixels (default: 25).
 
-*wob_border_color = white*
-	The color of the WOB border (CSS color string or hex value, default: white).
+*border_color = white*
+	The color of the border (CSS color string or hex value, default: white).
 
-*wob_background_color = black*
-	The background color of the WOB bar (CSS color string or hex value, default: black).
+*background_color = black*
+	The background color of the bar (CSS color string or hex value, default: black).
 
-*wob_foreground_color = white*
-	The foreground color for normal range (0-100%) of the WOB bar (CSS color string or hex value, default: white).
+*foreground_color = white*
+	The foreground color for normal range (0-100%) (CSS color string or hex value, default: white).
 
-*wob_overflow_color = red*
-	The foreground color for overflow range (101-200%) of the WOB bar (CSS color string or hex value, default: red).
+*overflow_color = red*
+	The foreground color for overflow range (101-200%) (CSS color string or hex value, default: red).
 
-*wob_box_color = black*
-	The color of the box containing the WOB bar (CSS color string or hex value, default: black).
+*box_color = black*
+	The color of the containing box (CSS color string or hex value, default: black).
 
-*wob_box_padding = 0*
-	The padding of the box containing the WOB bar in pixels (default: 0).
+*box_padding = 0*
+	The padding of the box in pixels (default: 0).
 
-*wob_border_padding = 4*
-	The padding of the border of the WOB bar in pixels (default: 4).
+*border_padding = 4*
+	The padding of the border in pixels (default: 4).
 
-*wob_border_margin = 4*
-	The margin of the border of the WOB bar in pixels (default: 4).
+*border_margin = 4*
+	The margin of the border in pixels (default: 4).
 
-*wob_background_padding = 4*
-	The padding of the background of the WOB bar in pixels (default: 4).
+*background_padding = 4*
+	The padding of the background in pixels (default: 4).
 
-*wob_foreground_padding = 4*
-	The padding of the foreground of the WOB bar in pixels (default: 4).
+*foreground_padding = 4*
+	The padding of the foreground in pixels (default: 4).
 
-*wob_foreground_overflow_padding = 4*
-	The padding of the foreground overflow section of the WOB bar in pixels (default: 4).
+*foreground_overflow_padding = 4*
+	The padding of the foreground overflow section in pixels (default: 4).
 
 # EXAMPLE
 
@@ -126,22 +126,22 @@ margin_right = 20
 margin_top = 0
 margin_bottom = 20
 
-# WOB Bar Settings
-wob_bar_width = 350
-wob_bar_height = 25
-wob_border_color = "white"
-wob_background_color = "black"
-wob_foreground_color = "#FFFFFF"
-wob_overflow_color = "red"
-wob_box_color = "black"
+# Bar Styling Settings
+bar_width = 350
+bar_height = 25
+border_color = "white"
+background_color = "black"
+foreground_color = "#FFFFFF"
+overflow_color = "red"
+box_color = "black"
 
-# WOB padding settings
-wob_box_padding = 0
-wob_border_padding = 8
-wob_border_margin = 8
-wob_background_padding = 8
-wob_foreground_padding = 8
-wob_foreground_overflow_padding = 8
+# Padding settings
+box_padding = 0
+border_padding = 8
+border_margin = 8
+background_padding = 8
+foreground_padding = 8
+foreground_overflow_padding = 8
 ```
 
 # ENVIRONMENT VARIABLES
@@ -172,44 +172,44 @@ The following environment variables can be used to override settings in the conf
 *PIPELAM_MARGIN_BOTTOM*
 	Override the *margin_bottom* setting
 
-*PIPELAM_WOB_BAR_HEIGHT*
-	Override the *wob_bar_height* setting
+*PIPELAM_BOX_HEIGHT*
+	Override the box_height setting
 
-*PIPELAM_WOB_BAR_WIDTH*
-	Override the *wob_bar_width* setting
+*PIPELAM_BOX_WIDTH*
+	Override the box_width setting
 
-*PIPELAM_WOB_BORDER_COLOR*
-	Override the *wob_border_color* setting
+*PIPELAM_BORDER_COLOR*
+	Override the border_color setting
 
-*PIPELAM_WOB_BACKGROUND_COLOR*
-	Override the *wob_background_color* setting
+*PIPELAM_BACKGROUND_COLOR*
+	Override the background_color setting
 
-*PIPELAM_WOB_FOREGROUND_COLOR*
-	Override the *wob_foreground_color* setting
+*PIPELAM_FOREGROUND_COLOR*
+	Override the foreground_color setting
 
-*PIPELAM_WOB_OVERFLOW_COLOR*
-	Override the *wob_overflow_color* setting
+*PIPELAM_OVERFLOW_COLOR*
+	Override the overflow_color setting
 
-*PIPELAM_WOB_BOX_COLOR*
-	Override the *wob_box_color* setting
+*PIPELAM_BOX_COLOR*
+	Override the box_color setting
 
-*PIPELAM_WOB_BOX_PADDING*
-	Override the *wob_box_padding* setting
+*PIPELAM_BOX_PADDING*
+	Override the box_padding setting
 
-*PIPELAM_WOB_BORDER_PADDING*
-	Override the *wob_border_padding* setting
+*PIPELAM_BORDER_PADDING*
+	Override the border_padding setting
 
-*PIPELAM_WOB_BORDER_MARGIN*
-	Override the *wob_border_margin* setting
+*PIPELAM_BORDER_MARGIN*
+	Override the border_margin setting
 
-*PIPELAM_WOB_BACKGROUND_PADDING*
-	Override the *wob_background_padding* setting
+*PIPELAM_BACKGROUND_PADDING*
+	Override the background_padding setting
 
-*PIPELAM_WOB_FOREGROUND_PADDING*
-	Override the *wob_foreground_padding* setting
+*PIPELAM_FOREGROUND_PADDING*
+	Override the foreground_padding setting
 
-*PIPELAM_WOB_FOREGROUND_OVERFLOW_PADDING*
-	Override the *wob_foreground_overflow_padding* setting
+*PIPELAM_FOREGROUND_OVERFLOW_PADDING*
+	Override the foreground_overflow_padding setting
 
 *PIPELAM_CONFIG_FILE_PATH*
 	Use a configuration file at a custom location
@@ -239,12 +239,29 @@ Or with full customization:
 
 ```
 {
-  "type": "wob",
-  "expression": "75",
-  "settings": {
-    "wob_bar_width": 400,
-    "wob_foreground_color": "green"
-  }
+    "type": "wob",
+    "expression": "75",
+    "settings": {
+        "window_timeout": 800,
+        "anchor": "center",
+        "margin_left": 100,
+        "margin_right": 0,
+        "margin_top": 100,
+        "margin_bottom": 0,
+        "bar_width": 350,
+        "bar_height": 25,
+        "border_color": "white",
+        "background_color": "black",
+        "foreground_color": "white",
+        "overflow_color": "red",
+        "box_color": "black",
+        "box_padding": 0,
+        "border_padding": 4,
+        "border_margin": 4,
+        "background_padding": 4,
+        "foreground_padding": 4,
+        "foreground_overflow_padding": 4
+    }
 }
 ```
 

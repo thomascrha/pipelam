@@ -198,6 +198,54 @@ static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer ptr_pi
     return gtk_window;
 }
 
+static GtkWidget *pipelam_create_styled_box(GtkWidget *content, struct pipelam_config *config, const char *custom_class) {
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    GtkWidget *container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_add_css_class(box, "box");
+
+    GtkWidget *bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_hexpand(bg, TRUE);
+
+    GtkWidget *border_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    gtk_widget_add_css_class(border_container, "border");
+    gtk_widget_add_css_class(bg, "background");
+
+    if (custom_class != NULL) {
+        gtk_widget_add_css_class(content, custom_class);
+    } else {
+        gtk_widget_add_css_class(content, "foreground");
+    }
+
+    GtkCssProvider *provider = gtk_css_provider_new();
+    char css_data[512];
+    snprintf(css_data, sizeof(css_data),
+             ".box { background-color: %s; padding: %dpx; }"
+             ".border { background-color: %s; padding: %dpx; margin: %dpx; }"
+             ".background { background-color: %s; padding: %dpx; }"
+             ".foreground { background-color: %s; padding: %dpx; }"
+             ".foreground-overflow { background-color: %s; padding: %dpx; }",
+             config->box_color, config->box_padding,
+             config->border_color, config->border_padding, config->border_margin,
+             config->background_color, config->background_padding,
+             config->foreground_color, config->foreground_padding,
+             config->overflow_color, config->foreground_overflow_padding);
+
+    gtk_css_provider_load_from_string(provider, css_data);
+
+    GdkDisplay *display = gdk_display_get_default();
+    gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    gtk_box_append(GTK_BOX(bg), content);
+    gtk_box_append(GTK_BOX(border_container), bg);
+    gtk_box_append(GTK_BOX(container), border_container);
+    gtk_box_append(GTK_BOX(box), container);
+
+    g_object_unref(provider);
+
+    return box;
+}
+
 static GtkWidget *pipelam_load_and_create_image(const char *image_path, gint *width, gint *height) {
     pipelam_log_debug("Loading image from path: %s", image_path);
 
@@ -233,16 +281,29 @@ static void pipelam_update_image_window(GtkWindow *window, const char *image_pat
 
     GtkWidget *box = gtk_window_get_child(window);
     if (GTK_IS_BOX(box)) {
-        GtkWidget *old_image = gtk_widget_get_first_child(box);
-        if (old_image != NULL) {
-            gtk_box_remove(GTK_BOX(box), old_image);
-        }
+        // Get the background container (inner box structure)
+        GtkWidget *container = gtk_widget_get_first_child(box);
+        if (GTK_IS_BOX(container)) {
+            GtkWidget *border_container = gtk_widget_get_first_child(container);
+            if (GTK_IS_BOX(border_container)) {
+                GtkWidget *bg = gtk_widget_get_first_child(border_container);
+                if (GTK_IS_BOX(bg)) {
+                    // Remove the old image
+                    GtkWidget *old_image = gtk_widget_get_first_child(bg);
+                    if (old_image != NULL) {
+                        gtk_box_remove(GTK_BOX(bg), old_image);
+                    }
 
-        gint width = 0, height = 0;
-        GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
-        if (image != NULL) {
-            gtk_box_append(GTK_BOX(box), image);
-            gtk_window_set_default_size(window, width, height);
+                    // Load and add the new image
+                    gint width = 0, height = 0;
+                    GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
+                    if (image != NULL) {
+                        gtk_widget_add_css_class(image, "foreground");
+                        gtk_box_append(GTK_BOX(bg), image);
+                        gtk_window_set_default_size(window, width, height);
+                    }
+                }
+            }
         }
     }
 
@@ -265,12 +326,26 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
         return;
 
     pipelam_log_debug("Updating existing TEXT window");
-    GtkWidget *old_label = gtk_window_get_child(window);
-    if (GTK_IS_LABEL(old_label)) {
-        pipelam_log_debug("len of expression: %lu", strlen(text));
-        pipelam_log_debug("expression: %s", text);
+    GtkWidget *box = gtk_window_get_child(window);
 
-        gtk_label_set_markup(GTK_LABEL(old_label), text);
+    if (GTK_IS_BOX(box)) {
+        // Navigate through the box structure to find the label
+        GtkWidget *container = gtk_widget_get_first_child(box);
+        if (GTK_IS_BOX(container)) {
+            GtkWidget *border_container = gtk_widget_get_first_child(container);
+            if (GTK_IS_BOX(border_container)) {
+                GtkWidget *bg = gtk_widget_get_first_child(border_container);
+                if (GTK_IS_BOX(bg)) {
+                    GtkWidget *label = gtk_widget_get_first_child(bg);
+                    if (GTK_IS_LABEL(label)) {
+                        pipelam_log_debug("len of expression: %lu", strlen(text));
+                        pipelam_log_debug("expression: %s", text);
+
+                        gtk_label_set_markup(GTK_LABEL(label), text);
+                    }
+                }
+            }
+        }
     }
 
     pipelam_update_window_settings(window, config);
@@ -288,99 +363,69 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
 }
 
 static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) {
-    int bar_width;
-    int wob_bar_width = config->wob_bar_width;
+    int box_width_val = config->box_width;
     // Calculate effective margin from padding values
-    int box_padding = config->wob_box_padding;
-    int border_padding = config->wob_border_padding;
+    int box_padding = config->box_padding;
+    int border_padding = config->border_padding;
     int effective_margin = box_padding + border_padding;
 
     // Handle full bar for 200%
     if (percentage >= 200) {
-        return wob_bar_width - (2 * effective_margin); // Full bar width - minus margins
+        return box_width_val - (2 * effective_margin); // Full bar width - minus margins
     }
 
     // For values over 100%, wrap around (e.g., 150% displays as 50%)
     int display_percentage = percentage > 100 ? percentage % 100 : percentage;
 
-    if (display_percentage == 100 || display_percentage == 0) {
-        // Edge case: 100% or 0% (from 200%)
-        bar_width = display_percentage == 100 ? wob_bar_width - (2 * effective_margin) : 0;
+    if (display_percentage == 100) {
+        // Edge case: 100%
+        return box_width_val - (2 * effective_margin);
+    } else if (display_percentage == 0) {
+        // Edge case: 0% (from 200%)
+        return 0;
     } else {
-        bar_width = (wob_bar_width * display_percentage) / 100;
+        // Calculate width based on percentage of available space
+        int available_width = box_width_val - (2 * effective_margin);
+        return (available_width * display_percentage) / 100;
     }
-    return bar_width;
 }
 
 // Main render functions for each type
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
-    // debug print all the wob settings
-    pipelam_log_debug("WOB settings:");
-    pipelam_log_debug("wob_bar_width: %d", pipelam_config->wob_bar_width);
-    pipelam_log_debug("wob_bar_height: %d", pipelam_config->wob_bar_height);
-    pipelam_log_debug("wob_border_color: %s", pipelam_config->wob_border_color);
-    pipelam_log_debug("wob_background_color: %s", pipelam_config->wob_background_color);
-    pipelam_log_debug("wob_foreground_color: %s", pipelam_config->wob_foreground_color);
-    pipelam_log_debug("wob_box_color: %s", pipelam_config->wob_box_color);
-    pipelam_log_debug("wob_border_padding: %d", pipelam_config->wob_border_padding);
-    pipelam_log_debug("wob_border_margin: %d", pipelam_config->wob_border_margin);
-    pipelam_log_debug("wob_background_padding: %d", pipelam_config->wob_background_padding);
-    pipelam_log_debug("wob_foreground_padding: %d", pipelam_config->wob_foreground_padding);
-    pipelam_log_debug("wob_foreground_overflow_padding: %d", pipelam_config->wob_foreground_overflow_padding);
+    int percentage = atoi(pipelam_config->expression);
+    if (percentage < 0)
+        percentage = 0;
+    if (percentage > 200)
+        percentage = 200;
 
-    int percentage = 0;
-    if (pipelam_config->expression != NULL) {
-        percentage = atoi(pipelam_config->expression);
-        if (percentage < 0)
-            percentage = 0;
-        if (percentage > 200)
-            percentage = 200;
-    }
-    pipelam_log_debug("WOB value: %d%%", percentage);
 
     if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-        pipelam_log_debug("Overlaying existing WOB window");
+        pipelam_log_debug("Updating existing WOB window");
 
         int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
+        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->box_height);
 
         // Change CSS class based on percentage value
         if (percentage > 100) {
-            gtk_widget_remove_css_class(bar_fg, "wob-foreground");
-            gtk_widget_add_css_class(bar_fg, "wob-foreground-overflow");
+            gtk_widget_remove_css_class(bar_fg, "foreground");
+            gtk_widget_add_css_class(bar_fg, "foreground-overflow");
 
             // If it's 200%, make it a full red bar
             if (percentage >= 200) {
                 // Calculate effective margin from padding values
-                int box_padding = pipelam_config->wob_box_padding;
-                int border_padding = pipelam_config->wob_border_padding;
+                int box_padding = pipelam_config->box_padding;
+                int border_padding = pipelam_config->border_padding;
                 int effective_margin = box_padding + border_padding;
-                gtk_widget_set_size_request(bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
+                gtk_widget_set_size_request(bar_fg, pipelam_config->box_width - (2 * effective_margin), pipelam_config->box_height); // Full width
             }
         } else {
-            gtk_widget_remove_css_class(bar_fg, "wob-foreground-overflow");
-            gtk_widget_add_css_class(bar_fg, "wob-foreground");
+            gtk_widget_remove_css_class(bar_fg, "foreground-overflow");
+            gtk_widget_add_css_class(bar_fg, "foreground");
         }
 
         pipelam_update_window_settings(current_window, pipelam_config);
-        if (current_timeout_id > 0) {
-            g_source_remove(current_timeout_id);
-        }
-        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
-        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
-
-        gtk_window_present(current_window);
-        return;
-    } else if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-        pipelam_log_debug("Updating existing WOB window");
-
-        int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
-
-        pipelam_update_window_settings(current_window, pipelam_config);
-
         if (current_timeout_id > 0) {
             g_source_remove(current_timeout_id);
         }
@@ -398,58 +443,26 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
         return;
     }
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-    GtkWidget *bar_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_widget_add_css_class(box, "wob-box");
-
-    GtkWidget *bar_bg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_widget_set_hexpand(bar_bg, TRUE);
-    gtk_widget_set_size_request(bar_bg, pipelam_config->wob_bar_width, pipelam_config->wob_bar_height);
-
     GtkWidget *new_bar_fg = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-    gtk_widget_set_size_request(new_bar_fg, bar_width, pipelam_config->wob_bar_height);
+    gtk_widget_set_size_request(new_bar_fg, bar_width, pipelam_config->box_height);
 
-    if (percentage > 100) {
-        gtk_widget_add_css_class(new_bar_fg, "wob-foreground-overflow");
-        // If it's 200%, make it a full red bar
-        if (percentage >= 200) {
-            // Calculate effective margin from padding values
-            int box_padding = pipelam_config->wob_box_padding;
-            int border_padding = pipelam_config->wob_border_padding;
-            int effective_margin = box_padding + border_padding;
-            gtk_widget_set_size_request(new_bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
-        }
-    } else {
-        gtk_widget_add_css_class(new_bar_fg, "wob-foreground");
+    // Use the foreground-overflow class for over 100% values
+    const char *custom_class = (percentage > 100) ? "foreground-overflow" : NULL;
+
+    GtkWidget *box = pipelam_create_styled_box(new_bar_fg, pipelam_config, custom_class);
+
+    // Set the actual window size to the configured box width, not dependent on percentage
+    gtk_window_set_default_size(gtk_window, pipelam_config->box_width, pipelam_config->box_height);
+
+    // If it's 200%, make it a full red bar
+    if (percentage >= 200) {
+        // Calculate effective margin from padding values
+        int box_padding = pipelam_config->box_padding;
+        int border_padding = pipelam_config->border_padding;
+        int effective_margin = box_padding + border_padding;
+        gtk_widget_set_size_request(new_bar_fg, pipelam_config->box_width - (2 * effective_margin), pipelam_config->box_height); // Full width
     }
-
-    GtkWidget *border_container = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-
-    gtk_widget_add_css_class(border_container, "wob-border");
-    gtk_widget_add_css_class(bar_bg, "wob-background");
-
-    GtkCssProvider *provider = gtk_css_provider_new();
-    char css_data[512];
-    snprintf(css_data, sizeof(css_data),
-             ".wob-box { background-color: %s; padding: %dpx; }"
-             ".wob-border { background-color: %s; padding: %dpx; margin: %dpx; }"
-             ".wob-background { background-color: %s; padding: %dpx; }"
-             ".wob-foreground { background-color: %s; padding: %dpx; }"
-             ".wob-foreground-overflow { background-color: %s; padding: %dpx; }",
-             pipelam_config->wob_box_color, pipelam_config->wob_box_padding, pipelam_config->wob_border_color, pipelam_config->wob_border_padding, pipelam_config->wob_border_margin,
-             pipelam_config->wob_background_color, pipelam_config->wob_background_padding, pipelam_config->wob_foreground_color, pipelam_config->wob_foreground_padding,
-             pipelam_config->wob_overflow_color, pipelam_config->wob_foreground_overflow_padding);
-
-    gtk_css_provider_load_from_string(provider, css_data);
-
-    GdkDisplay *display = gdk_display_get_default();
-    gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-    gtk_box_append(GTK_BOX(bar_bg), new_bar_fg);
-    gtk_box_append(GTK_BOX(border_container), bar_bg);
-    gtk_box_append(GTK_BOX(bar_container), border_container);
-    gtk_box_append(GTK_BOX(box), bar_container);
 
     gtk_window_set_child(gtk_window, box);
 
@@ -473,7 +486,7 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     }
 
     gtk_window_present(gtk_window);
-    g_object_unref(provider);
+
 }
 
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {
@@ -509,8 +522,8 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 
     pipelam_log_debug("Image dimensions - width: %d, height: %d", width, height);
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_append(GTK_BOX(box), image);
+    // Create a styled box with the image as content
+    GtkWidget *box = pipelam_create_styled_box(image, pipelam_config, NULL);
     gtk_window_set_child(gtk_window, box);
     gtk_window_set_default_size(gtk_window, width, height);
 
@@ -561,7 +574,10 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
     pipelam_log_debug("expression: %s", pipelam_config->expression);
 
     gtk_label_set_markup(GTK_LABEL(label), pipelam_config->expression);
-    gtk_window_set_child(gtk_window, label);
+
+    // Create a styled box with the label as content
+    GtkWidget *box = pipelam_create_styled_box(label, pipelam_config, NULL);
+    gtk_window_set_child(gtk_window, box);
 
     guint timeout_id = pipelam_reset_window_timeout(gtk_window, 0, pipelam_config->window_timeout);
 

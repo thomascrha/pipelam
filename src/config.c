@@ -36,19 +36,19 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
     config->margin_top = config->default_margin_top;
     config->margin_bottom = config->default_margin_bottom;
 
-    config->wob_bar_height = config->default_wob_bar_height;
-    config->wob_bar_width = config->default_wob_bar_width;
-    config->wob_border_color = config->default_wob_border_color;
-    config->wob_background_color = config->default_wob_background_color;
-    config->wob_foreground_color = config->default_wob_foreground_color;
-    config->wob_overflow_color = config->default_wob_overflow_color;
-    config->wob_box_color = config->default_wob_box_color;
-    config->wob_box_padding = config->default_wob_box_padding;
-    config->wob_border_padding = config->default_wob_border_padding;
-    config->wob_border_margin = config->default_wob_border_margin;
-    config->wob_background_padding = config->default_wob_background_padding;
-    config->wob_foreground_padding = config->default_wob_foreground_padding;
-    config->wob_foreground_overflow_padding = config->default_wob_foreground_overflow_padding;
+    config->box_height = config->default_box_height;
+    config->box_width = config->default_box_width;
+    config->border_color = config->default_border_color;
+    config->background_color = config->default_background_color;
+    config->foreground_color = config->default_foreground_color;
+    config->overflow_color = config->default_overflow_color;
+    config->box_color = config->default_box_color;
+    config->box_padding = config->default_box_padding;
+    config->border_padding = config->default_border_padding;
+    config->border_margin = config->default_border_margin;
+    config->background_padding = config->default_background_padding;
+    config->foreground_padding = config->default_foreground_padding;
+    config->foreground_overflow_padding = config->default_foreground_overflow_padding;
 
     config->expression = NULL;
     config->type = TEXT;
@@ -66,8 +66,8 @@ static void pipelam_set_log_level_from_env(struct pipelam_config *config) {
     // and the log level is set to info by default
     pipelam_log_level_set_from_string(config->log_level);
     pipelam_log_debug("log_level: %s", config->log_level);
-    pipelam_log_debug("backgorund_color: %s", config->wob_background_color);
-    pipelam_log_debug("forground_color: %s", config->wob_foreground_color);
+    pipelam_log_debug("backgorund_color: %s", config->background_color);
+    pipelam_log_debug("forground_color: %s", config->foreground_color);
 }
 
 void pipelam_override_from_environment(struct pipelam_config *config) {
@@ -150,103 +150,103 @@ void pipelam_override_from_environment(struct pipelam_config *config) {
         config->default_margin_bottom = margin;
     }
 
-    const char *wob_bar_width_env = getenv("PIPELAM_WOB_BAR_WIDTH");
-    if (wob_bar_width_env != NULL) {
-        pipelam_log_debug("wob_bar_width: %d", config->wob_bar_width);
-        int width = atoi(wob_bar_width_env);
-        config->wob_bar_width = width;
-        config->default_wob_bar_width = width;
+    const char *box_width_env = getenv("PIPELAM_BOX_WIDTH");
+    if (box_width_env != NULL) {
+        pipelam_log_debug("box_width: %d", config->box_width);
+        int width = atoi(box_width_env);
+        config->box_width = width;
+        config->default_box_width = width;
     }
 
-    const char *wob_bar_height_env = getenv("PIPELAM_WOB_BAR_HEIGHT");
-    if (wob_bar_height_env != NULL) {
-        pipelam_log_debug("wob_bar_height: %d", config->wob_bar_height);
-        int height = atoi(wob_bar_height_env);
-        config->wob_bar_height = height;
-        config->default_wob_bar_height = height;
+    const char *box_height_env = getenv("PIPELAM_BOX_HEIGHT");
+    if (box_height_env != NULL) {
+        pipelam_log_debug("box_height: %d", config->box_height);
+        int height = atoi(box_height_env);
+        config->box_height = height;
+        config->default_box_height = height;
     }
 
-    const char *wob_border_color_env = getenv("PIPELAM_WOB_BORDER_COLOR");
-    if (wob_border_color_env != NULL) {
-        pipelam_log_debug("wob_border_color: %s", wob_border_color_env);
-        config->wob_border_color = (char *)wob_border_color_env;
-        config->default_wob_border_color = (char *)wob_border_color_env;
+    const char *border_color_env = getenv("PIPELAM_BORDER_COLOR");
+    if (border_color_env != NULL) {
+        pipelam_log_debug("border_color: %s", border_color_env);
+        config->border_color = (char *)border_color_env;
+        config->default_border_color = (char *)border_color_env;
     }
 
-    const char *wob_background_color_env = getenv("PIPELAM_WOB_BACKGROUND_COLOR");
-    if (wob_background_color_env != NULL) {
-        pipelam_log_debug("wob_background_color: %s", wob_background_color_env);
-        config->wob_background_color = (char *)wob_background_color_env;
-        config->default_wob_background_color = (char *)wob_background_color_env;
+    const char *background_color_env = getenv("PIPELAM_BACKGROUND_COLOR");
+    if (background_color_env != NULL) {
+        pipelam_log_debug("background_color: %s", background_color_env);
+        config->background_color = (char *)background_color_env;
+        config->default_background_color = (char *)background_color_env;
     }
 
-    const char *wob_foreground_color_env = getenv("PIPELAM_WOB_FOREGROUND_COLOR");
-    if (wob_foreground_color_env != NULL) {
-        pipelam_log_debug("wob_foreground_color: %s", wob_foreground_color_env);
-        config->wob_foreground_color = (char *)wob_foreground_color_env;
-        config->default_wob_foreground_color = (char *)wob_foreground_color_env;
+    const char *foreground_color_env = getenv("PIPELAM_FOREGROUND_COLOR");
+    if (foreground_color_env != NULL) {
+        pipelam_log_debug("foreground_color: %s", foreground_color_env);
+        config->foreground_color = (char *)foreground_color_env;
+        config->default_foreground_color = (char *)foreground_color_env;
     }
 
-    const char *wob_overflow_color_env = getenv("PIPELAM_WOB_OVERFLOW_COLOR");
-    if (wob_overflow_color_env != NULL) {
-        pipelam_log_debug("wob_overflow_color: %s", wob_overflow_color_env);
-        config->wob_overflow_color = (char *)wob_overflow_color_env;
-        config->default_wob_overflow_color = (char *)wob_overflow_color_env;
+    const char *overflow_color_env = getenv("PIPELAM_OVERFLOW_COLOR");
+    if (overflow_color_env != NULL) {
+        pipelam_log_debug("overflow_color: %s", overflow_color_env);
+        config->overflow_color = (char *)overflow_color_env;
+        config->default_overflow_color = (char *)overflow_color_env;
     }
 
-    const char *wob_box_color_env = getenv("PIPELAM_WOB_BOX_COLOR");
-    if (wob_box_color_env != NULL) {
-        pipelam_log_debug("wob_box_color: %s", wob_box_color_env);
-        config->wob_box_color = (char *)wob_box_color_env;
-        config->default_wob_box_color = (char *)wob_box_color_env;
+    const char *box_color_env = getenv("PIPELAM_BOX_COLOR");
+    if (box_color_env != NULL) {
+        pipelam_log_debug("box_color: %s", box_color_env);
+        config->box_color = (char *)box_color_env;
+        config->default_box_color = (char *)box_color_env;
     }
 
-    const char *wob_box_padding_env = getenv("PIPELAM_WOB_BOX_PADDING");
-    if (wob_box_padding_env != NULL) {
-        pipelam_log_debug("wob_box_padding: %s", wob_box_padding_env);
-        int wob_box_padding = atoi(wob_box_padding_env);
-        config->wob_box_padding = wob_box_padding;
-        config->default_wob_box_padding = wob_box_padding;
+    const char *box_padding_env = getenv("PIPELAM_BOX_PADDING");
+    if (box_padding_env != NULL) {
+        pipelam_log_debug("box_padding: %s", box_padding_env);
+        int box_padding = atoi(box_padding_env);
+        config->box_padding = box_padding;
+        config->default_box_padding = box_padding;
     }
 
-    const char *wob_border_padding_env = getenv("PIPELAM_WOB_BORDER_PADDING");
-    if (wob_border_padding_env != NULL) {
-        pipelam_log_debug("wob_border_padding: %s", wob_border_padding_env);
-        int border_padding = atoi(wob_border_padding_env);
-        config->wob_border_padding = border_padding;
-        config->default_wob_border_padding = border_padding;
+    const char *border_padding_env = getenv("PIPELAM_BORDER_PADDING");
+    if (border_padding_env != NULL) {
+        pipelam_log_debug("border_padding: %s", border_padding_env);
+        int border_padding = atoi(border_padding_env);
+        config->border_padding = border_padding;
+        config->default_border_padding = border_padding;
     }
 
-    const char *wob_border_margin_env = getenv("PIPELAM_WOB_BORDER_MARGIN");
-    if (wob_border_margin_env != NULL) {
-        pipelam_log_debug("wob_border_margin: %s", wob_border_margin_env);
-        int border_margin = atoi(wob_border_margin_env);
-        config->wob_border_margin = border_margin;
-        config->default_wob_border_margin = border_margin;
+    const char *border_margin_env = getenv("PIPELAM_BORDER_MARGIN");
+    if (border_margin_env != NULL) {
+        pipelam_log_debug("border_margin: %s", border_margin_env);
+        int border_margin = atoi(border_margin_env);
+        config->border_margin = border_margin;
+        config->default_border_margin = border_margin;
     }
 
-    const char *wob_background_padding_env = getenv("PIPELAM_WOB_BACKGROUND_PADDING");
-    if (wob_background_padding_env != NULL) {
-        pipelam_log_debug("wob_background_padding: %s", wob_background_padding_env);
-        int background_padding = atoi(wob_background_padding_env);
-        config->wob_background_padding = background_padding;
-        config->default_wob_background_padding = background_padding;
+    const char *background_padding_env = getenv("PIPELAM_BACKGROUND_PADDING");
+    if (background_padding_env != NULL) {
+        pipelam_log_debug("background_padding: %s", background_padding_env);
+        int background_padding = atoi(background_padding_env);
+        config->background_padding = background_padding;
+        config->default_background_padding = background_padding;
     }
 
-    const char *wob_foreground_padding_env = getenv("PIPELAM_WOB_FOREGROUND_PADDING");
-    if (wob_foreground_padding_env != NULL) {
-        pipelam_log_debug("wob_foreground_padding: %s", wob_foreground_padding_env);
-        int foreground_padding = atoi(wob_foreground_padding_env);
-        config->wob_foreground_padding = foreground_padding;
-        config->default_wob_foreground_padding = foreground_padding;
+    const char *foreground_padding_env = getenv("PIPELAM_FOREGROUND_PADDING");
+    if (foreground_padding_env != NULL) {
+        pipelam_log_debug("foreground_padding: %s", foreground_padding_env);
+        int foreground_padding = atoi(foreground_padding_env);
+        config->foreground_padding = foreground_padding;
+        config->default_foreground_padding = foreground_padding;
     }
 
-    const char *wob_foreground_overflow_padding_env = getenv("PIPELAM_WOB_FOREGROUND_OVERFLOW_PADDING");
-    if (wob_foreground_overflow_padding_env != NULL) {
-        pipelam_log_debug("wob_foreground_overflow_padding: %s", wob_foreground_overflow_padding_env);
-        int foreground_overflow_padding = atoi(wob_foreground_overflow_padding_env);
-        config->wob_foreground_overflow_padding = foreground_overflow_padding;
-        config->default_wob_foreground_overflow_padding = foreground_overflow_padding;
+    const char *foreground_overflow_padding_env = getenv("PIPELAM_FOREGROUND_OVERFLOW_PADDING");
+    if (foreground_overflow_padding_env != NULL) {
+        pipelam_log_debug("foreground_overflow_padding: %s", foreground_overflow_padding_env);
+        int foreground_overflow_padding = atoi(foreground_overflow_padding_env);
+        config->foreground_overflow_padding = foreground_overflow_padding;
+        config->default_foreground_overflow_padding = foreground_overflow_padding;
     }
 }
 
@@ -428,54 +428,54 @@ static bool pipelam_parse_config_file(char *path, struct pipelam_config *config)
             int margin = atoi(co->value);
             config->margin_bottom = margin;
             config->default_margin_bottom = margin;
-        } else if (strcmp(co->key, "wob_bar_width") == 0) {
+        } else if (strcmp(co->key, "box_width") == 0) {
             int width = atoi(co->value);
-            config->wob_bar_width = width;
-            config->default_wob_bar_width = width;
-        } else if (strcmp(co->key, "wob_bar_height") == 0) {
+            config->box_width = width;
+            config->default_box_width = width;
+        } else if (strcmp(co->key, "box_height") == 0) {
             int height = atoi(co->value);
-            config->wob_bar_height = height;
-            config->default_wob_bar_height = height;
+            config->box_height = height;
+            config->default_box_height = height;
 
-        } else if (strcmp(co->key, "wob_border_color") == 0) {
-            config->wob_border_color = co->value;
-            config->default_wob_border_color = co->value;
-        } else if (strcmp(co->key, "wob_background_color") == 0) {
-            config->wob_background_color = co->value;
-            config->default_wob_background_color = co->value;
-        } else if (strcmp(co->key, "wob_foreground_color") == 0) {
-            config->wob_foreground_color = co->value;
-            config->default_wob_foreground_color = co->value;
-        } else if (strcmp(co->key, "wob_overflow_color") == 0) {
-            config->wob_overflow_color = co->value;
-            config->default_wob_overflow_color = co->value;
-        } else if (strcmp(co->key, "wob_box_color") == 0) {
-            config->wob_box_color = co->value;
-            config->default_wob_box_color = co->value;
-        } else if (strcmp(co->key, "wob_box_padding") == 0) {
+        } else if (strcmp(co->key, "border_color") == 0) {
+            config->border_color = co->value;
+            config->default_border_color = co->value;
+        } else if (strcmp(co->key, "background_color") == 0) {
+            config->background_color = co->value;
+            config->default_background_color = co->value;
+        } else if (strcmp(co->key, "foreground_color") == 0) {
+            config->foreground_color = co->value;
+            config->default_foreground_color = co->value;
+        } else if (strcmp(co->key, "overflow_color") == 0) {
+            config->overflow_color = co->value;
+            config->default_overflow_color = co->value;
+        } else if (strcmp(co->key, "box_color") == 0) {
+            config->box_color = co->value;
+            config->default_box_color = co->value;
+        } else if (strcmp(co->key, "box_padding") == 0) {
             int box_padding = atoi(co->value);
-            config->wob_box_padding = box_padding;
-            config->default_wob_box_padding = box_padding;
-        } else if (strcmp(co->key, "wob_border_padding") == 0) {
+            config->box_padding = box_padding;
+            config->default_box_padding = box_padding;
+        } else if (strcmp(co->key, "border_padding") == 0) {
             int border_padding = atoi(co->value);
-            config->wob_border_padding = border_padding;
-            config->default_wob_border_padding = border_padding;
-        } else if (strcmp(co->key, "wob_border_margin") == 0) {
+            config->border_padding = border_padding;
+            config->default_border_padding = border_padding;
+        } else if (strcmp(co->key, "border_margin") == 0) {
             int border_margin = atoi(co->value);
-            config->wob_border_margin = border_margin;
-            config->default_wob_border_margin = border_margin;
-        } else if (strcmp(co->key, "wob_background_padding") == 0) {
+            config->border_margin = border_margin;
+            config->default_border_margin = border_margin;
+        } else if (strcmp(co->key, "background_padding") == 0) {
             int background_padding = atoi(co->value);
-            config->wob_background_padding = background_padding;
-            config->default_wob_background_padding = background_padding;
-        } else if (strcmp(co->key, "wob_foreground_padding") == 0) {
+            config->background_padding = background_padding;
+            config->default_background_padding = background_padding;
+        } else if (strcmp(co->key, "foreground_padding") == 0) {
             int foreground_padding = atoi(co->value);
-            config->wob_foreground_padding = foreground_padding;
-            config->default_wob_foreground_padding = foreground_padding;
-        } else if (strcmp(co->key, "wob_foreground_overflow_padding") == 0) {
+            config->foreground_padding = foreground_padding;
+            config->default_foreground_padding = foreground_padding;
+        } else if (strcmp(co->key, "foreground_overflow_padding") == 0) {
             int foreground_overflow_padding = atoi(co->value);
-            config->wob_foreground_overflow_padding = foreground_overflow_padding;
-            config->default_wob_foreground_overflow_padding = foreground_overflow_padding;
+            config->foreground_overflow_padding = foreground_overflow_padding;
+            config->default_foreground_overflow_padding = foreground_overflow_padding;
         } else {
             pipelam_log_error("Unknown key: %s", co->key);
         }
@@ -534,34 +534,34 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     config->default_margin_top = FALLBACK_MARGIN_TOP;
     config->default_margin_bottom = FALLBACK_MARGIN_BOTTOM;
 
-    config->default_wob_bar_height = FALLBACK_WOB_BAR_HEIGHT;
-    config->default_wob_bar_width = FALLBACK_WOB_BAR_WIDTH;
-    config->default_wob_border_color = FALLBACK_WOB_BORDER_COLOR;
-    config->default_wob_background_color = FALLBACK_WOB_BACKGROUND_COLOR;
-    config->default_wob_foreground_color = FALLBACK_WOB_FOREGROUND_COLOR;
-    config->default_wob_overflow_color = FALLBACK_WOB_OVERFLOW_COLOR;
-    config->default_wob_box_color = FALLBACK_WOB_BOX_COLOR;
-    config->default_wob_box_padding = FALLBACK_WOB_BOX_PADDING;
-    config->default_wob_border_padding = FALLBACK_WOB_BORDER_PADDING;
-    config->default_wob_border_margin = FALLBACK_WOB_BORDER_MARGIN;
-    config->default_wob_background_padding = FALLBACK_WOB_BACKGROUND_PADDING;
-    config->default_wob_foreground_padding = FALLBACK_WOB_FOREGROUND_PADDING;
-    config->default_wob_foreground_overflow_padding = FALLBACK_WOB_FOREGROUND_OVERFLOW_PADDING;
 
-    config->wob_bar_height = FALLBACK_WOB_BAR_HEIGHT;
-    config->wob_bar_width = FALLBACK_WOB_BAR_WIDTH;
-    config->wob_border_color = FALLBACK_WOB_BORDER_COLOR;
-    config->wob_background_color = FALLBACK_WOB_BACKGROUND_COLOR;
-    config->wob_foreground_color = FALLBACK_WOB_FOREGROUND_COLOR;
-    config->wob_overflow_color = FALLBACK_WOB_OVERFLOW_COLOR;
-    config->wob_box_color = FALLBACK_WOB_BOX_COLOR;
-    config->wob_box_padding = FALLBACK_WOB_BOX_PADDING;
-    config->wob_border_padding = FALLBACK_WOB_BORDER_PADDING;
-    config->wob_border_margin = FALLBACK_WOB_BORDER_MARGIN;
-    config->wob_background_padding = FALLBACK_WOB_BACKGROUND_PADDING;
-    config->wob_foreground_padding = FALLBACK_WOB_FOREGROUND_PADDING;
-    config->wob_foreground_overflow_padding = FALLBACK_WOB_FOREGROUND_OVERFLOW_PADDING;
+    config->default_box_height = FALLBACK_BOX_HEIGHT;
+    config->default_box_width = FALLBACK_BOX_WIDTH;
+    config->default_border_color = FALLBACK_BORDER_COLOR;
+    config->default_background_color = FALLBACK_BACKGROUND_COLOR;
+    config->default_foreground_color = FALLBACK_FOREGROUND_COLOR;
+    config->default_overflow_color = FALLBACK_OVERFLOW_COLOR;
+    config->default_box_color = FALLBACK_BOX_COLOR;
+    config->default_box_padding = FALLBACK_BOX_PADDING;
+    config->default_border_padding = FALLBACK_BORDER_PADDING;
+    config->default_border_margin = FALLBACK_BORDER_MARGIN;
+    config->default_background_padding = FALLBACK_BACKGROUND_PADDING;
+    config->default_foreground_padding = FALLBACK_FOREGROUND_PADDING;
+    config->default_foreground_overflow_padding = FALLBACK_FOREGROUND_OVERFLOW_PADDING;
 
+    config->box_height = FALLBACK_BOX_HEIGHT;
+    config->box_width = FALLBACK_BOX_WIDTH;
+    config->border_color = FALLBACK_BORDER_COLOR;
+    config->background_color = FALLBACK_BACKGROUND_COLOR;
+    config->foreground_color = FALLBACK_FOREGROUND_COLOR;
+    config->overflow_color = FALLBACK_OVERFLOW_COLOR;
+    config->box_color = FALLBACK_BOX_COLOR;
+    config->box_padding = FALLBACK_BOX_PADDING;
+    config->border_padding = FALLBACK_BORDER_PADDING;
+    config->border_margin = FALLBACK_BORDER_MARGIN;
+    config->background_padding = FALLBACK_BACKGROUND_PADDING;
+    config->foreground_padding = FALLBACK_FOREGROUND_PADDING;
+    config->foreground_overflow_padding = FALLBACK_FOREGROUND_OVERFLOW_PADDING;
     config->window_timeout = FALLBACK_WINDOW_TIMEOUT;
     config->anchor = FALLBACK_ANCHOR;
     config->margin_left = FALLBACK_MARGIN_LEFT;

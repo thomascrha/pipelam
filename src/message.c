@@ -24,7 +24,14 @@ static enum pipelam_window_anchor pipelam_json_config_anchor_parse(struct json_s
 }
 
 static void pipelam_json_config_settings_parse(struct json_object_s *object, struct pipelam_config *config) {
-    char *keys[] = {"window_timeout", "anchor", "margin_left", "margin_right", "margin_top", "margin_bottom"};
+    char *keys[] = {
+        "window_timeout", "anchor",
+        "margin_left", "margin_right", "margin_top", "margin_bottom",
+        "box_height", "box_width",
+        "border_color", "background_color", "foreground_color", "overflow_color", "box_color",
+        "box_padding", "border_padding", "border_margin",
+        "background_padding", "foreground_padding", "foreground_overflow_padding"
+    };
 
     struct json_object_element_s *element = object->start;
     pipelam_log_debug("pipelam_json_config_settings_parse");
@@ -32,10 +39,14 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
         struct json_string_s *name = element->name;
         struct json_value_s *value = element->value;
 
+        int found_key = 0;
         for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
             char *key = keys[i];
             if (0 == strcmp(name->string, key)) {
+                found_key = 1;
                 pipelam_log_debug("key: %s", key);
+
+                // Window position/timing settings
                 if (0 == strcmp(name->string, "window_timeout")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
@@ -49,7 +60,9 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
                     if (_value != NULL) {
                         config->anchor = pipelam_json_config_anchor_parse(_value);
                     }
-                } else if (0 == strcmp(name->string, "margin_left")) {
+                }
+                // Margin settings
+                else if (0 == strcmp(name->string, "margin_left")) {
                     struct json_number_s *_value = json_value_as_number(value);
                     if (_value != NULL) {
                         config->margin_left = atoi(_value->number);
@@ -69,11 +82,86 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
                     if (_value != NULL) {
                         config->margin_bottom = atoi(_value->number);
                     }
-                } else {
-                    pipelam_log_error("unknown key: %s", name->string);
                 }
+                // Bar dimensions
+                else if (0 == strcmp(name->string, "box_height")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->box_height = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "box_width")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->box_width = atoi(_value->number);
+                    }
+                }
+                // Color settings
+                else if (0 == strcmp(name->string, "border_color")) {
+                    struct json_string_s *_value = json_value_as_string(value);
+                    if (_value != NULL) {
+                        config->border_color = _value->string;
+                    }
+                } else if (0 == strcmp(name->string, "background_color")) {
+                    struct json_string_s *_value = json_value_as_string(value);
+                    if (_value != NULL) {
+                        config->background_color = _value->string;
+                    }
+                } else if (0 == strcmp(name->string, "foreground_color")) {
+                    struct json_string_s *_value = json_value_as_string(value);
+                    if (_value != NULL) {
+                        config->foreground_color = _value->string;
+                    }
+                } else if (0 == strcmp(name->string, "overflow_color")) {
+                    struct json_string_s *_value = json_value_as_string(value);
+                    if (_value != NULL) {
+                        config->overflow_color = _value->string;
+                    }
+                } else if (0 == strcmp(name->string, "box_color")) {
+                    struct json_string_s *_value = json_value_as_string(value);
+                    if (_value != NULL) {
+                        config->box_color = _value->string;
+                    }
+                }
+                // Padding settings
+                else if (0 == strcmp(name->string, "box_padding")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->box_padding = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "border_padding")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->border_padding = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "border_margin")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->border_margin = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "background_padding")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->background_padding = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "foreground_padding")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->foreground_padding = atoi(_value->number);
+                    }
+                } else if (0 == strcmp(name->string, "foreground_overflow_padding")) {
+                    struct json_number_s *_value = json_value_as_number(value);
+                    if (_value != NULL) {
+                        config->foreground_overflow_padding = atoi(_value->number);
+                    }
+                }
+                break;
             }
         }
+
+        if (!found_key) {
+            pipelam_log_error("unknown key: %s", name->string);
+        }
+
         element = element->next;
     }
     pipelam_log_debug("window_timeout: %d", config->window_timeout);

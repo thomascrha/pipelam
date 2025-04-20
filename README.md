@@ -153,39 +153,37 @@ margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (C
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 
-# WOB bar behaviour
+# BOX bar behaviour
 # Note: Any color can use css color strings or hexvalues with a # before the number - see wob_foreground_color
-wob_bar_height = 25 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
-wob_bar_width = 350 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
-wob_border_color = "white" # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
-wob_background_color = "black" # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
-wob_foreground_color = "#FFFFFF" # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
-wob_overflow_color = "red" # The color of the foreground of the wob bar for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
-wob_box_color = "black" # The color of the box containing the wob bar. (Default: black) (Can be overridden by the JSON payload)
-
-# WOB component-specific padding/margin
-wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
-wob_border_padding = 4 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_border_margin = 4 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+box_height = 25 # The height of the progress box. (Default: 25) (Can be overridden by the JSON payload)
+box_width = 350 # The width of the progress box. (Default: 350) (Can be overridden by the JSON payload)
+border_color = "white" # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
+background_color = "black" # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
+foreground_color = "#FFFFFF" # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
+overflow_color = "red" # The color of the foreground of the wob bar for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
+box_color = "black" # The color of the box containing the wob bar. (Default: black) (Can be overridden by the JSON payload)
+box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
+border_padding = 4 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+border_margin = 4 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
 ```
 
-### WOB mode styling
+### Bar styling
 
 
 ```console
              --->+------------------------------------------------+
-              |  |               wob_box_color                    <--+ wob_box_padding
+              |  |               box_color                        <--+ box_padding
               |  | +--------------------------------------------+ |  | (space between outer edge and border)
-              |  | |             wob_border_color               | |<-+ wob_border_margin
+              |  | |             border_color                   | |<-+ border_margin
               |  | | +----------------------------------------+ | |  | (space between border and box edge)
-              |  | | |          wob_background_color          | <-|--+ wob_border_padding
+              |  | | |          background_color              | <-|--+ border_padding
               |  | | | +------------------------------------+ | | |  | (space between background and border)
-              |  | | | |          wob_foreground_color      | <-|-|--+ wob_background_padding
-wob_bar_height|  | | | |  (over 100%: wob_overflow_color)   | | | |  | (space between foreground and background)
-              |  | | | |                                    <-|-|-|--+ wob_foreground_padding
+              |  | | | |          foreground_color          | <-|-|--+ background_padding
+  bar_height  |  | | | |  (over 100%: overflow_color)       | | | |  | (space between foreground and background)
+              |  | | | |                                    <-|-|-|--+ foreground_padding
               |  | | | +------------------------------------+ | | |  | (inner padding of foreground bar)
               |  | | |                                        | | |
               |  | | +----------------------------------------+ | |
@@ -194,7 +192,7 @@ wob_bar_height|  | | | |  (over 100%: wob_overflow_color)   | | | |  | (space be
               |  |                                                |
              --->+------------------------------------------------+
                  ^                                                ^
-                 |---- wob_bar_width (total width of widget) -----|
+                 |------ bar_width (total width of widget) -------|
 ```
 
 ## Examples
@@ -231,20 +229,20 @@ Options:
   -T, --margin-top=PIXELS      Set top margin in pixels
   -B, --margin-bottom=PIXELS   Set bottom margin in pixels
 
-WOB bar options:
-  --wob-bar-height=PIXELS      Set WOB bar height in pixels
-  --wob-bar-width=PIXELS       Set WOB bar width in pixels
-  --wob-border-color=COLOR     Set WOB border color
-  --wob-background-color=COLOR Set WOB background color
-  --wob-foreground-color=COLOR Set WOB foreground color
-  --wob-overflow-color=COLOR   Set WOB overflow color
-  --wob-box-color=COLOR        Set WOB box color
-  --wob-box-padding=PIXELS     Set WOB box padding in pixels
-  --wob-border-padding=PIXELS  Set WOB border padding in pixels
-  --wob-border-margin=PIXELS   Set WOB border margin in pixels
-  --wob-background-padding=PIXELS Set WOB background padding in pixels
-  --wob-foreground-padding=PIXELS Set WOB foreground padding in pixels
-  --wob-foreground-overflow-padding=PIXELS Set WOB foreground overflow padding in pixels
+Bar styling options:
+  --box-height=PIXELS          Set box height in pixels
+  --box-width=PIXELS           Set box width in pixels
+  --border-color=COLOR         Set border color
+  --background-color=COLOR     Set background color
+  --foreground-color=COLOR     Set foreground color
+  --overflow-color=COLOR       Set overflow color
+  --box-color=COLOR            Set box color
+  --box-padding=PIXELS         Set box padding in pixels
+  --border-padding=PIXELS      Set border padding in pixels
+  --border-margin=PIXELS       Set border margin in pixels
+  --background-padding=PIXELS  Set background padding in pixels
+  --foreground-padding=PIXELS  Set foreground padding in pixels
+  --foreground-overflow-padding=PIXELS Set foreground overflow padding in pixels
 
   -v, --version                Display version information
   -h, --help                   Display this help message

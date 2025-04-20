@@ -23,20 +23,18 @@ margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (C
 margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 
-# WOB bar behaviour
-# Note: Any color can use css color strings or hexvalues with a # before the number - see wob_foreground_color
-wob_bar_height = 25 # The height of the wob bar. (Default: 25) (Can be overridden by the JSON payload)
-wob_bar_width = 350 # The width of the wob bar. (Default: 350) (Can be overridden by the JSON payload)
-wob_border_color = "white" # The color of the border of the wob bar. (Default: white) (Can be overridden by the JSON payload)
-wob_background_color = "black" # The color of the background of the wob bar. (Default: black) (Can be overridden by the JSON payload)
-wob_foreground_color = "#FFFFFF" # The color of the foreground of the wob bar for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
-wob_overflow_color = "red" # The color of the foreground of the wob bar for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
-wob_box_color = "black" # The color of the box containing the wob bar. (Default: black) (Can be overridden by the JSON payload)
-
-# WOB component-specific padding/margin
-wob_box_padding = 0 # The padding of the box containing the wob bar in pixels. (Default: 0) (Can be overridden by the JSON payload)
-wob_border_padding = 4 # The padding of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_border_margin = 4 # The margin of the border of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
+# Bar styling
+# Note: Any color can use css color strings or hexvalues with a # before the number - see foreground_color
+box_height = 25 # The height of the box. (Default: 25) (Can be overridden by the JSON payload)
+box_width = 350 # The width of the box. (Default: 350) (Can be overridden by the JSON payload)
+border_color = "white" # The color of the border. (Default: white) (Can be overridden by the JSON payload)
+background_color = "black" # The color of the background. (Default: black) (Can be overridden by the JSON payload)
+foreground_color = "#FFFFFF" # The color of the foreground for values 0-100%. (Default: white) (Can be overridden by the JSON payload)
+overflow_color = "red" # The color of the foreground for values 101-200%. (Default: red) (Can be overridden by the JSON payload)
+box_color = "black" # The color of the containing box. (Default: black) (Can be overridden by the JSON payload)
+box_padding = 0 # The padding of the box in pixels. (Default: 0) (Can be overridden by the JSON payload)
+border_padding = 4 # The padding of the border in pixels. (Default: 4) (Can be overridden by the JSON payload)
+border_margin = 4 # The margin of the border in pixels. (Default: 4) (Can be overridden by the JSON payload)
+background_padding = 4 # The padding of the background in pixels. (Default: 4) (Can be overridden by the JSON payload)
+foreground_padding = 4 # The padding of the foreground in pixels. (Default: 4) (Can be overridden by the JSON payload)
+foreground_overflow_padding = 4 # The padding of the foreground overflow in pixels. (Default: 4) (Can be overridden by the JSON payload)
