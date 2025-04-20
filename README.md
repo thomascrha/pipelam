@@ -35,51 +35,12 @@ make build
 sudo make install
 ```
 
-## Command Line Options
-
-pipelam supports various command line options to customize its behavior without modifying the configuration file:
-
-```console
-Usage: pipelam [OPTIONS] <pipe_path>
-Options:
-  -l, --log-level=LEVEL        Set log level (DEBUG, INFO, WARNING, ERROR, PANIC)
-  -r, --runtime-behaviour=TYPE Set runtime behaviour (queue, replace, overlay)
-  -t, --window-timeout=MS      Set window timeout in milliseconds
-  -a, --anchor=POS             Set window anchor position (bottom-left, bottom-right, top-left, top-right, center)
-  -L, --margin-left=PIXELS     Set left margin in pixels
-  -R, --margin-right=PIXELS    Set right margin in pixels
-  -T, --margin-top=PIXELS      Set top margin in pixels
-  -B, --margin-bottom=PIXELS   Set bottom margin in pixels
-
-WOB bar options:
-  --wob-bar-height=PIXELS      Set WOB bar height in pixels
-  --wob-bar-width=PIXELS       Set WOB bar width in pixels
-  --wob-border-color=COLOR     Set WOB border color
-  --wob-background-color=COLOR Set WOB background color
-  --wob-foreground-color=COLOR Set WOB foreground color
-  --wob-overflow-color=COLOR   Set WOB overflow color
-  --wob-box-color=COLOR        Set WOB box color
-  --wob-box-padding=PIXELS     Set WOB box padding in pixels
-  --wob-border-padding=PIXELS  Set WOB border padding in pixels
-  --wob-border-margin=PIXELS   Set WOB border margin in pixels
-  --wob-background-padding=PIXELS Set WOB background padding in pixels
-  --wob-foreground-padding=PIXELS Set WOB foreground padding in pixels
-  --wob-foreground-overflow-padding=PIXELS Set WOB foreground overflow padding in pixels
-
-  -v, --version                Display version information
-  -h, --help                   Display this help message
-```
-
-Example usage:
-```console
-pipelam --log-level=DEBUG --anchor=top-right --margin-top=50 --margin-right=50 /tmp/pipelam.fifo
-```
-
 ## Running
 
 To run the project, you will need to create a FIFO file that pipelam will listen to. You can do this by running the following command:
 
 Note: If no FIFO file is provided, pipelam will create one at the path you specify.
+
 ```shell
 mkfifo /tmp/pipelam.fifo
 ```
@@ -112,33 +73,7 @@ jq -n --arg text "Hello, World" '{type: "text", expression: $text}' -c > /tmp/pi
   - For `image`: The path to the image you want to show
   - For `wob`: A numeric value between 0-200 representing the progress bar percentage
 4. The object also supports an `version` key, at this point this doesn't do anything - but it is there for future compatibility. The default value is 0.
-5. For all optional keys these must be contained in an inner object with the key `settings`. This object can contain the following keys:
-  - `window_timeout`: The time in milliseconds before the overlay is hidden.
-  - `anchor`: The anchor point of the overlay. This can be one of the following values:
-    - `top-left`
-    - `top-right`
-    - `bottom-left`
-    - `bottom-right`
-    - `center`
-  - `margin_left`: The margin from the left edge of the screen.
-  - `margin_right`: The margin from the right edge of the screen.
-  - `margin_top`: The margin from the top edge of the screen.
-  - `margin_bottom`: The margin from the bottom edge of the screen.
-
-  For WOB progress bars, these additional settings are available:
-  - `wob_bar_width`: Width of the progress bar in pixels.
-  - `wob_bar_height`: Height of the progress bar in pixels.
-  - `wob_border_color`: Color of the border (CSS color string or hex value).
-  - `wob_background_color`: Background color of the bar.
-  - `wob_foreground_color`: Foreground color for normal range (0-100%).
-  - `wob_overflow_color`: Foreground color for overflow range (101-200%).
-  - `wob_box_color`: Color of the box containing the bar.
-  - `wob_box_padding`: Padding of the box in pixels.
-  - `wob_border_padding`: Padding of the border in pixels.
-  - `wob_border_margin`: Margin of the border in pixels.
-  - `wob_background_padding`: Background padding in pixels.
-  - `wob_foreground_padding`: Foreground padding in pixels.
-  - `wob_foreground_overflow_padding`: Overflow padding in pixels.
+5. For all optional keys these must be contained in an inner object with the key `settings`. Please refer to the [Configuration](#Configuration) section for the available options.
 6. If the keys in the `settings` object are not provided, the default values will be used. If the `settings` object contains keys it doesn't recognise or can't interpret the value it simply uses the default.
 
 ### Text Expression
@@ -202,7 +137,7 @@ wob_border_margin = 4 # The margin of the border of the wob bar in pixels. (Defa
 wob_background_padding = 4 # The padding of the background of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
 wob_foreground_padding = 4 # The padding of the foreground of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
 wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of the wob bar in pixels. (Default: 4) (Can be overridden by the JSON payload)
-`
+```
 
 ### WOB mode styling
 
@@ -228,6 +163,47 @@ wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of 
     ↑
     |
     wob_bar_height
+```
+
+## Command Line Options
+
+pipelam supports various command line options to customize its behavior without modifying the configuration file:
+
+```console
+Usage: pipelam [OPTIONS] <pipe_path>
+Options:
+  -l, --log-level=LEVEL        Set log level (DEBUG, INFO, WARNING, ERROR, PANIC)
+  -r, --runtime-behaviour=TYPE Set runtime behaviour (queue, replace, overlay)
+  -t, --window-timeout=MS      Set window timeout in milliseconds
+  -a, --anchor=POS             Set window anchor position (bottom-left, bottom-right, top-left, top-right, center)
+  -L, --margin-left=PIXELS     Set left margin in pixels
+  -R, --margin-right=PIXELS    Set right margin in pixels
+  -T, --margin-top=PIXELS      Set top margin in pixels
+  -B, --margin-bottom=PIXELS   Set bottom margin in pixels
+
+WOB bar options:
+  --wob-bar-height=PIXELS      Set WOB bar height in pixels
+  --wob-bar-width=PIXELS       Set WOB bar width in pixels
+  --wob-border-color=COLOR     Set WOB border color
+  --wob-background-color=COLOR Set WOB background color
+  --wob-foreground-color=COLOR Set WOB foreground color
+  --wob-overflow-color=COLOR   Set WOB overflow color
+  --wob-box-color=COLOR        Set WOB box color
+  --wob-box-padding=PIXELS     Set WOB box padding in pixels
+  --wob-border-padding=PIXELS  Set WOB border padding in pixels
+  --wob-border-margin=PIXELS   Set WOB border margin in pixels
+  --wob-background-padding=PIXELS Set WOB background padding in pixels
+  --wob-foreground-padding=PIXELS Set WOB foreground padding in pixels
+  --wob-foreground-overflow-padding=PIXELS Set WOB foreground overflow padding in pixels
+
+  -v, --version                Display version information
+  -h, --help                   Display this help message
+```
+
+Example usage:
+```console
+pipelam --log-level=DEBUG --anchor=top-right --margin-top=50 --margin-right=50 /tmp/pipelam.fifo
+```
 
 ## Makefile
 
@@ -235,16 +211,20 @@ wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of 
 Usage: make [target]
 
 Targets:
-  all             Build the project
-  build           Build the project without cleaning
+  build           Build and download all deps for the project
   build_dir       Create build directory if it doesn't exist
   build_test      Build the test suite
-  clean           Remove built executables
+  clean           Remove built executables and object files
+  debug           Build with enhanced debugging symbols for GDB
+  derun           Run the project
   download_json_h Download the json.h external single header lib
   format          Format the code using clang-format
+  generate_man    Generate man pages from scdoc
   help            Display this help message
   install         Install pipelam to the system
+  install_systemd Install systemd (user) service and timer
   rebuild         Clean and build the project
+  release         Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
   run             Run the project
   test            Rebuild the project and run tests
   uninstall       Uninstall pipelam from the system
@@ -252,10 +232,11 @@ Targets:
 
 # TODO's
 
-- [ ] Add to Arch user repositories
+- [ ] Add better installation step including describing the man and systemd installation
+- [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 - [ ] Clean up the examples and make more permutations of them
 - [ ] Using the examples make a demo video for the readme
+- [ ] Add to Arch user repositories
 - [x] Add customisation of the wob type
 - [x] Add overflow behaviour that turns red for wob mode
-- [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 
