@@ -174,28 +174,45 @@ wob_foreground_overflow_padding = 4 # The padding of the foreground overflow of 
 
 ### WOB mode styling
 
+
 ```console
-+---------------------------------------------------------+
-|                      wob_box_color                      | ← wob_box_padding
-|   +---------------------------------------------------+ |
-|   |                 wob_border_color                  | | ← wob_border_margin
-|   |   +---------------------------------------------+ | |
-|   |   |            wob_background_color             | | | ← wob_border_padding
-|   |   |   +---------------------------------------+ | | |
-|   |   |   |          wob_foreground_color         | | | | ← wob_background_padding
-|   |   |   |    ( over 100% wob_overflow_color)    | | | |
-|   |   |   |                                       | | | | ← wob_foreground_padding
-|   |   |   +---------------------------------------+ | | |
-|   |   |                                             | | |
-|   |   +---------------------------------------------+ | |
-|   |                                                   | |
-|   +---------------------------------------------------+ |
-|                                                         |
-+---------------------------------------------------------+
-←------------------ wob_bar_width ------------------→
-    ↑
-    |
-    wob_bar_heightrsed as JSON the input is treated as type
+             --->+------------------------------------------------+
+              |  |               wob_box_color                    <--+ wob_box_padding
+              |  | +--------------------------------------------+ |  | (space between outer edge and border)
+              |  | |             wob_border_color               | |<-+ wob_border_margin
+              |  | | +----------------------------------------+ | |  | (space between border and box edge)
+              |  | | |          wob_background_color          | <-|--+ wob_border_padding
+              |  | | | +------------------------------------+ | | |  | (space between background and border)
+              |  | | | |          wob_foreground_color      | <-|-|--+ wob_background_padding
+wob_bar_height|  | | | |  (over 100%: wob_overflow_color)   | | | |  | (space between foreground and background)
+              |  | | | |                                    <-|-|-|--+ wob_foreground_padding
+              |  | | | +------------------------------------+ | | |  | (inner padding of foreground bar)
+              |  | | |                                        | | |
+              |  | | +----------------------------------------+ | |
+              |  | |                                            | |
+              |  | +--------------------------------------------+ |
+              |  |                                                |
+             --->+------------------------------------------------+
+                 ^                                                ^
+                 |---- wob_bar_width (total width of widget) -----|
+```
+
+## Examples
+
+### Text Example
+
+```json
+{
+    "type": "text",
+    "expression": "<span foreground=\"blue\" size=\"x-large\">Hello World!</span> is <i>cool</i>!",
+    "settings": {
+        "log_level": "DEBUG",
+        "window_timeout": 1000,
+        "anchor": "top-right",
+        "margin_left": 50,
+        "margin_top": 50
+    }
+}
 ```
 
 ## Command Line Options
