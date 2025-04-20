@@ -200,11 +200,7 @@ wob_foreground_padding = 8 # The padding of the foreground of the wob bar in pix
 wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of the wob bar in pixels. (Default: 8) (Can be overridden by the JSON payload)
 ```
 
-<<<<<<< HEAD
-### Wob mode styling
-=======
 ### WOB mode styling
->>>>>>> Snippet
 
 ```console
 +---------------------------------------------------------+
@@ -224,38 +220,10 @@ wob_foreground_overflow_padding = 8 # The padding of the foreground overflow of 
 |   +---------------------------------------------------+ |
 |                                                         |
 +---------------------------------------------------------+
-    ←------------------ wob_bar_width ------------------→
+←------------------ wob_bar_width ------------------→
     ↑
     |
-<<<<<<< HEAD
     wob_bar_height
-```
-#### Component descriptions:
-
-1. **wob_box**: The outermost container with `wob_box_color` background
-   - Controlled by `wob_box_padding`
-
-2. **wob_border**: The border container with `wob_border_color` background
-   - Controlled by `wob_border_padding` (internal padding)
-   - Controlled by `wob_border_margin` (external margin)
-
-3. **wob_background**: The background of the progress bar with `wob_background_color`
-   - Controlled by `wob_background_padding`
-
-4. **wob_foreground**: The filled portion of the progress bar
-   - Normal range (0-100%): Uses `wob_foreground_color`
-   - Overflow range (101-200%): Uses `wob_overflow_color`
-   - Controlled by `wob_foreground_padding` (normal range)
-   - Controlled by `wob_foreground_overflow_padding` (overflow range)
-
-The overall dimensions are controlled by:
-- `wob_bar_width`: Total width of the progress bar
-- `wob_bar_height`: Total height of the progress bar
-
-Each component can be independently styled through the configuration file, environment variables, or per-notification JSON settings.
-=======
-    wob_bar_height
->>>>>>> Snippet
 
 ## Makefile
 
