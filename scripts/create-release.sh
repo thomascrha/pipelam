@@ -41,7 +41,7 @@ RELEASE_NOTES=""
 if [ -n "$PREVIOUS_TAG" ]; then
     echo "Generating release notes from commits since $PREVIOUS_TAG..."
     RELEASE_NOTES=$(git log --pretty=format:"* %s" ${PREVIOUS_TAG}..HEAD)
-    echo "Release notes:"
+    echo "Draft release notes:"
     echo "$RELEASE_NOTES"
 else
     echo "No previous tag found. Including all commit messages in release notes."
@@ -55,21 +55,21 @@ echo "" >> "$COMMIT_MSG_FILE"
 echo "Changes since previous release:" >> "$COMMIT_MSG_FILE"
 echo "$RELEASE_NOTES" >> "$COMMIT_MSG_FILE"
 
+# Open the file in the default editor to allow changes
+echo "Opening release notes in editor for review and customization..."
+${EDITOR:-vi} "$COMMIT_MSG_FILE"
+
 echo "Committing version change..."
 git add "$CONFIG_FILE"
 git commit -F "$COMMIT_MSG_FILE"
-rm "$COMMIT_MSG_FILE"
 
 # Use the same release notes for the tag message
-TAG_MSG_FILE=$(mktemp)
-echo "Release v$VERSION" > "$TAG_MSG_FILE"
-echo "" >> "$TAG_MSG_FILE"
-echo "Changes since previous release:" >> "$TAG_MSG_FILE"
-echo "$RELEASE_NOTES" >> "$TAG_MSG_FILE"
+cp "$COMMIT_MSG_FILE" "$COMMIT_MSG_FILE.tag"
+TAG_MSG_FILE="$COMMIT_MSG_FILE.tag"
 
 echo "Creating tag v$VERSION..."
 git tag -a "v$VERSION" -F "$TAG_MSG_FILE"
-rm "$TAG_MSG_FILE"
+rm "$COMMIT_MSG_FILE" "$TAG_MSG_FILE"
 
 echo "Pushing changes and tag to remote repository..."
 git push origin main

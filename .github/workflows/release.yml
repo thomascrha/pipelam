@@ -52,14 +52,16 @@ jobs:
       - name: Generate Release Notes
         id: generate_notes
         run: |
-          PREVIOUS_TWO_TAGS=$(git tag --sort=-version:refname | head -n 2)
+          # Extract release notes from the tag commit message
+          TAG_NAME=${GITHUB_REF#refs/tags/}
 
-          CURRUNT_TAG=$(echo $PREVIOUS_TWO_TAGS | awk '{print $1}')
-          PREVIOUS_TAG=$(echo $PREVIOUS_TWO_TAGS | awk '{print $2}')
+          # Get the commit message from the tag
+          TAG_MESSAGE=$(git tag -l --format='%(contents)' "$TAG_NAME")
 
-          # Get all the commit messages between the two tags
-          RELEASE_NOTES=$(git log --pretty=format:"* %s" ${PREVIOUS_TAG}..${CURRUNT_TAG})
-          echo "$RELEASE_NOTES" > release_notes.md
+          # Save the tag message as release notes
+          echo "$TAG_MESSAGE" > release_notes.md
+
+          echo "Using tag commit message for release notes"
 
       - name: Create Release
         id: create_release
