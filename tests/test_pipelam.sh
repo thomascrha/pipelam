@@ -50,14 +50,18 @@ run_test() {
     local mode=$1
     local test_name=$2
     local message1=$3
-    local type=$4
+    local type1=$4
     local message2=${5:-$message1}  # Default to first message if second not provided
+    local type2=${6:-$type1}        # Default second type to same as first type
+    local anchor1=${7:-"top-left"}
+    local anchor2=${8:-"bottom-right"}
 
-    json_message1=$(wrap_message "$message1" "$type" "top-left")
-    json_message2=$(wrap_message "$message2" "$type" "bottom-right")
+    json_message1=$(wrap_message "$message1" "$type1" "$anchor1")
+    json_message2=$(wrap_message "$message2" "$type2" "$anchor2")
 
     echo -e "\n${GREEN}==========================================${NC}"
     echo -e "${GREEN}Testing: ${YELLOW}$test_name${NC} in ${YELLOW}$mode${NC} mode"
+    echo -e "${GREEN}Testing Message Types: ${YELLOW}$type1${NC} -> ${YELLOW}$type2${NC}"
     echo -e "${GREEN}==========================================${NC}"
 
     echo -e "${BLUE}Starting pipelam in $mode mode...${NC}"
@@ -66,15 +70,15 @@ run_test() {
     # Give pipelam time to start
     sleep 1
 
-    # Send first message (top-left)
-    echo -e "${BLUE}Sending message 1 (top-left):${NC}"
+    # Send first message
+    echo -e "${BLUE}Sending $type1 message ($anchor1):${NC}"
     send_message "$json_message1"
 
     # Wait 1 second between messages
     sleep 1
 
-    # Send second message (bottom-right)
-    echo -e "${BLUE}Sending message 2 (bottom-right):${NC}"
+    # Send second message
+    echo -e "${BLUE}Sending $type2 message ($anchor2):${NC}"
     send_message "$json_message2"
 
     echo -n "Press Enter to continue to the next test..."
@@ -105,13 +109,23 @@ read
 MODES=("queue" "replace" "overlay")
 
 for mode in "${MODES[@]}"; do
-    # Test TEXT messages
+    # Test TEXT messages with different text
     run_test "$mode" "Markup text" "<span font_desc='Roboto 100' foreground='red'>Red text test</span>" "text" "<span font_desc='Roboto 100' foreground='blue'>Blue text test</span>"
 
     # Test WOB messages with different values
     run_test "$mode" "WOB values" "25" "wob" "75"
 
+    # Test Image display with different images
     run_test "$mode" "Image display" "$TEST_IMAGE1" "image" "$TEST_IMAGE2"
+
+    # Test Image followed by WOB
+    run_test "$mode" "Image followed by WOB" "$TEST_IMAGE1" "image" "50" "wob" "center" "center"
+
+    # Test WOB followed by Text
+    run_test "$mode" "WOB followed by Text" "75" "wob" "<span font_desc='Roboto 100' foreground='green'>Text after WOB</span>" "text" "center" "center"
+
+    # Test Text followed by Image
+    run_test "$mode" "Text followed by Image" "<span font_desc='Roboto 100' foreground='yellow'>Text before Image</span>" "text" "$TEST_IMAGE2" "image" "center" "center"
 done
 
 echo -e "\n${GREEN}All tests completed!${NC}"

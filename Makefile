@@ -102,7 +102,7 @@ run: build ## Run the project
 debug: ## Build with enhanced debugging symbols for GDB
 	$(MAKE) CFLAGS="-ggdb -Wall -Wextra -Wpedantic -std=c17" build
 
-derun: debug ## Run the project
+derun: debug ## Run the project in debug mode
 	./$(OUTPUT) /tmp/pipelam.fifo
 
 release: format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z

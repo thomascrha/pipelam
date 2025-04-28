@@ -3,23 +3,8 @@
 #include "config.h"
 #include "log.h"
 
-typedef struct {
-    GtkWindow *window;
-    enum pipelam_message_type window_type;
-    guint timeout_id;
-    GtkWidget *bar_fg; // For WOB windows
-} PipelamWindow;
-
-#define MAX_OVERLAY_WINDOWS 10
-static PipelamWindow window_list[MAX_OVERLAY_WINDOWS] = {0};
-static int window_count = 0;
-
-static GtkWindow *current_window = NULL; // Still track current for non-overlay mode
+static GtkWindow *current_window = NULL; // Track the current window
 static GtkApplication *app = NULL;
-static guint current_timeout_id = 0;
-static enum pipelam_message_type current_window_type = -1; // Track the current window type
-static GtkWidget *bar_fg = NULL;                           // Keep reference to the WOB foreground bar for non-overlay mode
-static gboolean is_updating_window = FALSE;                // Flag to prevent concurrent window updates
 
 // Internal functions
 static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
@@ -67,54 +52,25 @@ static gboolean *pipelam_get_anchor(enum pipelam_window_anchor anchor) {
     return anchors;
 }
 
-static void pipelam_close_window_by_index(int index) {
-    if (index < 0 || index >= window_count)
+static void pipelam_close_window(GtkWindow *window) {
+    if (!GTK_IS_WINDOW(window))
         return;
 
-    PipelamWindow *win = &window_list[index];
-
-    if (win->timeout_id > 0) {
-        pipelam_log_debug("Removing timeout (ID: %u) for window %d", win->timeout_id, index);
-        g_source_remove(win->timeout_id);
-        win->timeout_id = 0;
+    // Get and remove the timeout associated with this window
+    guint timeout_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(window), "pipelam-timeout-id"));
+    if (timeout_id > 0) {
+        pipelam_log_debug("Removing timeout (ID: %u) for window", timeout_id);
+        g_source_remove(timeout_id);
+        g_object_set_data(G_OBJECT(window), "pipelam-timeout-id", GUINT_TO_POINTER(0));
     }
 
-    if (win->window != NULL) {
-        pipelam_log_debug("Closing window %d of type %d", index, win->window_type);
-        gtk_window_close(win->window);
+    pipelam_log_debug("Closing window");
+    gtk_window_close(window);
+
+    if (window == current_window) {
+        current_window = NULL;
+
     }
-
-    // Shift remaining windows to fill the gap
-    if (index < window_count - 1) {
-        memmove(&window_list[index], &window_list[index + 1], (window_count - index - 1) * sizeof(PipelamWindow));
-    }
-
-    // Clear the last entry
-    memset(&window_list[window_count - 1], 0, sizeof(PipelamWindow));
-    window_count--;
-}
-
-static void pipelam_add_window_to_list(GtkWindow *window, enum pipelam_message_type type, guint timeout_id, GtkWidget *wob_fg) {
-    if (window_count >= MAX_OVERLAY_WINDOWS) {
-        pipelam_log_warning("Maximum number of overlay windows reached, closing oldest");
-        pipelam_close_window_by_index(0);
-    }
-
-    window_list[window_count].window = window;
-    window_list[window_count].window_type = type;
-    window_list[window_count].timeout_id = timeout_id;
-    window_list[window_count].bar_fg = wob_fg;
-    window_count++;
-
-    pipelam_log_debug("Added window to list at index %d, total windows: %d", window_count - 1, window_count);
-}
-
-static int pipelam_find_window_index(GtkWindow *window) {
-    for (int i = 0; i < window_count; i++) {
-        if (window_list[i].window == window)
-            return i;
-    }
-    return -1;
 }
 
 static void pipelam_update_window_settings(GtkWindow *window, struct pipelam_config *config) {
@@ -140,25 +96,16 @@ static void pipelam_update_window_settings(GtkWindow *window, struct pipelam_con
 static gboolean close_window_callback(gpointer window) {
     if (GTK_IS_WINDOW(window)) {
         pipelam_log_debug("Closing window via timeout");
-        int index = pipelam_find_window_index(GTK_WINDOW(window));
-        if (index >= 0) {
-            pipelam_log_debug("Closing window %d from overlay list", index);
-            pipelam_close_window_by_index(index);
-        } else if (window == current_window) {
-            bar_fg = NULL;
-            current_window = NULL;
-            current_window_type = -1;
-            current_timeout_id = 0;
-            gtk_window_close(GTK_WINDOW(window));
-        } else {
-            gtk_window_close(GTK_WINDOW(window));
-        }
+        pipelam_close_window(GTK_WINDOW(window));
     }
     return G_SOURCE_REMOVE;
 }
-static guint pipelam_reset_window_timeout(GtkWindow *window, guint old_timeout_id, guint window_timeout) {
+static void pipelam_reset_window_timeout(GtkWindow *window, guint window_timeout) {
     if (!GTK_IS_WINDOW(window))
-        return 0;
+        return;
+
+    // Get existing timeout
+    guint old_timeout_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(window), "pipelam-timeout-id"));
 
     if (old_timeout_id > 0) {
         pipelam_log_debug("Removing timeout (ID: %u)", old_timeout_id);
@@ -168,7 +115,8 @@ static guint pipelam_reset_window_timeout(GtkWindow *window, guint old_timeout_i
     guint new_timeout_id = g_timeout_add(window_timeout, close_window_callback, window);
     pipelam_log_debug("Set new timeout (ID: %u)", new_timeout_id);
 
-    return new_timeout_id;
+    // Store the new timeout in the window's data
+    g_object_set_data(G_OBJECT(window), "pipelam-timeout-id", GUINT_TO_POINTER(new_timeout_id));
 }
 
 static GtkWindow *pipelam_render_gtk_window(GtkApplication *app, gpointer ptr_pipelam_config) {
@@ -248,15 +196,7 @@ static void pipelam_update_image_window(GtkWindow *window, const char *image_pat
 
     pipelam_update_window_settings(window, config);
 
-    if (window == current_window) {
-        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
-    } else {
-        int index = pipelam_find_window_index(window);
-        if (index >= 0) {
-            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
-        }
-    }
-
+    pipelam_reset_window_timeout(window, config->window_timeout);
     gtk_window_present(window);
 }
 
@@ -274,15 +214,6 @@ static void pipelam_update_text_window(GtkWindow *window, const char *text, stru
     }
 
     pipelam_update_window_settings(window, config);
-
-    if (window == current_window) {
-        current_timeout_id = pipelam_reset_window_timeout(window, current_timeout_id, config->window_timeout);
-    } else {
-        int index = pipelam_find_window_index(window);
-        if (index >= 0) {
-            window_list[index].timeout_id = pipelam_reset_window_timeout(window, window_list[index].timeout_id, config->window_timeout);
-        }
-    }
 
     gtk_window_present(window);
 }
@@ -340,55 +271,58 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     }
     pipelam_log_debug("WOB value: %d%%", percentage);
 
-    if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-        pipelam_log_debug("Overlaying existing WOB window");
+    if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL) {
+        GtkWidget *bar_fg = GTK_WIDGET(g_object_get_data(G_OBJECT(current_window), "pipelam-bar-fg"));
+        if (GTK_IS_WIDGET(bar_fg)) {
+            pipelam_log_debug("Overlaying existing WOB window");
 
-        int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
+            int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
+            gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
 
-        // Change CSS class based on percentage value
-        if (percentage > 100) {
-            gtk_widget_remove_css_class(bar_fg, "wob-foreground");
-            gtk_widget_add_css_class(bar_fg, "wob-foreground-overflow");
+            // Change CSS class based on percentage value
+            if (percentage > 100) {
+                gtk_widget_remove_css_class(bar_fg, "wob-foreground");
+                gtk_widget_add_css_class(bar_fg, "wob-foreground-overflow");
 
-            // If it's 200%, make it a full red bar
-            if (percentage >= 200) {
-                // Calculate effective margin from padding values
-                int box_padding = pipelam_config->wob_box_padding;
-                int border_padding = pipelam_config->wob_border_padding;
-                int effective_margin = box_padding + border_padding;
-                gtk_widget_set_size_request(bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
+                // If it's 200%, make it a full red bar
+                if (percentage >= 200) {
+                    // Calculate effective margin from padding values
+                    int box_padding = pipelam_config->wob_box_padding;
+                    int border_padding = pipelam_config->wob_border_padding;
+                    int effective_margin = box_padding + border_padding;
+                    gtk_widget_set_size_request(bar_fg, pipelam_config->wob_bar_width - effective_margin, pipelam_config->wob_bar_height); // Full width
+                }
+            } else {
+                gtk_widget_remove_css_class(bar_fg, "wob-foreground-overflow");
+                gtk_widget_add_css_class(bar_fg, "wob-foreground");
             }
-        } else {
-            gtk_widget_remove_css_class(bar_fg, "wob-foreground-overflow");
-            gtk_widget_add_css_class(bar_fg, "wob-foreground");
+
+            pipelam_update_window_settings(current_window, pipelam_config);
+
+            // Reset the window timeout
+            pipelam_reset_window_timeout(current_window, pipelam_config->window_timeout);
+            pipelam_log_debug("Reset WOB window timeout");
+
+            gtk_window_present(current_window);
+            return;
         }
+    } else if (current_window != NULL) {
+        GtkWidget *bar_fg = GTK_WIDGET(g_object_get_data(G_OBJECT(current_window), "pipelam-bar-fg"));
+        if (GTK_IS_WIDGET(bar_fg)) {
+            pipelam_log_debug("Updating existing WOB window");
 
-        pipelam_update_window_settings(current_window, pipelam_config);
-        if (current_timeout_id > 0) {
-            g_source_remove(current_timeout_id);
+            int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
+            gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
+
+            pipelam_update_window_settings(current_window, pipelam_config);
+
+            // Reset the window timeout
+            pipelam_reset_window_timeout(current_window, pipelam_config->window_timeout);
+            pipelam_log_debug("Reset timeout");
+
+            gtk_window_present(current_window);
+            return;
         }
-        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
-        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
-
-        gtk_window_present(current_window);
-        return;
-    } else if (current_window != NULL && GTK_IS_WIDGET(bar_fg)) {
-        pipelam_log_debug("Updating existing WOB window");
-
-        int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-        gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
-
-        pipelam_update_window_settings(current_window, pipelam_config);
-
-        if (current_timeout_id > 0) {
-            g_source_remove(current_timeout_id);
-        }
-        current_timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, current_window);
-        pipelam_log_debug("Reset timeout (ID: %u)", current_timeout_id);
-
-        gtk_window_present(current_window);
-        return;
     }
 
     pipelam_log_debug("Creating new WOB window");
@@ -454,23 +388,17 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     gtk_window_set_child(gtk_window, box);
 
     pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
-    guint timeout_id = g_timeout_add(pipelam_config->window_timeout, close_window_callback, gtk_window);
-    pipelam_log_debug("Set new timeout (ID: %u)", timeout_id);
 
-    if (pipelam_config->runtime_behaviour == OVERLAY) {
-        pipelam_add_window_to_list(gtk_window, WOB, timeout_id, new_bar_fg);
-        pipelam_log_debug("Added WOB window to overlay list");
-    } else {
-        if (current_window != NULL) {
-            pipelam_log_debug("Closing previous window of different type");
-            gtk_window_close(current_window);
-        }
-
-        current_window = gtk_window;
-        current_window_type = WOB;
-        current_timeout_id = timeout_id;
-        bar_fg = new_bar_fg;
+    // If there's already a window, close it
+    if (current_window != NULL) {
+        pipelam_log_debug("Closing previous window");
+        pipelam_close_window(current_window);
     }
+
+    current_window = gtk_window;
+    g_object_set_data(G_OBJECT(gtk_window), "pipelam-bar-fg", new_bar_fg);
+    pipelam_reset_window_timeout(gtk_window, pipelam_config->window_timeout);
+    pipelam_log_debug("Set new WOB window timeout");
 
     gtk_window_present(gtk_window);
     g_object_unref(provider);
@@ -482,12 +410,9 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 
     const char *image_path = pipelam_config->expression;
 
-    if (pipelam_config->runtime_behaviour != OVERLAY) {
-        if (current_window != NULL && current_window_type == IMAGE) {
-            pipelam_update_image_window(current_window, image_path, pipelam_config);
-            return;
-        }
-    } else if (current_window != NULL && current_window_type == IMAGE) {
+    if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL) {
+        // In non-overlay mode, we can update the existing window regardless of type
+        // We'll treat it as an image window now
         pipelam_update_image_window(current_window, image_path, pipelam_config);
         return;
     }
@@ -514,21 +439,14 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
     gtk_window_set_child(gtk_window, box);
     gtk_window_set_default_size(gtk_window, width, height);
 
-    guint timeout_id = pipelam_reset_window_timeout(gtk_window, 0, pipelam_config->window_timeout);
-
-    if (pipelam_config->runtime_behaviour == OVERLAY) {
-        pipelam_add_window_to_list(gtk_window, IMAGE, timeout_id, NULL);
-        pipelam_log_debug("Added IMAGE window to overlay list");
-    } else {
-        if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL && current_window_type != IMAGE) {
-            pipelam_log_debug("Closing previous window of different type");
-            gtk_window_close(current_window);
-        }
-
-        current_window = gtk_window;
-        current_window_type = IMAGE;
-        current_timeout_id = timeout_id;
+    // If there's already a window, close it
+    if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL) {
+        pipelam_log_debug("Closing previous window");
+        pipelam_close_window(current_window);
     }
+
+    current_window = gtk_window;
+    pipelam_reset_window_timeout(gtk_window, pipelam_config->window_timeout);
 
     gtk_window_present(gtk_window);
 }
@@ -537,11 +455,11 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
     pipelam_log_debug("Handling text window");
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
-    if (pipelam_config->runtime_behaviour != OVERLAY) {
-        if (current_window != NULL && current_window_type == TEXT) {
-            pipelam_update_text_window(current_window, pipelam_config->expression, pipelam_config);
-            return;
-        }
+    if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL) {
+        // In non-overlay mode, we can update the existing window regardless of type
+        // We'll treat it as a text window now
+        pipelam_update_text_window(current_window, pipelam_config->expression, pipelam_config);
+        return;
     }
 
     pipelam_log_debug("Creating new text window");
@@ -563,22 +481,14 @@ static void pipelam_render_text_window(GtkApplication *app, gpointer ptr_pipelam
     gtk_label_set_markup(GTK_LABEL(label), pipelam_config->expression);
     gtk_window_set_child(gtk_window, label);
 
-    guint timeout_id = pipelam_reset_window_timeout(gtk_window, 0, pipelam_config->window_timeout);
-
-    if (pipelam_config->runtime_behaviour == OVERLAY) {
-        pipelam_add_window_to_list(gtk_window, TEXT, timeout_id, NULL);
-        pipelam_log_debug("Added TEXT window to overlay list");
-    } else {
-        // If we're replacing a window and it's a different type, close the old one
-        if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL && current_window_type != TEXT) {
-            pipelam_log_debug("Closing previous window of different type");
-            gtk_window_close(current_window);
-        }
-
-        current_window = gtk_window;
-        current_window_type = TEXT;
-        current_timeout_id = timeout_id;
+    // If we're replacing a window, close the old one
+    if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL) {
+        pipelam_log_debug("Closing previous window");
+        pipelam_close_window(current_window);
     }
+
+    current_window = gtk_window;
+    pipelam_reset_window_timeout(gtk_window, pipelam_config->window_timeout);
 
     gtk_window_present(gtk_window);
 }
@@ -599,27 +509,16 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
     ptr_pipelam_config = &saved_config;
     pipelam_config = &saved_config;
 
-    if (is_updating_window) {
-        pipelam_log_debug("Window update already in progress, queueing");
-        g_timeout_add(10, pipelam_create_window, ptr_pipelam_config);
-        return FALSE;
-    }
-
-    is_updating_window = TRUE;
-
     if (app == NULL) {
         pipelam_log_error("No GTK application available");
-        is_updating_window = FALSE;
+
         return FALSE;
     }
 
-    if (pipelam_config->runtime_behaviour != OVERLAY) {
-        current_window_type = pipelam_config->type;
-    }
 
-    if (pipelam_config->runtime_behaviour == QUEUE && (current_window != NULL || window_count > 0)) {
+
+    if (pipelam_config->runtime_behaviour == QUEUE && current_window != NULL) {
         g_timeout_add(10, pipelam_create_window, ptr_pipelam_config);
-        is_updating_window = FALSE;
         return FALSE;
     }
 
@@ -633,7 +532,6 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
         pipelam_log_error("Unknown type: %d", pipelam_config->type);
     }
 
-    is_updating_window = FALSE;
 
     // Clean up the saved expression after window creation is complete
     // This happens after the window is created, not when this function returns
