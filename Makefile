@@ -35,7 +35,7 @@ TEST_OUTPUT     := $(BUILD_DIR)/test_runner
 # Output binary
 OUTPUT          := $(BUILD_DIR)/pipelam
 
-build: build_dir download_json_h $(OUTPUT) ## Build and download all deps for the project
+build: build-dir download-json-h $(OUTPUT) ## Build and download all deps for the project
 
 help: ## Display this help message
 	@echo "Usage: make [target]"
@@ -43,10 +43,10 @@ help: ## Display this help message
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-build_dir: ## Create build directory if it doesn't exist
+build-dir: ## Create build directory if it doesn't exist
 	@mkdir -p $(BUILD_DIR)
 
-download_json_h: ## Download the json.h external single header lib
+download-json-h: ## Download the json.h external single header lib
 	@if [ ! -f $(SRC_DIR)/json.h ]; then \
 		echo "Downloading json.h..."; \
 		curl -L $(JSON_H_LIB_URL) -o $(SRC_DIR)/json.h; \
@@ -79,14 +79,14 @@ $(TEST_OUTPUT): $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
 clean: ## Remove built executables and object files
 	@rm -rf $(BUILD_DIR)
 
-build_test: build_dir $(TEST_OUTPUT) ## Build the test suite
+build-test: build-dir $(TEST_OUTPUT) ## Build the test suite
 
 rebuild: clean build ## Clean and build the project
 
 format: ## Format the code using clang-format
 	@clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
 
-test: rebuild build_test ## Rebuild the project and run tests
+test: rebuild build-test ## Rebuild the project and run tests
 	./$(TEST_OUTPUT)
 	@if [ $$? -eq 0 ]; then \
 		echo -e "\n=== All tests completed successfully! ==="; \
@@ -124,34 +124,34 @@ install: ## Install pipelam to the system
 	@install -d $(PREFIX)/etc/pipelam
 	@install -m 644 config/pipelam.toml $(PREFIX)/etc/pipelam/pipelam.toml
 	@if [ -f build/man/pipelam.1 ]; then \
-		install -d $(PREFIX)/share/man/man1; \
+		install -d $(PREFIX)/usr/share/man/man1; \
 		install -m 644 build/man/pipelam.1 $(PREFIX)/usr/share/man/man1/pipelam.1; \
-		if command -v makewhatis >/dev/null 2>&1; then \
-			makewhatis $(PREFIX)/usr/share/man; \
-		elif command -v mandb >/dev/null 2>&1; then \
-			mandb; \
-		else \
-			echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
-		fi; \
+		# if command -v makewhatis >/dev/null 2>&1; then \
+		# 	makewhatis $(PREFIX)/usr/share/man; \
+		# elif command -v mandb >/dev/null 2>&1; then \
+		# 	mandb; \
+		# else \
+		# 	echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+		# fi; \
 	fi
 	@if [ -f build/man/pipelam.toml.5 ]; then \
-		install -d $(PREFIX)/share/man/man5; \
+		install -d $(PREFIX)/usr/share/man/man5; \
 		install -m 644 build/man/pipelam.toml.5 $(PREFIX)/usr/share/man/man5/pipelam.toml.5; \
-		if command -v makewhatis >/dev/null 2>&1; then \
-			makewhatis $(PREFIX)/usr/share/man; \
-		elif command -v mandb >/dev/null 2>&1; then \
-			mandb; \
-		else \
-			echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
-		fi; \
+		# if command -v makewhatis >/dev/null 2>&1; then \
+		# 	makewhatis $(PREFIX)/usr/share/man; \
+		# elif command -v mandb >/dev/null 2>&1; then \
+		# 	mandb; \
+		# else \
+		# 	echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
+		# fi; \
 	fi
 
-install_systemd: ## Install systemd (user) service and socket files
+install-systemd: ## Install systemd (user) service and socket files
 	# Requires sudo privileges - but the reload needs to be done as the user
 	@sudo install -d $(PREFIX)/usr/lib/systemd/user
 	@sudo install -m 644 systemd/pipelam.service $(PREFIX)/usr/lib/systemd/user/pipelam.service
 	@sudo install -m 644 systemd/pipelam.socket $(PREFIX)/usr/lib/systemd/user/pipelam.socket
-	@systemctl --user daemon-reload
+	# @systemctl --user daemon-reload
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam
