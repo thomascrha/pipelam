@@ -12,7 +12,7 @@ StandardOutput=journal
 StandardError=journal
 Restart=always
 RestartSec=5s
-ExecStart=/usr/local/bin/pipelam %t/pipelam.fifo
+ExecStart=/usr/bin/pipelam %t/pipelam.fifo
 
 [Install]
 WantedBy=graphical-session.target

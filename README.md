@@ -38,8 +38,18 @@ To build and install the project, run the following commands:
 make build
 make docs # optional if you want the docs
 sudo make install
-make install_systemd # optional if you want to install the systemd service and socket
+make install-systemd # optional if you want to install the systemd service and socket
 ```
+
+### Arch Linux
+[![pipelam](https://img.shields.io/aur/version/pipelam?style=flat-square)](https://aur.archlinux.org/packages/pipelam/)
+
+pipelam is available in the Arch User Repository (AUR). You can install it using an AUR helper like `yay` or `paru`:
+
+```shell
+paru -S pipelam
+```
+
 
 ## Running
 
@@ -261,31 +271,30 @@ pipelam --log-level=DEBUG --anchor=top-right --margin-top=50 --margin-right=50 /
 Usage: make [target]
 
 Targets:
+  build-dir       Create build directory if it doesn't exist
+  build-test      Build the test suite
   build           Build and download all deps for the project
-  build_dir       Create build directory if it doesn't exist
-  build_test      Build the test suite
   clean           Remove built executables and object files
   debug           Build with enhanced debugging symbols for GDB
-  derun           Run the project
+  derun           Run the project in debug mode
   docs            Generate man pages from scdoc
-  download_json_h Download the json.h external single header lib
+  download-json-h Download the json.h external single header lib
   format          Format the code using clang-format
   help            Display this help message
+  install-systemd Install systemd (user) service and socket files
   install         Install pipelam to the system
-  install_systemd Install systemd (user) service and timer
   rebuild         Clean and build the project
   release         Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
   run             Run the project
   test            Rebuild the project and run tests
-  uninstall       Uninstall pipelam from the system
-```
+  uninstall       Uninstall pipelam from the system```
 
 # TODO's
 
 - [ ] Add a feature to display some text with the wob type to describe the progress bar (even emojis and fontawesome)
 - [ ] Clean up the examples and make more permutations of them
 - [ ] Using the examples make a demo video for the readme
-- [ ] Add to Arch user repositories
+- [x] Add to Arch user repositories
 - [x] Add better installation step including describing the man and systemd installation
 - [x] Add customisation of the wob type
 - [x] Add overflow behaviour that turns red for wob mode
