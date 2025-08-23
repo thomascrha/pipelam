@@ -3,8 +3,8 @@ CFLAGS          := -O3 -Wall -Wextra -Wpedantic -std=c17
 CC              := clang
 
 # Installation paths
-PREFIX          ?= /usr/local
-BINDIR          := $(PREFIX)/bin
+PREFIX          ?=
+BINDIR          := $(PREFIX)/usr/bin
 
 # Default target
 .DEFAULT_GOAL   := help
@@ -77,14 +77,14 @@ $(TEST_OUTPUT): $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
 	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
 
 clean: ## Remove built executables and object files
-	rm -rf $(BUILD_DIR)
+	@rm -rf $(BUILD_DIR)
 
 build_test: build_dir $(TEST_OUTPUT) ## Build the test suite
 
 rebuild: clean build ## Clean and build the project
 
 format: ## Format the code using clang-format
-	clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
+	@clang-format -i $(SRC_DIR)/*.c $(SRC_DIR)/*.h $(TEST_DIR)/*.c
 
 test: rebuild build_test ## Rebuild the project and run tests
 	./$(TEST_OUTPUT)
@@ -121,13 +121,13 @@ docs: ## Generate man pages from scdoc
 install: ## Install pipelam to the system
 	@install -d $(BINDIR)
 	@install -m 755 $(OUTPUT) $(BINDIR)/pipelam
-	@install -d /etc/pipelam
-	@install -m 644 config/pipelam.toml /etc/pipelam/pipelam.toml
+	@install -d $(PREFIX)/etc/pipelam
+	@install -m 644 config/pipelam.toml $(PREFIX)/etc/pipelam/pipelam.toml
 	@if [ -f build/man/pipelam.1 ]; then \
 		install -d $(PREFIX)/share/man/man1; \
-		install -m 644 build/man/pipelam.1 $(PREFIX)/share/man/man1/pipelam.1; \
+		install -m 644 build/man/pipelam.1 $(PREFIX)/usr/share/man/man1/pipelam.1; \
 		if command -v makewhatis >/dev/null 2>&1; then \
-			makewhatis $(PREFIX)/share/man; \
+			makewhatis $(PREFIX)/usr/share/man; \
 		elif command -v mandb >/dev/null 2>&1; then \
 			mandb; \
 		else \
@@ -136,9 +136,9 @@ install: ## Install pipelam to the system
 	fi
 	@if [ -f build/man/pipelam.toml.5 ]; then \
 		install -d $(PREFIX)/share/man/man5; \
-		install -m 644 build/man/pipelam.toml.5 $(PREFIX)/share/man/man5/pipelam.toml.5; \
+		install -m 644 build/man/pipelam.toml.5 $(PREFIX)/usr/share/man/man5/pipelam.toml.5; \
 		if command -v makewhatis >/dev/null 2>&1; then \
-			makewhatis $(PREFIX)/share/man; \
+			makewhatis $(PREFIX)/usr/share/man; \
 		elif command -v mandb >/dev/null 2>&1; then \
 			mandb; \
 		else \
@@ -146,19 +146,20 @@ install: ## Install pipelam to the system
 		fi; \
 	fi
 
-install_systemd: ## Install systemd (user) service and timer
-	@install -d $(HOME)/.config/systemd/user
-	@install -m 644 systemd/pipelam.service $(HOME)/.config/systemd/user/pipelam.service
-	@install -m 644 systemd/pipelam.socket $(HOME)/.config/systemd/user/pipelam.socket
+install_systemd: ## Install systemd (user) service and socket files
+	# Requires sudo privileges - but the reload needs to be done as the user
+	@sudo install -d $(PREFIX)/usr/lib/systemd/user
+	@sudo install -m 644 systemd/pipelam.service $(PREFIX)/usr/lib/systemd/user/pipelam.service
+	@sudo install -m 644 systemd/pipelam.socket $(PREFIX)/usr/lib/systemd/user/pipelam.socket
 	@systemctl --user daemon-reload
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam
-	@rm -rf /etc/pipelam
-	@rm -f $(PREFIX)/share/man/man1/pipelam.1
-	@rm -f $(PREFIX)/share/man/man5/pipelam.toml.5
+	@rm -rf $(PREFIX)/etc/pipelam
+	@rm -f $(PREFIX)/usr/share/man/man1/pipelam.1
+	@rm -f $(PREFIX)/usr/share/man/man5/pipelam.toml.5
 	@if command -v makewhatis >/dev/null 2>&1; then \
-		makewhatis $(PREFIX)/share/man; \
+		makewhatis $(PREFIX)/usr/share/man; \
 	elif command -v mandb >/dev/null 2>&1; then \
 		mandb; \
 	else \
