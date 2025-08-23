@@ -574,8 +574,6 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
     config->type = TEXT;
     config->version = MESSAGE_CURRENT_VERSION;
 
-    pipelam_set_log_level_from_env(config);
-
     // order of precedence: config file, environment variables
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
@@ -587,6 +585,7 @@ struct pipelam_config *pipelam_setup_config(const char *config_file_path) {
         pipelam_log_warning("No config file found, using default values");
     }
 
+    pipelam_set_log_level_from_env(config);
     pipelam_override_from_environment(config);
 
     return config;
