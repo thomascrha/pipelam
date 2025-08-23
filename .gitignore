@@ -5,4 +5,8 @@ compile_commands.json
 build/
 .cache/
 
+package/pipelam*
+package/pkg
+package/src
+
 src/json.h

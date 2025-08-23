@@ -69,7 +69,6 @@ static void pipelam_close_window(GtkWindow *window) {
 
     if (window == current_window) {
         current_window = NULL;
-
     }
 }
 
@@ -189,11 +188,7 @@ static void pipelam_update_image_window(GtkWindow *window, const char *image_pat
     GtkCssProvider *provider = gtk_css_provider_new();
     const char *css = "window { background-color: black; }";
     gtk_css_provider_load_from_string(provider, css);
-    gtk_style_context_add_provider_for_display(
-        gdk_display_get_default(),
-        GTK_STYLE_PROVIDER(provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
-    );
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);
 
     gint width = 0, height = 0;
@@ -436,11 +431,7 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
     GtkCssProvider *provider = gtk_css_provider_new();
     const char *css = "window { background-color: black; }";
     gtk_css_provider_load_from_string(provider, css);
-    gtk_style_context_add_provider_for_display(
-        gdk_display_get_default(),
-        GTK_STYLE_PROVIDER(provider),
-        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
-    );
+    gtk_style_context_add_provider_for_display(gdk_display_get_default(), GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     g_object_unref(provider);
 
     gint width = 0, height = 0;
@@ -531,8 +522,6 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
         return FALSE;
     }
 
-
-
     if (pipelam_config->runtime_behaviour == QUEUE && current_window != NULL) {
         g_timeout_add(10, pipelam_create_window, ptr_pipelam_config);
         return FALSE;
@@ -547,7 +536,6 @@ gboolean pipelam_create_window(gpointer ptr_pipelam_config) {
     } else {
         pipelam_log_error("Unknown type: %d", pipelam_config->type);
     }
-
 
     // Clean up the saved expression after window creation is complete
     // This happens after the window is created, not when this function returns
