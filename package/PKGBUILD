@@ -1,6 +1,6 @@
 pkgname=pipelam-git
 _pkgname=pipelam
-pkgver=v0.1.9.r1.g51c93a1 # Set by pkgver()
+pkgver=v0.1.9.r2.g85b4171 # Set by pkgver()
 pkgrel=1
 pkgdesc="A lightweight GTK4-based notification system for displaying text, images, and progress bars"
 arch=('x86_64' 'aarch64')

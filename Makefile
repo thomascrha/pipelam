@@ -147,11 +147,9 @@ install: ## Install pipelam to the system
 	fi
 
 install-systemd: ## Install systemd (user) service and socket files
-	# Requires sudo privileges - but the reload needs to be done as the user
-	@sudo install -d $(PREFIX)/usr/lib/systemd/user
-	@sudo install -m 644 systemd/pipelam.service $(PREFIX)/usr/lib/systemd/user/pipelam.service
-	@sudo install -m 644 systemd/pipelam.socket $(PREFIX)/usr/lib/systemd/user/pipelam.socket
-	# @systemctl --user daemon-reload
+	@install -d $(PREFIX)/usr/lib/systemd/user
+	@install -m 644 systemd/pipelam.service $(PREFIX)/usr/lib/systemd/user/pipelam.service
+	@install -m 644 systemd/pipelam.socket $(PREFIX)/usr/lib/systemd/user/pipelam.socket
 
 uninstall: ## Uninstall pipelam from the system
 	@rm -f $(BINDIR)/pipelam
