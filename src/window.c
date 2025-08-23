@@ -162,15 +162,22 @@ static GtkWidget *pipelam_load_and_create_image(const char *image_path, gint *wi
     *height = gdk_pixbuf_get_height(pixbuf);
 
     GdkPaintable *paintable = GDK_PAINTABLE(gdk_texture_new_for_pixbuf(pixbuf));
-    GtkWidget *image = gtk_image_new_from_paintable(paintable);
+    GtkWidget *picture = gtk_picture_new_for_paintable(paintable);
 
-    gtk_widget_set_size_request(image, *width, *height);
-    gtk_image_set_pixel_size(GTK_IMAGE(image), -1); // Use natural size
+    // Configure picture to fill the available space
+    gtk_picture_set_can_shrink(GTK_PICTURE(picture), TRUE);
+    gtk_picture_set_content_fit(GTK_PICTURE(picture), GTK_CONTENT_FIT_CONTAIN);
+
+    // Set expansion properties
+    gtk_widget_set_hexpand(picture, TRUE);
+    gtk_widget_set_vexpand(picture, TRUE);
+    gtk_widget_set_halign(picture, GTK_ALIGN_FILL);
+    gtk_widget_set_valign(picture, GTK_ALIGN_FILL);
 
     g_object_unref(paintable);
     g_object_unref(pixbuf);
 
-    return image;
+    return picture;
 }
 
 static void pipelam_update_image_window(GtkWindow *window, const char *image_path, struct pipelam_config *config) {
@@ -179,19 +186,20 @@ static void pipelam_update_image_window(GtkWindow *window, const char *image_pat
 
     pipelam_log_debug("Updating existing IMAGE window");
 
-    GtkWidget *box = gtk_window_get_child(window);
-    if (GTK_IS_BOX(box)) {
-        GtkWidget *old_image = gtk_widget_get_first_child(box);
-        if (old_image != NULL) {
-            gtk_box_remove(GTK_BOX(box), old_image);
-        }
+    GtkCssProvider *provider = gtk_css_provider_new();
+    const char *css = "window { background-color: black; }";
+    gtk_css_provider_load_from_string(provider, css);
+    gtk_style_context_add_provider_for_display(
+        gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+    g_object_unref(provider);
 
-        gint width = 0, height = 0;
-        GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
-        if (image != NULL) {
-            gtk_box_append(GTK_BOX(box), image);
-            gtk_window_set_default_size(window, width, height);
-        }
+    gint width = 0, height = 0;
+    GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
+    if (image != NULL) {
+        gtk_window_set_child(window, image);
     }
 
     pipelam_update_window_settings(window, config);
@@ -424,6 +432,17 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
         return;
     }
 
+    // Set window background to black to eliminate any grey borders
+    GtkCssProvider *provider = gtk_css_provider_new();
+    const char *css = "window { background-color: black; }";
+    gtk_css_provider_load_from_string(provider, css);
+    gtk_style_context_add_provider_for_display(
+        gdk_display_get_default(),
+        GTK_STYLE_PROVIDER(provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
+    g_object_unref(provider);
+
     gint width = 0, height = 0;
     GtkWidget *image = pipelam_load_and_create_image(image_path, &width, &height);
 
@@ -434,10 +453,7 @@ static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipela
 
     pipelam_log_debug("Image dimensions - width: %d, height: %d", width, height);
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_box_append(GTK_BOX(box), image);
-    gtk_window_set_child(gtk_window, box);
-    gtk_window_set_default_size(gtk_window, width, height);
+    gtk_window_set_child(gtk_window, image);
 
     // If there's already a window, close it
     if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL) {
