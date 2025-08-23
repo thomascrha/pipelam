@@ -126,24 +126,10 @@ install: ## Install pipelam to the system
 	@if [ -f build/man/pipelam.1 ]; then \
 		install -d $(PREFIX)/usr/share/man/man1; \
 		install -m 644 build/man/pipelam.1 $(PREFIX)/usr/share/man/man1/pipelam.1; \
-		# if command -v makewhatis >/dev/null 2>&1; then \
-		# 	makewhatis $(PREFIX)/usr/share/man; \
-		# elif command -v mandb >/dev/null 2>&1; then \
-		# 	mandb; \
-		# else \
-		# 	echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
-		# fi; \
 	fi
 	@if [ -f build/man/pipelam.toml.5 ]; then \
 		install -d $(PREFIX)/usr/share/man/man5; \
 		install -m 644 build/man/pipelam.toml.5 $(PREFIX)/usr/share/man/man5/pipelam.toml.5; \
-		# if command -v makewhatis >/dev/null 2>&1; then \
-		# 	makewhatis $(PREFIX)/usr/share/man; \
-		# elif command -v mandb >/dev/null 2>&1; then \
-		# 	mandb; \
-		# else \
-		# 	echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
-		# fi; \
 	fi
 
 install-systemd: ## Install systemd (user) service and socket files
@@ -156,10 +142,5 @@ uninstall: ## Uninstall pipelam from the system
 	@rm -rf $(PREFIX)/etc/pipelam
 	@rm -f $(PREFIX)/usr/share/man/man1/pipelam.1
 	@rm -f $(PREFIX)/usr/share/man/man5/pipelam.toml.5
-	@if command -v makewhatis >/dev/null 2>&1; then \
-		makewhatis $(PREFIX)/usr/share/man; \
-	elif command -v mandb >/dev/null 2>&1; then \
-		mandb; \
-	else \
-		echo "Warning: Neither makewhatis nor mandb found. Man page database not updated."; \
-	fi
+	@rm -f $(PREFIX)/usr/lib/systemd/user/pipelam.service
+	@rm -f $(PREFIX)/usr/lib/systemd/user/pipelam.socket

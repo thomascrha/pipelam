@@ -1,6 +1,6 @@
-pkgbase = pipelam-git
+pkgbase = pipelam
 	pkgdesc = A lightweight GTK4-based notification system for displaying text, images, and progress bars
-	pkgver = v0.1.9.r1.g51c93a1
+	pkgver = 0.1.9
 	pkgrel = 1
 	url = https://github.com/thomascrha/pipelam
 	arch = x86_64
@@ -9,13 +9,10 @@ pkgbase = pipelam-git
 	makedepends = clang
 	makedepends = make
 	makedepends = scdoc
-	makedepends = git
 	depends = gtk4
 	depends = gtk4-layer-shell
 	optdepends = systemd: for systemd socket activation
-	provides = pipelam
-	conflicts = pipelam
 	source = git+file:///home/tcrha/Projects/pipelam
 	sha256sums = SKIP
 
-pkgname = pipelam-git
+pkgname = pipelam
