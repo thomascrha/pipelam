@@ -1,6 +1,8 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <stdbool.h>
+
 #define RED "\033[0;31m"
 #define BOLD_RED "\033[1;31m"
 #define YELLOW "\033[0;33m"
@@ -11,9 +13,9 @@
 
 #define FALLBACK_WINDOW_TIMEOUT 2500
 #define FALLBACK_ANCHOR CENTER
-#define FALLBACK_MARGIN_LEFT 100
+#define FALLBACK_MARGIN_LEFT 0
 #define FALLBACK_MARGIN_RIGHT 0
-#define FALLBACK_MARGIN_TOP 100
+#define FALLBACK_MARGIN_TOP 0
 #define FALLBACK_MARGIN_BOTTOM 0
 
 #define MESSAGE_CURRENT_VERSION 0
@@ -47,6 +49,7 @@ struct pipelam_config {
     // Startrup behaviour
     char *log_level;
     enum pipelam_runtime_behaviour runtime_behaviour;
+    bool no_config_file;
 
     // Runtime behaviour
     // Message
@@ -106,10 +109,13 @@ struct pipelam_config {
     int default_wob_foreground_overflow_padding;
 };
 
-struct pipelam_config *pipelam_setup_config(const char *config_file_path);
+struct pipelam_config *pipelam_setup_config(int argc, char *argv[], const char *config_file_path);
 void pipelam_destroy_config(struct pipelam_config *config);
 void pipelam_reset_default_config(struct pipelam_config *config);
 void pipelam_log_level_set_from_string(const char *log_level);
+
+void pipelam_process_command_line_args(int argc, char *argv[], struct pipelam_config *config);
+void pipelam_help(void);
 
 // taken from, altered slightly https://github.com/welljsjs/Config-Parser-C/blob/master/parser.h
 #define CONFIG_ARG_MAX_BYTES 128

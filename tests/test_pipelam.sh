@@ -106,7 +106,8 @@ echo -e "${YELLOW}Press Enter to start testing...${NC}"
 read
 
 # Test modes
-MODES=("queue" "replace" "overlay")
+MODES=("overlay" "queue" "replace")
+
 
 for mode in "${MODES[@]}"; do
     # Test TEXT messages with different text

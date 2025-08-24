@@ -15,7 +15,11 @@ pipelam.toml - configuration file for pipelam
 
 The configuration file uses TOML format. Options specified in the user configuration file ($HOME/.config/pipelam/pipelam.toml) override those in the system configuration file (/etc/pipelam/pipelam.toml). Both configuration files are optional; if they do not exist, default values will be used.
 
-Additionally, environment variables that start with *PIPELAM_* followed by the uppercase setting name will override settings from any configuration file.
+Note: Configuration ordering is as follows (highest precedence first):
+1. Environment variables (starting with *PIPELAM_*)
+2. Command line options
+3. User configuration file ($HOME/.config/pipelam/pipelam.toml)
+4. System configuration file (/etc/pipelam/pipelam.toml)
 
 # CONFIG OPTIONS
 
