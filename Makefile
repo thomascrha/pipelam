@@ -1,6 +1,11 @@
+# Build directory
+BUILD_DIR       := build
+BUILD_MAN_DIR   := $(BUILD_DIR)/man
+BUILD_DEPS_DIR  := $(BUILD_DIR)/deps
+
 # Variables
 CFLAGS          := -O3 -Wall -Wextra -Wpedantic -std=c17
-CC              := clang
+INCFLAGS        := -I$(BUILD_DEPS_DIR)
 
 # Installation paths
 PREFIX          ?=
@@ -8,9 +13,6 @@ BINDIR          := $(PREFIX)/usr/bin
 
 # Default target
 .DEFAULT_GOAL   := help
-
-# Build directory
-BUILD_DIR       := build
 
 # Source files
 SRC_DIR         := src
@@ -35,47 +37,51 @@ TEST_OUTPUT     := $(BUILD_DIR)/test_runner
 # Output binary
 OUTPUT          := $(BUILD_DIR)/pipelam
 
+FIFO_PATH      := /tmp/pipelam.fifo
+
 build: build-dir download-json-h $(OUTPUT) ## Build and download all deps for the project
 
-help: ## Display this help message
+help:
 	@echo "Usage: make [target]"
 	@echo ""
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-build-dir: ## Create build directory if it doesn't exist
+build-dir:
 	@mkdir -p $(BUILD_DIR)
+	@mkdir -p $(BUILD_DEPS_DIR)
+	@mkdir -p $(BUILD_MAN_DIR)
 
 download-json-h: ## Download the json.h external single header lib
-	@if [ ! -f $(SRC_DIR)/json.h ]; then \
+	@if [ ! -f $(BUILD_DEPS_DIR)/json.h ]; then \
 		echo "Downloading json.h..."; \
-		curl -L $(JSON_H_LIB_URL) -o $(SRC_DIR)/json.h; \
+		curl -L $(JSON_H_LIB_URL) -o $(BUILD_DEPS_DIR)/json.h; \
 	fi
 
 # Create object files from C source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
 
 # Create object files from test C source files
 $(BUILD_DIR)/%.o: $(TEST_DIR)/%.c
-	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -c $< -o $@
 
 # Build the pipelam executable
 $(OUTPUT): $(OBJ_FILES)
-	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
 
 # Dependencies for object files
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.c $(SRC_DIR)/log.h $(SRC_DIR)/message.h $(SRC_DIR)/window.h $(SRC_DIR)/config.h
 $(BUILD_DIR)/log.o: $(SRC_DIR)/log.c $(SRC_DIR)/log.h $(SRC_DIR)/config.h
 $(BUILD_DIR)/window.o: $(SRC_DIR)/window.c $(SRC_DIR)/window.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
-$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h $(SRC_DIR)/json.h
+$(BUILD_DIR)/message.o: $(SRC_DIR)/message.c $(SRC_DIR)/message.h $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 $(BUILD_DIR)/config.o: $(SRC_DIR)/config.c $(SRC_DIR)/config.h $(SRC_DIR)/log.h
 
 # Build test runner
 $(TEST_OUTPUT): $(filter-out $(BUILD_DIR)/main.o, $(OBJ_FILES)) $(TEST_OBJ)
-	$(CC) $(CFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
+	$(CC) $(CFLAGS) $(INCFLAGS) $(GTK4_CFLAGS) $(GTK4_LAYER_SHELL_CFLAGS) -o $@ $^ $(GTK4_LIBS) $(GTK4_LAYER_SHELL_LIBS)
 
-clean: ## Remove built executables and object files
+clean: rm-fifo ## Remove build artifacts
 	@rm -rf $(BUILD_DIR)
 
 build-test: build-dir $(TEST_OUTPUT) ## Build the test suite
@@ -94,14 +100,19 @@ test: rebuild build-test ## Rebuild the project and run tests
 		exit 1; \
 	fi
 
-run: build ## Run the project
-	./$(OUTPUT) /tmp/pipelam.fifo
+fifo:
+	@mkfifo $(FIFO_PATH)
 
+rm-fifo:
+	@rm -f $(FIFO_PATH)
 
 debug: ## Build with enhanced debugging symbols for GDB
-	$(MAKE) CFLAGS="-ggdb -Wall -Wextra -Wpedantic -std=c17" build
+	$(MAKE) CFLAGS="-ggdb $(CFLAGS)" INCFLAGS="$(INCFLAGS)" build
 
-derun: debug ## Run the project in debug mode
+derun: debug fifo ## Run the project in debug mode
+	./$(OUTPUT) /tmp/pipelam.fifo
+
+run: build fifo ## Run the project
 	./$(OUTPUT) /tmp/pipelam.fifo
 
 release: test format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
@@ -112,10 +123,9 @@ release: test format ## Create a release NOTE: VERSION is required. Usage: make 
 	fi
 	@./scripts/create-release.sh $(VERSION)
 
-docs: ## Generate man pages from scdoc
-	@mkdir -p build/man
-	@scdoc < man/pipelam.1.scd > build/man/pipelam.1
-	@scdoc < man/pipelam.toml.5.scd > build/man/pipelam.toml.5
+docs: build-dir ## Generate man pages from scdoc
+	@scdoc < man/pipelam.1.scd > $(BUILD_DOC_DIR)/pipelam.1
+	@scdoc < man/pipelam.toml.5.scd > $(BUILD_DOC_DIR)/pipelam.toml.5
 
 install: ## Install pipelam to the system
 	@install -d $(BINDIR)
