@@ -246,23 +246,8 @@ static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) 
     return bar_width;
 }
 
-// Main render functions for each type
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
-
-    // debug print all the wob settings
-    pipelam_log_debug("WOB settings:");
-    pipelam_log_debug("wob_bar_width: %d", pipelam_config->wob_bar_width);
-    pipelam_log_debug("wob_bar_height: %d", pipelam_config->wob_bar_height);
-    pipelam_log_debug("wob_border_color: %s", pipelam_config->wob_border_color);
-    pipelam_log_debug("wob_background_color: %s", pipelam_config->wob_background_color);
-    pipelam_log_debug("wob_foreground_color: %s", pipelam_config->wob_foreground_color);
-    pipelam_log_debug("wob_box_color: %s", pipelam_config->wob_box_color);
-    pipelam_log_debug("wob_border_padding: %d", pipelam_config->wob_border_padding);
-    pipelam_log_debug("wob_border_margin: %d", pipelam_config->wob_border_margin);
-    pipelam_log_debug("wob_background_padding: %d", pipelam_config->wob_background_padding);
-    pipelam_log_debug("wob_foreground_padding: %d", pipelam_config->wob_foreground_padding);
-    pipelam_log_debug("wob_foreground_overflow_padding: %d", pipelam_config->wob_foreground_overflow_padding);
 
     int percentage = 0;
     if (pipelam_config->expression != NULL) {
@@ -275,9 +260,10 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     pipelam_log_debug("WOB value: %d%%", percentage);
 
     if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL) {
+        // In non-overlay mode, we can update the existing window
         GtkWidget *bar_fg = GTK_WIDGET(g_object_get_data(G_OBJECT(current_window), "pipelam-bar-fg"));
         if (GTK_IS_WIDGET(bar_fg)) {
-            pipelam_log_debug("Overlaying existing WOB window");
+            pipelam_log_debug("Updating existing WOB window");
 
             int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
             gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
@@ -305,23 +291,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
             // Reset the window timeout
             pipelam_reset_window_timeout(current_window, pipelam_config->window_timeout);
             pipelam_log_debug("Reset WOB window timeout");
-
-            gtk_window_present(current_window);
-            return;
-        }
-    } else if (current_window != NULL) {
-        GtkWidget *bar_fg = GTK_WIDGET(g_object_get_data(G_OBJECT(current_window), "pipelam-bar-fg"));
-        if (GTK_IS_WIDGET(bar_fg)) {
-            pipelam_log_debug("Updating existing WOB window");
-
-            int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
-            gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
-
-            pipelam_update_window_settings(current_window, pipelam_config);
-
-            // Reset the window timeout
-            pipelam_reset_window_timeout(current_window, pipelam_config->window_timeout);
-            pipelam_log_debug("Reset timeout");
 
             gtk_window_present(current_window);
             return;
@@ -392,8 +361,8 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
 
     pipelam_log_debug("window_timeout: %d", pipelam_config->window_timeout);
 
-    // If there's already a window, close it
-    if (current_window != NULL) {
+    // If we're in replace mode and there's already a window, close it
+    if (pipelam_config->runtime_behaviour == REPLACE && current_window != NULL) {
         pipelam_log_debug("Closing previous window");
         pipelam_close_window(current_window);
     }

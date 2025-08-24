@@ -1,4 +1,3 @@
-#include "cli.h"
 #include "log.h"
 #include "message.h"
 #include "window.h"
@@ -51,20 +50,15 @@ static gboolean pipelam_handle_pipe_input(GIOChannel *source, GIOCondition condi
 }
 
 int main(int argc, char *argv[]) {
-    struct pipelam_config *pipelam_config = pipelam_setup_config(NULL);
-    if (pipelam_config == NULL) {
-        pipelam_log_panic("Failed to setup pipelam config - exiting");
-        pipelam_destroy_config(pipelam_config);
-        return EXIT_FAILURE;
-    }
-
-    // Process command line arguments - these always override
-    // the config file and environment variables
-    pipelam_process_command_line_args(argc, argv, pipelam_config);
     if (optind >= argc) {
         pipelam_log_error("Please provide a FIFO pipe");
         pipelam_help();
         return EXIT_FAILURE;
+    }
+
+    struct pipelam_config *pipelam_config = pipelam_setup_config(argc, argv, NULL);
+    if (pipelam_config == NULL) {
+        pipelam_log_panic("Failed to setup pipelam config - exiting");
     }
 
     char *pipe_path = argv[optind];

@@ -18,9 +18,9 @@ anchor = "center" # The anchor point of the overlay; center means the overlay is
                 # top right corner of the screen; bottom-left means the overlay is anchored to the bottom left corner of
                 # the screen; bottom-right means the overlay is anchored to the bottom right corner of the screen.
                 # (Default: center) (Can be overridden by the JSON payload)
-margin_left = 100 # The margin from the left edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
+margin_left = 0 # The margin from the left edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_right = 0 # The margin from the right edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
-margin_top = 100 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
+margin_top = 0 # The margin from the top edge of the screen. (Default: 100) (Can be overridden by the JSON payload)
 margin_bottom = 0 # The margin from the bottom edge of the screen. (Default: 0) (Can be overridden by the JSON payload)
 
 # WOB bar behaviour

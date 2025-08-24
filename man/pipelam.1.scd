@@ -14,6 +14,12 @@ pipelam - lightweight overlay notification system for Wayland compositors
 
 Similar to wob (Wayland Overlay Bar), but built using GTK4 and gtk4-layer-shell instead of raw Wayland protocols.
 
+Note: Configuration ordering is as follows (highest precedence first):
+1. Environment variables (starting with *PIPELAM_*)
+2. Command line options
+3. User configuration file ($HOME/.config/pipelam/pipelam.toml)
+4. System configuration file (/etc/pipelam/pipelam.toml)
+
 # OPTIONS
 
 *-l, --log-level*=_LEVEL_

@@ -6,7 +6,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "../src/cli.h"
 #include "../src/config.h"
 #include "../src/log.h"
 
