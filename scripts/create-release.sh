@@ -67,21 +67,13 @@ git commit -F "$COMMIT_MSG_FILE"
 cp "$COMMIT_MSG_FILE" "$COMMIT_MSG_FILE.tag"
 TAG_MSG_FILE="$COMMIT_MSG_FILE.tag"
 
-# Check if tag exists and delete it if it does
-if git tag -l | grep -q "v$VERSION"; then
-    echo "Tag v$VERSION already exists. Deleting local and remote tag."
-    git tag -d "v$VERSION"
-    git push origin --delete "v$VERSION"
-fi
-
 echo "Creating tag v$VERSION..."
 git tag -a "v$VERSION" -F "$TAG_MSG_FILE"
 rm "$COMMIT_MSG_FILE" "$TAG_MSG_FILE"
 
 echo "Pushing changes and tag to remote repository..."
 git push origin main
-# Use --force to overwrite the tag on the remote if it exists
-git push origin "v$VERSION" --force
+git push origin "v$VERSION"
 
 echo "Version updated to v$VERSION in $CONFIG_FILE"
 echo "Changes committed and tag v$VERSION pushed to GitHub."
