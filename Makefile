@@ -124,8 +124,8 @@ release: test format ## Create a release NOTE: VERSION is required. Usage: make 
 	@./scripts/create-release.sh $(VERSION)
 
 docs: build-dir ## Generate man pages from scdoc
-	@scdoc < man/pipelam.1.scd > $(BUILD_DOC_DIR)/pipelam.1
-	@scdoc < man/pipelam.toml.5.scd > $(BUILD_DOC_DIR)/pipelam.toml.5
+	@scdoc < man/pipelam.1.scd > $(BUILD_MAN_DIR)/pipelam.1
+	@scdoc < man/pipelam.toml.5.scd > $(BUILD_MAN_DIR)/pipelam.toml.5
 
 install: ## Install pipelam to the system
 	@install -d $(BINDIR)
