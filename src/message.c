@@ -24,7 +24,6 @@ static enum pipelam_window_anchor pipelam_json_config_anchor_parse(struct json_s
 }
 
 static void pipelam_json_config_settings_parse(struct json_object_s *object, struct pipelam_config *config) {
-    char *keys[] = {"window_timeout", "anchor", "margin_left", "margin_right", "margin_top", "margin_bottom"};
 
     struct json_object_element_s *element = object->start;
     pipelam_log_debug("pipelam_json_config_settings_parse");
@@ -32,51 +31,109 @@ static void pipelam_json_config_settings_parse(struct json_object_s *object, str
         struct json_string_s *name = element->name;
         struct json_value_s *value = element->value;
 
-        for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); i++) {
-            char *key = keys[i];
-            if (0 == strcmp(name->string, key)) {
-                pipelam_log_debug("key: %s", key);
-                if (0 == strcmp(name->string, "window_timeout")) {
-                    struct json_number_s *_value = json_value_as_number(value);
-                    if (_value != NULL) {
-                        pipelam_log_debug("window_timeout: %s", _value->number);
-                        config->window_timeout = atoi(_value->number);
-                        pipelam_log_debug("window_timeout: %d", config->window_timeout);
-                    }
-                } else if (0 == strcmp(name->string, "anchor")) {
-                    struct json_string_s *_value = json_value_as_string(value);
-                    pipelam_log_debug("anchor: %s", _value->string);
-                    if (_value != NULL) {
-                        config->anchor = pipelam_json_config_anchor_parse(_value);
-                    }
-                } else if (0 == strcmp(name->string, "margin_left")) {
-                    struct json_number_s *_value = json_value_as_number(value);
-                    if (_value != NULL) {
-                        config->margin_left = atoi(_value->number);
-                    }
-                } else if (0 == strcmp(name->string, "margin_right")) {
-                    struct json_number_s *_value = json_value_as_number(value);
-                    if (_value != NULL) {
-                        config->margin_right = atoi(_value->number);
-                    }
-                } else if (0 == strcmp(name->string, "margin_top")) {
-                    struct json_number_s *_value = json_value_as_number(value);
-                    if (_value != NULL) {
-                        config->margin_top = atoi(_value->number);
-                    }
-                } else if (0 == strcmp(name->string, "margin_bottom")) {
-                    struct json_number_s *_value = json_value_as_number(value);
-                    if (_value != NULL) {
-                        config->margin_bottom = atoi(_value->number);
-                    }
-                } else {
-                    pipelam_log_error("unknown key: %s", name->string);
-                }
+        pipelam_log_debug("key: %s", name->string);
+        if (0 == strcmp(name->string, "window_timeout")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->window_timeout = atoi(_value->number);
             }
+        } else if (0 == strcmp(name->string, "anchor")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->anchor = pipelam_json_config_anchor_parse(_value);
+            }
+        } else if (0 == strcmp(name->string, "margin_left")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->margin_left = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "margin_right")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->margin_right = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "margin_top")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->margin_top = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "margin_bottom")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->margin_bottom = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_bar_height")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_bar_height = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_bar_width")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_bar_width = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_border_color")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->wob_border_color = (char *)_value->string;
+            }
+        } else if (0 == strcmp(name->string, "wob_background_color")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->wob_background_color = (char *)_value->string;
+            }
+        } else if (0 == strcmp(name->string, "wob_foreground_color")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->wob_foreground_color = (char *)_value->string;
+            }
+        } else if (0 == strcmp(name->string, "wob_overflow_color")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->wob_overflow_color = (char *)_value->string;
+            }
+        } else if (0 == strcmp(name->string, "wob_box_color")) {
+            struct json_string_s *_value = json_value_as_string(value);
+            if (_value != NULL) {
+                config->wob_box_color = (char *)_value->string;
+            }
+        } else if (0 == strcmp(name->string, "wob_box_padding")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_box_padding = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_border_padding")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_border_padding = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_border_margin")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_border_margin = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_background_padding")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_background_padding = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_foreground_padding")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_foreground_padding = atoi(_value->number);
+            }
+        } else if (0 == strcmp(name->string, "wob_foreground_overflow_padding")) {
+            struct json_number_s *_value = json_value_as_number(value);
+            if (_value != NULL) {
+                config->wob_foreground_overflow_padding = atoi(_value->number);
+            }
+        } else {
+            pipelam_log_debug("unknown settings key: %s", name->string);
         }
+
         element = element->next;
     }
-    pipelam_log_debug("window_timeout: %d", config->window_timeout);
+
 }
 
 static void pipelam_json_config_parse(struct json_object_s *object, struct pipelam_config *config) {

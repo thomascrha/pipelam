@@ -106,9 +106,6 @@ fifo:
 test-visually: rebuild ## Runs the project and sends commands to it for visual testing
 	./scripts/test_pipelam_visually.sh $(BUILD_DIR)/pipelam
 
-run: build ## Run the project
-	./$(OUTPUT) /tmp/pipelam.fifo
-
 rm-fifo:
 	@rm -f $(FIFO_PATH)
 

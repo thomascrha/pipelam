@@ -246,6 +246,26 @@ static int pipelam_get_bar_width(int percentage, struct pipelam_config *config) 
     return bar_width;
 }
 
+static void apply_wob_css(struct pipelam_config *config) {
+    GtkCssProvider *provider = gtk_css_provider_new();
+    char css_data[512];
+    snprintf(css_data, sizeof(css_data),
+             ".wob-box { background-color: %s; padding: %dpx; }"
+             ".wob-border { background-color: %s; padding: %dpx; margin: %dpx; }"
+             ".wob-background { background-color: %s; padding: %dpx; }"
+             ".wob-foreground { background-color: %s; padding: %dpx; }"
+             ".wob-foreground-overflow { background-color: %s; padding: %dpx; }",
+             config->wob_box_color, config->wob_box_padding, config->wob_border_color, config->wob_border_padding, config->wob_border_margin,
+             config->wob_background_color, config->wob_background_padding, config->wob_foreground_color, config->wob_foreground_padding,
+             config->wob_overflow_color, config->wob_foreground_overflow_padding);
+
+    gtk_css_provider_load_from_string(provider, css_data);
+
+    GdkDisplay *display = gdk_display_get_default();
+    gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+    g_object_unref(provider);
+}
+
 static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_config) {
     struct pipelam_config *pipelam_config = (struct pipelam_config *)ptr_pipelam_config;
 
@@ -259,12 +279,19 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     }
     pipelam_log_debug("WOB value: %d%%", percentage);
 
+    // Apply CSS styles from config. This is needed for both new and updated windows.
+    apply_wob_css(pipelam_config);
+
     if (pipelam_config->runtime_behaviour != OVERLAY && current_window != NULL) {
         // In non-overlay mode, we can update the existing window
         GtkWidget *bar_fg = GTK_WIDGET(g_object_get_data(G_OBJECT(current_window), "pipelam-bar-fg"));
         if (GTK_IS_WIDGET(bar_fg)) {
             pipelam_log_debug("Updating existing WOB window");
 
+            GtkWidget *bar_bg = gtk_widget_get_parent(bar_fg);
+
+            // Update bar sizes based on new config
+            gtk_widget_set_size_request(bar_bg, pipelam_config->wob_bar_width, pipelam_config->wob_bar_height);
             int bar_width = pipelam_get_bar_width(percentage, pipelam_config);
             gtk_widget_set_size_request(bar_fg, bar_width, pipelam_config->wob_bar_height);
 
@@ -335,22 +362,6 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     gtk_widget_add_css_class(border_container, "wob-border");
     gtk_widget_add_css_class(bar_bg, "wob-background");
 
-    GtkCssProvider *provider = gtk_css_provider_new();
-    char css_data[512];
-    snprintf(css_data, sizeof(css_data),
-             ".wob-box { background-color: %s; padding: %dpx; }"
-             ".wob-border { background-color: %s; padding: %dpx; margin: %dpx; }"
-             ".wob-background { background-color: %s; padding: %dpx; }"
-             ".wob-foreground { background-color: %s; padding: %dpx; }"
-             ".wob-foreground-overflow { background-color: %s; padding: %dpx; }",
-             pipelam_config->wob_box_color, pipelam_config->wob_box_padding, pipelam_config->wob_border_color, pipelam_config->wob_border_padding, pipelam_config->wob_border_margin,
-             pipelam_config->wob_background_color, pipelam_config->wob_background_padding, pipelam_config->wob_foreground_color, pipelam_config->wob_foreground_padding,
-             pipelam_config->wob_overflow_color, pipelam_config->wob_foreground_overflow_padding);
-
-    gtk_css_provider_load_from_string(provider, css_data);
-
-    GdkDisplay *display = gdk_display_get_default();
-    gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
     gtk_box_append(GTK_BOX(bar_bg), new_bar_fg);
     gtk_box_append(GTK_BOX(border_container), bar_bg);
@@ -373,7 +384,7 @@ static void pipelam_render_wob_window(GtkApplication *app, gpointer ptr_pipelam_
     pipelam_log_debug("Set new WOB window timeout");
 
     gtk_window_present(gtk_window);
-    g_object_unref(provider);
+
 }
 
 static void pipelam_render_image_window(GtkApplication *app, gpointer ptr_pipelam_config) {

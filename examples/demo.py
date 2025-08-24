@@ -137,4 +137,152 @@ message = {
 send_message("overlay", json.dumps(message))
 time.sleep(window_timeout / 1000)
 
+time.sleep(0.5)
+
+# Demo 1: Custom Bar Size
+window_timeout = 4000
+message = {
+    "type": "text",
+    "expression": f"<span font_desc='Sans Bold 20' color='{TEXT_COLOR}'>Demonstrating <span color='{HIGHLIGHT_COLOR}'>custom bar size</span>. A very wide and short progress bar.</span>",
+    "settings": {
+        "window_timeout": window_timeout,
+        "background": BG_COLOR,
+        "border_color": ACCENT_COLOR,
+        "border_size": 2,
+        "padding": 20,
+        "width": 600,
+        "height": 100,
+        "anchor": "center"
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(window_timeout / 1000 / 2)
+
+message = {
+    "type": "wob",
+    "expression": "60",
+    "settings": {
+        "window_timeout": 2000,
+        "margin_top": 120,
+        "wob_bar_width": 800,
+        "wob_bar_height": 15,
+        "anchor": "top-right",
+        "margin_top": 620,
+        "margin_right": 900,
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(0.5)
+
+
+# Demo 2: Custom Bar Colors
+window_timeout = 4000
+message = {
+    "type": "text",
+    "expression": f"<span font_desc='Sans Bold 20' color='{TEXT_COLOR}'>Demonstrating <span color='{HIGHLIGHT_COLOR}'>custom colors</span>. A funky green on blue progress bar with a yellow border.</span>",
+    "settings": {
+        "window_timeout": window_timeout,
+        "background": BG_COLOR,
+        "border_color": ACCENT_COLOR,
+        "border_size": 2,
+        "padding": 20,
+        "width": 700,
+        "height": 100,
+        "anchor": "center"
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(window_timeout / 1000 / 2)
+
+message = {
+    "type": "wob",
+    "expression": "80",
+    "settings": {
+        "window_timeout": 2000,
+        "margin_top": 120,
+        "wob_border_color": "yellow",
+        "wob_background_color": "#0000FF",
+        "wob_foreground_color": "green",
+        "anchor": "top-right",
+        "margin_top": 620,
+        "margin_right": 900,
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(0.5)
+
+
+# Demo 3: Custom Overflow Color
+window_timeout = 4000
+message = {
+    "type": "text",
+    "expression": f"<span font_desc='Sans Bold 20' color='{TEXT_COLOR}'>Demonstrating <span color='{HIGHLIGHT_COLOR}'>custom overflow color</span>. The overflow portion will be purple.</span>",
+    "settings": {
+        "window_timeout": window_timeout,
+        "background": BG_COLOR,
+        "border_color": ACCENT_COLOR,
+        "border_size": 2,
+        "padding": 20,
+        "width": 700,
+        "height": 100,
+        "anchor": "center"
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(window_timeout / 1000 / 2)
+
+message = {
+    "type": "wob",
+    "expression": "125",
+    "settings": {
+        "window_timeout": 2000,
+        "margin_bottom": 120,
+        "wob_foreground_color": "cyan",
+        "wob_overflow_color": "purple",
+        "anchor": "top-right",
+        "margin_top": 620,
+        "margin_right": 900,
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(0.5)
+
+
+# Demo 4: Custom Padding
+window_timeout = 4000
+message = {
+    "type": "text",
+    "expression": f"<span font_desc='Sans Bold 20' color='{TEXT_COLOR}'>Demonstrating <span color='{HIGHLIGHT_COLOR}'>custom padding</span>. A thick border and background padding.</span>",
+    "settings": {
+        "window_timeout": window_timeout,
+        "background": BG_COLOR,
+        "border_color": ACCENT_COLOR,
+        "border_size": 2,
+        "padding": 20,
+        "width": 700,
+        "height": 100,
+        "anchor": "center"
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(window_timeout / 1000 / 2)
+
+message = {
+    "type": "wob",
+    "expression": "50",
+    "settings": {
+        "window_timeout": 2000,
+        "anchor": "center",
+        "margin_top": 120,
+        "wob_border_padding": 10,
+        "wob_background_padding": 10,
+        "anchor": "top-right",
+        "margin_top": 620,
+        "margin_right": 900,
+    }
+}
+send_message("overlay", json.dumps(message))
+time.sleep(0.5)
+
+
 stop_pipelams(pipelam_pids)
