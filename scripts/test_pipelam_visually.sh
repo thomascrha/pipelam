@@ -1,18 +1,32 @@
 #!/bin/bash
 
+
 # Colors for better readability
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-# Path to the pipelam binary - adjust if needed
-PIPELAM_BIN="../build/pipelam"
+PIPELAM_BIN=$1
+if [ -z "$PIPELAM_BIN" ]; then
+    PIPELAM_BIN="../build/pipelam"
+fi
+
 PIPE_PATH="/tmp/pipelam_test_pipe"
 
 # Test image path - adjust to point to a real image
-TEST_IMAGE1="../examples/example.png"
-TEST_IMAGE2="../examples/example1.png"
+TEST_IMAGE1_URL="https://raw.githubusercontent.com/mohammadimtiazz/standard-test-images-for-Image-Processing/refs/heads/master/standard_test_images/fruits.png"
+TEST_IMAGE2_URL="https://raw.githubusercontent.com/mohammadimtiazz/standard-test-images-for-Image-Processing/refs/heads/master/standard_test_images/boat.png"
+TEST_IMAGE1="/tmp/example.png"
+TEST_IMAGE2="/tmp/example1.png"
+
+if [ ! -f "$TEST_IMAGE1" ]; then
+    wget -q "$TEST_IMAGE1_URL" -O "$TEST_IMAGE1"
+fi
+if [ ! -f "$TEST_IMAGE2" ]; then
+    wget -q "$TEST_IMAGE2_URL" -O "$TEST_IMAGE2"
+fi
 
 # Make sure to clean up on exit
 cleanup() {
@@ -89,18 +103,8 @@ run_test() {
     sleep 1
 }
 
-# check the current working directory ends in tests
-if [[ ! $PWD =~ tests$ ]]; then
-    echo -e "${YELLOW}Please run this script from the tests directory.${NC}"
-    exit 1
-fi
-
-# rebuild pipelam to make sure we are testing the latest version
-cd ../
-make rebuild
-cd tests
-
 # Start testing each mode with each message type
+echo -e "${RED}This script expects to be run via the Makefile in the parent directory.${NC}"
 echo -e "${GREEN}Pipelam Test Suite${NC}"
 echo -e "${YELLOW}Press Enter to start testing...${NC}"
 read
