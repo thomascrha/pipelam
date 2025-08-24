@@ -104,7 +104,7 @@ debug: ## Build with enhanced debugging symbols for GDB
 derun: debug ## Run the project in debug mode
 	./$(OUTPUT) /tmp/pipelam.fifo
 
-release: format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
+release: test format ## Create a release NOTE: VERSION is required. Usage: make release VERSION=X.Y.Z
 	@echo "Creating release..."
 	@if [ -z "$(VERSION)" ]; then \
 		echo "Error: VERSION is required. Usage: make release VERSION=X.Y.Z"; \

@@ -8,7 +8,9 @@
 static void test_parse_plain_text(void) {
     pipelam_log_test("Testing plain text message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -46,7 +48,9 @@ static void test_parse_plain_text(void) {
 static void test_parse_json_text(void) {
     pipelam_log_test("Testing JSON text message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -85,7 +89,9 @@ static void test_parse_json_text(void) {
 static void test_parse_json_image(void) {
     pipelam_log_test("Testing JSON image message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -123,7 +129,9 @@ static void test_parse_json_image(void) {
 static void test_parse_invalid_json(void) {
     pipelam_log_test("Testing invalid JSON message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -155,7 +163,9 @@ static void test_parse_invalid_json(void) {
 static void test_partial_json_settings(void) {
     pipelam_log_test("Testing partial JSON settings...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -189,7 +199,9 @@ static void test_partial_json_settings(void) {
 static void test_empty_json_message(void) {
     pipelam_log_test("Testing empty JSON message...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
     pipelam_log_level_set(LOG_DEBUG);
 
     config->window_timeout = 1000;
@@ -213,7 +225,9 @@ static void test_empty_json_message(void) {
 static void test_all_json_anchors(void) {
     pipelam_log_test("Testing all anchor types in JSON...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     const char *anchor_tests[][2] = {{"bottom-left", "BOTTOM_LEFT"}, {"bottom-right", "BOTTOM_RIGHT"}, {"top-left", "TOP_LEFT"}, {"top-right", "TOP_RIGHT"}, {"center", "CENTER"}};
 
@@ -255,7 +269,9 @@ static void test_all_json_anchors(void) {
 static void test_malformed_valid_json(void) {
     pipelam_log_test("Testing malformed but valid JSON...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -277,7 +293,9 @@ static void test_malformed_valid_json(void) {
 static void test_long_text_message(void) {
     pipelam_log_test("Testing extremely long text message...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -302,7 +320,9 @@ static void test_long_text_message(void) {
 static void test_parse_wob_integer(void) {
     pipelam_log_test("Testing WOB integer message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;
@@ -324,7 +344,9 @@ static void test_parse_wob_integer(void) {
 static void test_parse_wob_edge_cases(void) {
     pipelam_log_test("Testing WOB integer edge cases...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     // Test cases: 0, 100, negative, with whitespace, non-integer
     const char *test_cases[] = {"0", "100", "-10", "  50  ", "75.5"};
@@ -348,7 +370,9 @@ static void test_parse_wob_edge_cases(void) {
 static void test_parse_json_wob(void) {
     pipelam_log_test("Testing JSON WOB message parsing...");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     config->window_timeout = 1000;
     config->anchor = TOP_RIGHT;

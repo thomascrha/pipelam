@@ -24,7 +24,9 @@ static void test_default_config(void) {
     unsetenv("PIPELAM_MARGIN_BOTTOM");
     unsetenv("PIPELAM_CONFIG_FILE_PATH");
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     assert(config != NULL);
     assert(strcmp(config->log_level, "INFO") == 0);
@@ -76,7 +78,9 @@ static void test_config_from_file(void) {
     unsetenv("PIPELAM_MARGIN_TOP");
     unsetenv("PIPELAM_MARGIN_BOTTOM");
 
-    struct pipelam_config *config = pipelam_setup_config(temp_file);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
 
     pipelam_log_test("Current value in log_level %s", config->log_level);
 
@@ -119,7 +123,9 @@ static void test_config_from_env(void) {
     setenv("PIPELAM_MARGIN_TOP", "45", 1);
     setenv("PIPELAM_MARGIN_BOTTOM", "55", 1);
 
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, NULL);
 
     assert(config != NULL);
     assert(strcmp(config->log_level, "WARNING") == 0);
@@ -174,7 +180,9 @@ static void test_env_override_file(void) {
     setenv("PIPELAM_WINDOW_TIMEOUT", "3000", 1);
     setenv("PIPELAM_MARGIN_LEFT", "100", 1);
 
-    struct pipelam_config *config = pipelam_setup_config(temp_file);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
 
     pipelam_log_test("Current value in anchor %d", config->anchor);
     pipelam_log_test("BOTTOM_RIGHT value %d", BOTTOM_RIGHT);
@@ -214,7 +222,9 @@ static void test_invalid_config(void) {
     assert(temp_file != NULL);
 
     // Load the config - it should fall back to defaults for invalid values
-    struct pipelam_config *config = pipelam_setup_config(NULL);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
 
     // Values should be defaults when invalid
     assert(config != NULL);
@@ -245,7 +255,9 @@ static void test_all_runtime_behaviour_values(void) {
         char *temp_file = create_temp_config_file(config_content);
         assert(temp_file != NULL);
 
-        struct pipelam_config *config = pipelam_setup_config(temp_file);
+        char *argv[] = {"pipelam", "/path/to/pipe"};
+        int argc = sizeof(argv) / sizeof(argv[0]);
+        struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
         assert(config != NULL);
 
         // Convert runtime_behaviour enum to int for comparison
@@ -281,7 +293,9 @@ static void test_all_anchor_values(void) {
         char *temp_file = create_temp_config_file(config_content);
         assert(temp_file != NULL);
 
-        struct pipelam_config *config = pipelam_setup_config(temp_file);
+        char *argv[] = {"pipelam", "/path/to/pipe"};
+        int argc = sizeof(argv) / sizeof(argv[0]);
+        struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
         assert(config != NULL);
 
         // Convert anchor enum to int for comparison to avoid string/pointer comparison issues
@@ -325,7 +339,9 @@ static void test_extreme_window_timeout(void) {
         char *temp_file = create_temp_config_file(config_content);
         assert(temp_file != NULL);
 
-        struct pipelam_config *config = pipelam_setup_config(temp_file);
+        char *argv[] = {"pipelam", "/path/to/pipe"};
+        int argc = sizeof(argv) / sizeof(argv[0]);
+        struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
         assert(config != NULL);
 
         int expected = atoi(timeout_tests[i][1]);
@@ -356,7 +372,9 @@ static void test_config_with_comments(void) {
     char *temp_file = create_temp_config_file(config_content);
     assert(temp_file != NULL);
 
-    struct pipelam_config *config = pipelam_setup_config(temp_file);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
     assert(config != NULL);
 
     // Verify the non-comment lines were parsed correctly
@@ -382,7 +400,9 @@ static void test_margin_edge_cases(void) {
     char *temp_file = create_temp_config_file(config_content);
     assert(temp_file != NULL);
 
-    struct pipelam_config *config = pipelam_setup_config(temp_file);
+    char *argv[] = {"pipelam", "/path/to/pipe"};
+    int argc = sizeof(argv) / sizeof(argv[0]);
+    struct pipelam_config *config = pipelam_setup_config(argc, argv, temp_file);
     assert(config != NULL);
 
     // Verify all margins are zero
@@ -402,7 +422,7 @@ static void test_margin_edge_cases(void) {
     temp_file = create_temp_config_file(config_content2);
     assert(temp_file != NULL);
 
-    config = pipelam_setup_config(temp_file);
+    config = pipelam_setup_config(argc, argv, temp_file);
     assert(config != NULL);
 
     // Verify negative margins

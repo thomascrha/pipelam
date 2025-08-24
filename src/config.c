@@ -258,22 +258,12 @@ void pipelam_reset_default_config(struct pipelam_config *config) {
     config->version = MESSAGE_CURRENT_VERSION;
 }
 
-static void pipelam_set_log_level_from_env(struct pipelam_config *config) {
-    pipelam_log_debug("Overridng Log Level from Environment");
+void pipelam_override_from_environment(struct pipelam_config *config) {
     const char *log_level_env = getenv("PIPELAM_LOG_LEVEL");
     if (log_level_env != NULL) {
         config->log_level = (char *)log_level_env;
+        pipelam_log_level_set_from_string(config->log_level);
     }
-
-    // anything other than info logs befor this point will only print log info as the level isn't set until this point
-    // and the log level is set to info by default
-    pipelam_log_level_set_from_string(config->log_level);
-    pipelam_log_debug("log_level: %s", config->log_level);
-    pipelam_log_debug("backgorund_color: %s", config->wob_background_color);
-    pipelam_log_debug("forground_color: %s", config->wob_foreground_color);
-}
-
-void pipelam_override_from_environment(struct pipelam_config *config) {
 
     const char *runtime_behaviour_env = getenv("PIPELAM_RUNTIME_BEHAVIOUR");
     if (runtime_behaviour_env != NULL) {
@@ -777,8 +767,6 @@ struct pipelam_config *pipelam_setup_config(int argc, char *argv[], const char *
     config->type = TEXT;
     config->version = MESSAGE_CURRENT_VERSION;
 
-    pipelam_set_log_level_from_env(config);
-
     char *config_fp = pipelam_get_config_file(config_file_path);
     if (config_fp != NULL) {
         bool config_parsed = pipelam_parse_config_file(config_fp, config);
@@ -789,8 +777,11 @@ struct pipelam_config *pipelam_setup_config(int argc, char *argv[], const char *
         pipelam_log_warning("No config file found, using default values");
     }
 
-    pipelam_process_command_line_args(argc, argv, config);
     pipelam_override_from_environment(config);
+    pipelam_process_command_line_args(argc, argv, config);
+
+    // Set the log level from the final config value
+    pipelam_log_level_set_from_string(config->log_level);
 
     return config;
 }
