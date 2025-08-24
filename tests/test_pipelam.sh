@@ -65,7 +65,7 @@ run_test() {
     echo -e "${GREEN}==========================================${NC}"
 
     echo -e "${BLUE}Starting pipelam in $mode mode...${NC}"
-    $PIPELAM_BIN --runtime-behaviour="$mode" --log-level=DEBUG "$PIPE_PATH" &
+    $PIPELAM_BIN --runtime-behaviour="$mode" "$PIPE_PATH" &
 
     # Give pipelam time to start
     sleep 1
@@ -107,7 +107,6 @@ read
 
 # Test modes
 MODES=("overlay" "queue" "replace")
-
 
 for mode in "${MODES[@]}"; do
     # Test TEXT messages with different text
